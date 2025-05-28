@@ -1,4 +1,4 @@
-# 🌿 **EcoSorter** — 智能垃圾分类督导系统 · 需求分析与设计文档  
+# 🌿 **EcoSorter** — 智能垃圾分类督导系统 · 需求分析设计  
 [![Gitee Stars](https://gitee.com/Yangshengzhou/eco-sorter/badge/star.svg?theme=dark)](https://gitee.com/Yangshengzhou/eco-sorter)
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
