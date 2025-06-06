@@ -1,8 +1,11 @@
 # 🗑️ EcoSorter: GreenGuardian - 智能垃圾分类督导系统 🚀  
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) 
+[![GitHub stars](https://img.shields.io/github/stars/YangShengzhou03/eco-sorter?style=social)](https://github.com/YangShengzhou03/eco-sorter) 
 [![Gitee Stars](https://gitee.com/Yangshengzhou/eco-sorter/badge/star.svg?theme=dark)](https://gitee.com/Yangshengzhou/eco-sorter)
 [![Gitee Fork](https://gitee.com/Yangshengzhou/eco-sorter/badge/fork.svg?theme=dark)](https://gitee.com/Yangshengzhou/eco-sorter)
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Docs](https://img.shields.io/badge/docs-passing-brightgreen)](https://gitee.com/Yangshengzhou/eco-sorter)
+[![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/) 
+[![Downloads](https://img.shields.io/badge/downloads-10K%2B-brightgreen)](https://github.com/YangShengzhou03/LeafView/releases)
 
 ## 🌍 目录
 - [项目简介](#-项目简介)
