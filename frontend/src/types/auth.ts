@@ -33,7 +33,45 @@ export interface AuthState {
   error: string | null
 }
 
-export type UserRole = 'admin' | 'supervisor' | 'user' | 'guest'
+export type UserRole = 'admin' | 'collector' | 'resident' | 'guest'
+
+// 角色权限配置
+export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
+  admin: [
+    'user:manage',
+    'device:monitor', 
+    'rule:configure',
+    'data:analyze',
+    'system:settings',
+    'report:view',
+    'waste:classify'
+  ],
+  collector: [
+    'task:receive',
+    'task:execute',
+    'device:report',
+    'route:plan',
+    'statistics:view',
+    'waste:classify'
+  ],
+  resident: [
+    'waste:classify',
+    'record:view',
+    'points:manage',
+    'appeal:create',
+    'notification:receive',
+    'profile:manage'
+  ],
+  guest: ['waste:classify']
+}
+
+// 角色显示名称
+export const ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
+  admin: '系统管理员',
+  collector: '垃圾收集员',
+  resident: '居民用户',
+  guest: '访客'
+}
 
 export interface Permission {
   resource: string

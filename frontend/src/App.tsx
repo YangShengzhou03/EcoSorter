@@ -4,10 +4,14 @@ import { useAuthStore } from '@/store/auth'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { PublicRoute } from '@/components/auth/PublicRoute'
+import { RoleBasedRedirect } from '@/components/auth/RoleBasedRedirect'
 
 // Lazy load pages for better performance
 const LoginPage = React.lazy(() => import('@/pages/auth/LoginPage'))
 const DashboardPage = React.lazy(() => import('@/pages/dashboard/DashboardPage'))
+const ResidentDashboard = React.lazy(() => import('@/pages/resident/ResidentDashboard'))
+const CollectorDashboard = React.lazy(() => import('@/pages/collector/CollectorDashboard'))
+const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard'))
 const WasteClassificationPage = React.lazy(() => import('@/pages/waste/WasteClassificationPage'))
 const StatisticsPage = React.lazy(() => import('@/pages/statistics/StatisticsPage'))
 const SettingsPage = React.lazy(() => import('@/pages/settings/SettingsPage'))
@@ -44,12 +48,38 @@ function App() {
             }
           />
 
-          {/* Protected routes */}
+          {/* Protected routes with role-based redirection */}
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute isAuthenticated={isAuthenticated}>
-                <DashboardPage />
+                <RoleBasedRedirect />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Role-specific dashboards */}
+          <Route
+            path="/resident"
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <ResidentDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/collector"
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <CollectorDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />

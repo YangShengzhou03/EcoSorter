@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { authService } from '@/services/auth'
-import { User, AuthState, LoginCredentials } from '@/types/auth'
+import { User, AuthState, LoginCredentials, UserRole, ROLE_PERMISSIONS } from '@/types/auth'
 
 interface AuthStore extends AuthState {
   login: (credentials: LoginCredentials) => Promise<{ success: boolean; error?: string }>
@@ -9,6 +9,8 @@ interface AuthStore extends AuthState {
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
   clearError: () => void
+  hasPermission: (permission: string) => boolean
+  hasRole: (role: UserRole) => boolean
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -65,6 +67,15 @@ export const useAuthStore = create<AuthStore>()(
       setLoading: (loading: boolean) => set({ isLoading: loading }),
       setError: (error: string | null) => set({ error }),
       clearError: () => set({ error: null }),
+      hasPermission: (permission: string) => {
+        const { currentUser } = get()
+        if (!currentUser) return false
+        return ROLE_PERMISSIONS[currentUser.role].includes(permission)
+      },
+      hasRole: (role: UserRole) => {
+        const { currentUser } = get()
+        return currentUser?.role === role
+      },
     }),
     {
       name: 'auth-storage',

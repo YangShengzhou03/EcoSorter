@@ -63,7 +63,7 @@ const LoginPage: React.FC = () => {
           <CardHeader>
             <CardTitle>用户登录</CardTitle>
             <CardDescription>
-              支持管理员、督导员、普通用户等多种角色登录
+              支持管理员、垃圾收集员、居民用户等多种角色登录
             </CardDescription>
           </CardHeader>
           
@@ -144,8 +144,8 @@ const LoginPage: React.FC = () => {
               <h3 className="text-sm font-medium text-gray-900 mb-2">演示账号：</h3>
               <div className="text-xs text-gray-600 space-y-1">
                 <p>管理员: admin / admin123</p>
-                <p>督导员: supervisor / supervisor123</p>
-                <p>普通用户: user / user123</p>
+                <p>垃圾收集员: collector / collector123</p>
+                <p>居民用户: resident / resident123</p>
               </div>
             </div>
           </CardContent>
