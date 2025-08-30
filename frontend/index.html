@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="智能垃圾分类督导系统 - 基于AI的垃圾分类识别与管理平台" />
+    <meta name="keywords" content="垃圾分类,AI识别,环保,可持续发展,智能督导" />
+    <meta name="theme-color" content="#16a34a" />
+    
+    <!-- Preconnect to external domains for better performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Inter font from Google Fonts with fallback -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
+    <noscript>
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        }
+      </style>
+    </noscript>
+    
+    <!-- Favicon and app icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    
+    <!-- PWA support -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="智能垃圾分类" />
+    
+    <title>智能垃圾分类督导系统</title>
+    
+    <!-- Environment variables -->
+    <script>
+      window.APP_CONFIG = {
+        VITE_API_BASE_URL: 'http://localhost:3000/api',
+        VITE_APP_VERSION: '1.0.0',
+        VITE_ENABLE_ANALYTICS: 'false',
+        VITE_SENTRY_DSN: '',
+      };
+    </script>
+    
+    <!-- Performance optimizations -->
+    <style>
+      /* Critical CSS for initial loading */
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: #f9fafb;
+        color: #374151;
+      }
+      
+      #root {
+        min-height: 100vh;
+      }
+      
+      /* Loading spinner styles */
+      .loading-spinner {
+        border: 2px solid #f3f4f6;
+        border-top: 2px solid #3b82f6;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div id="root">
+      <!-- Initial loading state -->
+      <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
+        <div style="text-align: center;">
+          <div class="loading-spinner" style="margin: 0 auto 16px;"></div>
+          <p style="color: #6b7280; font-size: 14px;">加载中...</p>
+        </div>
+      </div>
+    </div>
+    
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Performance monitoring (optional) -->
+    <script>
+      if (window.APP_CONFIG.VITE_ENABLE_ANALYTICS === 'true') {
+        // Add analytics script here
+        console.log('Analytics enabled');
+      }
+      
+      // Error tracking
+      window.addEventListener('error', (event) => {
+        console.error('Global error:', event.error);
+      });
+      
+      window.addEventListener('unhandledrejection', (event) => {
+        console.error('Unhandled promise rejection:', event.reason);
+      });
+    </script>
+  </body>
+</html>
