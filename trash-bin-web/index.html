@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- PWA配置 -->
+    <meta name="theme-color" content="#22c55e" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="EcoSorter Trash Bin" />
+    
+    <!-- 摄像头权限提示 -->
+    <meta name="description" content="智能垃圾桶Web客户端 - 垃圾分类识别与积分系统" />
+    
+    <!-- 全屏模式支持 -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    
+    <!-- 防止缩放 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    <!-- 防止文本选择 -->
+    <style>
+      * {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+      }
+      
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        background: #000;
+      }
+      
+      #root {
+        width: 100vw;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+      }
+    </style>
+    
+    <title>EcoSorter Trash Bin - 智能垃圾分类系统</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- TensorFlow.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.2/dist/coco-ssd.min.js"></script>
+    
+    <!-- 设备检测脚本 -->
+    <script>
+      // 检测设备类型和功能支持
+      const deviceInfo = {
+        isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+        isTouchDevice: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
+        supportsCamera: navigator.mediaDevices && navigator.mediaDevices.getUserMedia,
+        supportsFullscreen: document.fullscreenEnabled || document.webkitFullscreenEnabled,
+        supportsVibration: 'vibrate' in navigator,
+        userAgent: navigator.userAgent
+      };
+      
+      // 存储设备信息到localStorage
+      localStorage.setItem('deviceInfo', JSON.stringify(deviceInfo));
+      
+      // 自动进入全屏模式（如果支持）
+      if (deviceInfo.supportsFullscreen && !deviceInfo.isMobile) {
+        document.documentElement.requestFullscreen?.()
+          .catch(err => console.log('Fullscreen error:', err));
+      }
+      
+      // 防止页面离开
+      window.addEventListener('beforeunload', (e) => {
+        e.preventDefault();
+        e.returnValue = '';
+      });
+      
+      // 错误处理
+      window.addEventListener('error', (e) => {
+        console.error('Global error:', e.error);
+        // 可以在这里发送错误日志到服务器
+      });
+      
+      // 离线检测
+      window.addEventListener('online', () => {
+        console.log('Application is online');
+        document.dispatchEvent(new CustomEvent('appOnline'));
+      });
+      
+      window.addEventListener('offline', () => {
+        console.log('Application is offline');
+        document.dispatchEvent(new CustomEvent('appOffline'));
+      });
+    </script>
+  </body>
+</html>

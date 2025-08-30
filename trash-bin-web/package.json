@@ -1,0 +1,66 @@
+{
+  "name": "eco-sorter-trash-bin-web",
+  "version": "1.0.0",
+  "description": "智能垃圾桶Web客户端 - 搭载在垃圾桶设备的浏览器中，支持摄像头识别和积分领取",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "build:production": "vite build --mode production"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.14.0",
+    "axios": "^1.4.0",
+    "zustand": "^4.3.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^1.14.0",
+    "lucide-react": "^0.263.0",
+    "date-fns": "^2.30.0",
+    "react-hot-toast": "^2.4.0",
+    "framer-motion": "^10.12.0",
+    "qrcode.react": "^3.1.0",
+    "socket.io-client": "^4.7.0",
+    "@tensorflow/tfjs": "^4.10.0",
+    "@tensorflow/tfjs-data": "^4.10.0",
+    "@tensorflow-models/coco-ssd": "^2.2.2",
+    "@tensorflow-models/mobilenet": "^2.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^8.45.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5.1.0",
+    "vite": "^4.4.0",
+    "vite-plugin-svgr": "^4.0.0",
+    "@vitest/coverage-v8": "^0.34.0",
+    "vitest": "^0.34.0",
+    "vite-plugin-pwa": "^0.16.0"
+  },
+  "browserslist": {
+    "production": [
+      "last 2 chrome versions",
+      "last 2 firefox versions",
+      "last 2 edge versions"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version"
+    ]
+  }
+}

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme. -->
+    <style name="Base.Theme.EcoSorter" parent="Theme.Material3.DayNight">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/text_primary_dark</item>
+        
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorSecondaryVariant">@color/secondary_dark</item>
+        <item name="colorOnSecondary">@color/text_primary_dark</item>
+        
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:navigationBarColor">?attr/colorPrimaryVariant</item>
+        
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        
+        <!-- Material3 specific attributes -->
+        <item name="materialThemeOverlay">@style/ThemeOverlay.EcoSorter</item>
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.EcoSorter.Small</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.EcoSorter.Medium</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.EcoSorter.Large</item>
+    </style>
+
+    <style name="Theme.EcoSorter" parent="Base.Theme.EcoSorter" />
+
+    <style name="Theme.EcoSorter.Launcher" parent="Theme.EcoSorter">
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="android:windowSplashScreenBackground">@color/primary</item>
+        <item name="android:windowSplashScreenAnimationDuration">1000</item>
+    </style>
+
+    <!-- Theme overlay for Material3 components -->
+    <style name="ThemeOverlay.EcoSorter" parent="">
+        <item name="colorSurface">@color/surface_light</item>
+        <item name="colorOnSurface">@color/text_primary_light</item>
+        <item name="colorPrimaryContainer">@color/primary_light</item>
+        <item name="colorOnPrimaryContainer">@color/primary_dark</item>
+        <item name="colorSecondaryContainer">@color/secondary_light</item>
+        <item name="colorOnSecondaryContainer">@color/secondary_dark</item>
+    </style>
+
+    <!-- Shape appearances -->
+    <style name="ShapeAppearance.EcoSorter.Small" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <style name="ShapeAppearance.EcoSorter.Medium" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="ShapeAppearance.EcoSorter.Large" parent="ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <!-- Widget styles -->
+    <style name="Widget.EcoSorter.Button.Primary" parent="Widget.Material3.Button">
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingHorizontal">24dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.EcoSorter.Button</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.EcoSorter.Medium</item>
+    </style>
+
+    <style name="Widget.EcoSorter.Button.Secondary" parent="Widget.EcoSorter.Button.Primary">
+        <item name="android:backgroundTint">@color/surface_light</item>
+        <item name="android:textColor">@color/primary</item>
+    </style>
+
+    <style name="TextAppearance.EcoSorter.Button" parent="TextAppearance.Material3.Button">
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.5sp</item>
+    </style>
+
+    <style name="Widget.EcoSorter.Card" parent="Widget.Material3.Card">
+        <item name="cardElevation">4dp</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.EcoSorter.Medium</item>
+    </style>
+
+    <!-- Progress bar style -->
+    <style name="Widget.EcoSorter.ProgressBar" parent="Widget.Material3.ProgressIndicator">
+        <item name="indicatorColor">@color/primary</item>
+        <item name="trackColor">@color/primary_light</item>
+    </style>
+</resources>

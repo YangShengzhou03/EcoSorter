@@ -1,0 +1,84 @@
+{
+  "name": "eco-sorter",
+  "version": "1.0.0",
+  "description": "智能垃圾分类督导系统 - 基于AI与物联网技术的全流程垃圾分类解决方案",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend",
+    "trash-bin-web",
+    "shared",
+    "mobile/react-native",
+    "miniprogram/uni-app"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run start:dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:mobile": "cd mobile/react-native && npm run android",
+    "dev:miniprogram": "cd miniprogram/uni-app && npm run dev:mp-weixin",
+    "dev:trash-bin": "cd trash-bin-web && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "build:mobile": "cd mobile/react-native && npm run build:android",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && npm run test",
+    "test:frontend": "cd frontend && npm run test",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "setup": "npm install && npm run setup:backend && npm run setup:frontend",
+    "setup:backend": "cd backend && npm install",
+    "setup:frontend": "cd frontend && npm install",
+    "setup:mobile": "cd mobile/react-native && npm install",
+    "setup:miniprogram": "cd miniprogram/uni-app && npm install",
+    "setup:trash-bin": "cd trash-bin-web && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.0"
+  },
+  "lint-staged": {
+    "*.{js,ts,jsx,tsx,vue}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "npm test"
+    }
+  },
+  "keywords": [
+    "垃圾分类",
+    "人工智能",
+    "物联网",
+    "环保",
+    "智慧城市",
+    "nest.js",
+    "react",
+    "vue",
+    "小程序",
+    "移动应用"
+  ],
+  "author": "EcoSorter Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/Yangshengzhou/eco-sorter.git"
+  },
+  "bugs": {
+    "url": "https://gitee.com/Yangshengzhou/eco-sorter/issues"
+  },
+  "homepage": "https://gitee.com/Yangshengzhou/eco-sorter#readme"
+}

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Info -->
+    <string name="app_name">EcoSorter</string>
+    <string name="app_description">智能垃圾分类应用</string>
+
+    <!-- Navigation -->
+    <string name="home">首页</string>
+    <string name="camera">拍照识别</string>
+    <string name="history">历史记录</string>
+    <string name="settings">设置</string>
+
+    <!-- Home Screen -->
+    <string name="welcome_message">欢迎使用 EcoSorter</string>
+    <string name="scan_garbage">扫描垃圾</string>
+    <string name="recent_scans">最近扫描</string>
+    <string name="no_recent_scans">暂无扫描记录</string>
+
+    <!-- Camera Screen -->
+    <string name="take_photo">拍照</string>
+    <string name="choose_from_gallery">从相册选择</string>
+    <string name="analyzing_image">正在分析图像…</string>
+    <string name="camera_permission_required">需要相机权限</string>
+    <string name="camera_permission_explanation">EcoSorter 需要访问相机来识别垃圾类型</string>
+    <string name="grant_permission">授予权限</string>
+
+    <!-- Results -->
+    <string name="garbage_type">垃圾类型</string>
+    <string name="recyclable">可回收物</string>
+    <string name="hazardous">有害垃圾</string>
+    <string name="wet">湿垃圾</string>
+    <string name="dry">干垃圾</string>
+    <string name="disposal_instructions">处理指南</string>
+    <string name="confidence">置信度</string>
+
+    <!-- History Screen -->
+    <string name="scan_history">扫描历史</string>
+    <string name="clear_history">清空历史</string>
+    <string name="delete">删除</string>
+    <string name="no_history">暂无历史记录</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">设置</string>
+    <string name="language">语言</string>
+    <string name="theme">主题</string>
+    <string name="dark_theme">深色主题</string>
+    <string name="light_theme">浅色主题</string>
+    <string name="system_default">系统默认</string>
+    <string name="notifications">通知</string>
+    <string name="privacy_policy">隐私政策</string>
+    <string name="terms_of_service">服务条款</string>
+    <string name="version_info">版本信息</string>
+    <string name="about">关于</string>
+
+    <!-- Errors -->
+    <string name="error_network">网络连接失败</string>
+    <string name="error_camera">相机启动失败</string>
+    <string name="error_image_processing">图像处理失败</string>
+    <string name="error_unknown">未知错误</string>
+    <string name="try_again">重试</string>
+
+    <!-- Success Messages -->
+    <string name="success_scan">扫描成功</string>
+    <string name="success_save">保存成功</string>
+
+    <!-- Buttons -->
+    <string name="ok">确定</string>
+    <string name="cancel">取消</string>
+    <string name="save">保存</string>
+    <string name="back">返回</string>
+    <string name="next">下一步</string>
+    <string name="done">完成</string>
+
+    <!-- Date/Time -->
+    <string name="just_now">刚刚</string>
+    <string name="minutes_ago">%d 分钟前</string>
+    <string name="hours_ago">%d 小时前</string>
+    <string name="days_ago">%d 天前</string>
+</resources>

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "tsconfig.build.json",
+    "assets": [
+      {
+        "include": "../config/*.yaml",
+        "outDir": "./dist/config"
+      },
+      {
+        "include": "../i18n/**/*",
+        "outDir": "./dist/i18n"
+      },
+      {
+        "include": "../uploads",
+        "outDir": "./dist/uploads"
+      }
+    ],
+    "watchAssets": true
+  },
+  "generateOptions": {
+    "spec": false,
+    "flat": false
+  },
+  "projects": {
+    "eco-sorter-backend": {
+      "type": "application",
+      "root": "",
+      "entryFile": "main",
+      "sourceRoot": "src",
+      "compilerOptions": {
+        "tsConfigPath": "tsconfig.build.json"
+      }
+    }
+  },
+  "monorepo": false,
+  "root": ""
+}
