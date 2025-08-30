@@ -1,0 +1,257 @@
+/* pages/recognition/recognition.wxss */
+
+.container {
+  height: 100vh;
+  background: #000;
+  position: relative;
+}
+
+/* 摄像头容器 */
+.camera-container {
+  width: 100%;
+  height: 70vh;
+  position: relative;
+}
+
+.camera {
+  width: 100%;
+  height: 100%;
+}
+
+.camera-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.scan-frame {
+  width: 400rpx;
+  height: 400rpx;
+  border: 4rpx solid #10B981;
+  border-radius: 24rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2rpx;
+  background: linear-gradient(90deg, transparent, #10B981, transparent);
+  animation: scan 2s linear infinite;
+}
+
+@keyframes scan {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(400rpx); }
+}
+
+.scan-tip {
+  color: white;
+  font-size: 28rpx;
+  margin-top: 40rpx;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 16rpx 32rpx;
+  border-radius: 24rpx;
+}
+
+/* 操作按钮 */
+.action-buttons {
+  position: absolute;
+  bottom: 60rpx;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 60rpx;
+}
+
+.btn {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10rpx);
+}
+
+.btn-capture {
+  width: 120rpx;
+  height: 120rpx;
+  background: #10B981;
+}
+
+.btn-icon {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+/* 模态框 */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 24rpx;
+  width: 80%;
+  max-width: 600rpx;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #e5e7eb;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 36rpx;
+  color: #6b7280;
+  padding: 0;
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.result-content {
+  padding: 32rpx;
+}
+
+.result-image {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 16rpx;
+  margin: 0 auto 24rpx;
+  display: block;
+}
+
+.result-info {
+  text-align: center;
+}
+
+.result-type {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #10B981;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.result-confidence {
+  font-size: 24rpx;
+  color: #6b7280;
+  display: block;
+  margin-bottom: 24rpx;
+}
+
+.result-tips {
+  background: #f9fafb;
+  padding: 24rpx;
+  border-radius: 12rpx;
+  margin-top: 16rpx;
+}
+
+.tips-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1f2937;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.tips-content {
+  font-size: 24rpx;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  padding: 24rpx 32rpx;
+  gap: 16rpx;
+  border-top: 1rpx solid #e5e7eb;
+}
+
+.modal-actions .btn {
+  flex: 1;
+  height: 80rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-primary {
+  background: #10B981;
+  color: white;
+}
+
+/* 加载状态 */
+.loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+.loading-spinner {
+  width: 80rpx;
+  height: 80rpx;
+  border: 4rpx solid #f3f4f6;
+  border-top: 4rpx solid #10B981;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 24rpx;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  color: white;
+  font-size: 28rpx;
+}

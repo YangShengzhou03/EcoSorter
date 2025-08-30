@@ -1,0 +1,59 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/recognition/recognition",
+    "pages/result/result",
+    "pages/reward/reward",
+    "pages/profile/profile",
+    "pages/login/login"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#10B981",
+    "navigationBarTitleText": "智能垃圾分类",
+    "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#10B981",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/tab-home.png",
+        "selectedIconPath": "images/tab-home-active.png"
+      },
+      {
+        "pagePath": "pages/recognition/recognition",
+        "text": "识别",
+        "iconPath": "images/tab-camera.png",
+        "selectedIconPath": "images/tab-camera-active.png"
+      },
+      {
+        "pagePath": "pages/reward/reward",
+        "text": "奖励",
+        "iconPath": "images/tab-reward.png",
+        "selectedIconPath": "images/tab-reward-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "images/tab-profile.png",
+        "selectedIconPath": "images/tab-profile-active.png"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于垃圾分类服务"
+    }
+  },
+  "requiredBackgroundModes": ["audio", "location"],
+  "networkTimeout": {
+    "request": 10000,
+    "downloadFile": 10000
+  },
+  "debug": true
+}

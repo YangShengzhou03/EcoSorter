@@ -1,0 +1,105 @@
+/**app.wxss**/
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 200rpx 0;
+  box-sizing: border-box;
+}
+
+/* 全局颜色变量 */
+:root {
+  --primary-color: #10B981;
+  --secondary-color: #3B82F6;
+  --success-color: #22C55E;
+  --warning-color: #F59E0B;
+  --danger-color: #EF4444;
+  --light-bg: #F9FAFB;
+  --border-color: #E5E7EB;
+}
+
+/* 文本样式 */
+.text-primary {
+  color: var(--primary-color);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-bold {
+  font-weight: bold;
+}
+
+/* 按钮样式 */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 8rpx;
+  padding: 20rpx 40rpx;
+}
+
+.btn-primary:active {
+  background-color: #0DA271;
+}
+
+/* 卡片样式 */
+.card {
+  background: white;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  box-shadow: 0 1rpx 3rpx rgba(0, 0, 0, 0.1);
+  margin: 20rpx;
+}
+
+/* 布局样式 */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+/* 间距 */
+.mt-4 {
+  margin-top: 32rpx;
+}
+
+.mb-4 {
+  margin-bottom: 32rpx;
+}
+
+.p-4 {
+  padding: 32rpx;
+}
+
+/* 图标大小 */
+.icon-lg {
+  width: 96rpx;
+  height: 96rpx;
+}
+
+.icon-md {
+  width: 64rpx;
+  height: 64rpx;
+}
+
+.icon-sm {
+  width: 48rpx;
+  height: 48rpx;
+}

@@ -1,0 +1,68 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 顶部横幅 -->
+  <view class="banner">
+    <image class="banner-image" src="/images/banner.jpg" mode="aspectFill"></image>
+    <view class="banner-content">
+      <text class="banner-title">智能垃圾分类</text>
+      <text class="banner-subtitle">共建绿色家园</text>
+    </view>
+  </view>
+
+  <!-- 功能卡片 -->
+  <view class="grid">
+    <view class="card" bindtap="navigateToRecognition">
+      <image class="card-icon" src="/images/icon-camera.png"></image>
+      <text class="card-title">垃圾识别</text>
+      <text class="card-desc">拍照识别垃圾类型</text>
+    </view>
+
+    <view class="card" bindtap="navigateToReward">
+      <image class="card-icon" src="/images/icon-reward.png"></image>
+      <text class="card-title">积分奖励</text>
+      <text class="card-desc">查看积分和奖励</text>
+    </view>
+
+    <view class="card" bindtap="navigateToGuide">
+      <image class="card-icon" src="/images/icon-guide.png"></image>
+      <text class="card-title">分类指南</text>
+      <text class="card-desc">学习分类知识</text>
+    </view>
+
+    <view class="card" bindtap="navigateToStatistics">
+      <image class="card-icon" src="/images/icon-stats.png"></image>
+      <text class="card-title">数据统计</text>
+      <text class="card-desc">查看分类记录</text>
+    </view>
+  </view>
+
+  <!-- 快速分类按钮 -->
+  <view class="quick-action">
+    <button class="btn-primary" bindtap="startQuickRecognition">
+      <image class="btn-icon" src="/images/icon-scan.png"></image>
+      快速识别
+    </button>
+  </view>
+
+  <!-- 今日数据 -->
+  <view class="stats-card">
+    <view class="stats-header">
+      <text class="stats-title">今日数据</text>
+      <text class="stats-date">{{currentDate}}</text>
+    </view>
+    <view class="stats-grid">
+      <view class="stat-item">
+        <text class="stat-value">{{stats.todayCount || 0}}</text>
+        <text class="stat-label">今日分类</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{stats.totalCount || 0}}</text>
+        <text class="stat-label">累计分类</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{stats.points || 0}}</text>
+        <text class="stat-label">当前积分</text>
+      </view>
+    </view>
+  </view>
+</view>
