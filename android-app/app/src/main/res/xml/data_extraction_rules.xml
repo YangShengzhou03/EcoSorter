@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- Include shared preferences for backup -->
+        <include domain="sharedpref" path="."/>
+        
+        <!-- Include database for backup -->
+        <include domain="database" path="."/>
+        
+        <!-- Include app-specific files -->
+        <include domain="file" path="EcoSorter"/>
+        
+        <!-- Exclude cache and temp files -->
+        <exclude domain="file" path="cache"/>
+        <exclude domain="file" path="EcoSorter/Cache"/>
+        <exclude domain="file" path="temp"/>
+    </cloud-backup>
+    
+    <device-transfer>
+        <!-- Include everything for device transfer -->
+        <include domain="sharedpref" path="."/>
+        <include domain="database" path="."/>
+        <include domain="file" path="EcoSorter"/>
+        
+        <!-- Exclude cache and temp files -->
+        <exclude domain="file" path="cache"/>
+        <exclude domain="file" path="EcoSorter/Cache"/>
+        <exclude domain="file" path="temp"/>
+    </device-transfer>
+</data-extraction-rules>
