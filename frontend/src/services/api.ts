@@ -1,5 +1,5 @@
-import axios from 'axios'
-import { toast } from 'react-hot-toast'
+import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 // Create axios instance with default config
 const api = axios.create({

@@ -29,5 +29,6 @@
     }
   },
   "include": ["src", "**/*.ts", "**/*.tsx"],
+  "exclude": ["vue-login/**/*"],
   "references": []
 }

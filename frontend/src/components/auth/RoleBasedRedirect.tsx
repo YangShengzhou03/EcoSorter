@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuthStore } from '@/store/auth'
-import { UserRole } from '@/types/auth'
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/store/auth';
+import { UserRole } from '@/types/auth';
 
 const RoleBasedRedirect: React.FC = () => {
   const navigate = useNavigate()
-  const { user } = useAuthStore()
+  const { currentUser: user } = useAuthStore()
 
   useEffect(() => {
     if (user) {

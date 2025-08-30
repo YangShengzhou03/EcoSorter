@@ -1,15 +1,13 @@
-import React from 'react'
-import { useAuthStore } from '@/store/auth'
-import { StatsCard } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import React from 'react';
+import { useAuthStore } from '@/store/auth';
+import { StatsCard } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
   ChartBarIcon,
   CameraIcon,
   DocumentTextIcon,
   UsersIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
 } from '@heroicons/react/24/outline'
 
 const DashboardPage: React.FC = () => {

@@ -1,5 +1,5 @@
-import { api } from './api'
-import { LoginCredentials, AuthResponse, User, RegisterData } from '@/types/auth'
+import { api } from './api';
+import { LoginCredentials, AuthResponse, User, RegisterData } from '@/types/auth';
 
 class AuthAPI {
   /**

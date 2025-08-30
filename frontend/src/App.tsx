@@ -1,21 +1,20 @@
-import React, { Suspense } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
-import { useAuthStore } from '@/store/auth'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
-import { PublicRoute } from '@/components/auth/PublicRoute'
-import { RoleBasedRedirect } from '@/components/auth/RoleBasedRedirect'
+import React, { Suspense } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuthStore } from '@/store/auth';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { PublicRoute } from '@/components/auth/PublicRoute';
+import RoleBasedRedirect from '@/components/auth/RoleBasedRedirect';
 
 // Lazy load pages for better performance
-const LoginPage = React.lazy(() => import('@/pages/auth/LoginPage'))
-const DashboardPage = React.lazy(() => import('@/pages/dashboard/DashboardPage'))
-const ResidentDashboard = React.lazy(() => import('@/pages/resident/ResidentDashboard'))
-const CollectorDashboard = React.lazy(() => import('@/pages/collector/CollectorDashboard'))
-const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard'))
-const WasteClassificationPage = React.lazy(() => import('@/pages/waste/WasteClassificationPage'))
-const StatisticsPage = React.lazy(() => import('@/pages/statistics/StatisticsPage'))
-const SettingsPage = React.lazy(() => import('@/pages/settings/SettingsPage'))
-const NotFoundPage = React.lazy(() => import('@/pages/error/NotFoundPage'))
+const LoginPage = React.lazy(() => import('@/pages/auth/LoginPage'));
+const ResidentDashboard = React.lazy(() => import('@/pages/resident/ResidentDashboard'));
+const CollectorDashboard = React.lazy(() => import('@/pages/collector/CollectorDashboard'));
+const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard'));
+const WasteClassificationPage = React.lazy(() => import('@/pages/garbage/WasteClassificationPage'));
+const StatisticsPage = React.lazy(() => import('@/pages/statistics/StatisticsPage'));
+const SettingsPage = React.lazy(() => import('@/pages/profile/SettingsPage'));
+const NotFoundPage = React.lazy(() => import('@/pages/error/NotFoundPage'));
 
 function App() {
   const { isAuthenticated, isLoading } = useAuthStore()

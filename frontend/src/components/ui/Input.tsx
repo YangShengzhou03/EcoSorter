@@ -1,5 +1,5 @@
-import React from 'react'
-import { cn } from '@/lib/utils'
+import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
@@ -84,12 +84,29 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
 Input.displayName = 'Input'
 
+interface TextareaProps {
+  className?: string
+  label?: string
+  error?: string
+  helperText?: string
+  fullWidth?: boolean
+  id?: string
+  rows?: number
+  disabled?: boolean
+  value?: string
+  defaultValue?: string
+  onChange?: React.ChangeEventHandler<HTMLTextAreaElement>
+  onBlur?: React.FocusEventHandler<HTMLTextAreaElement>
+  onFocus?: React.FocusEventHandler<HTMLTextAreaElement>
+  name?: string
+  required?: boolean
+  placeholder?: string
+}
+
 // Textarea component
 export const Textarea = React.forwardRef<
   HTMLTextAreaElement,
-  Omit<InputProps, 'type'> & {
-    rows?: number
-  }
+  TextareaProps
 >(({ className, label, error, helperText, fullWidth = true, id, rows = 3, ...props }, ref) => {
   const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`
   const hasError = !!error
@@ -135,11 +152,27 @@ export const Textarea = React.forwardRef<
 Textarea.displayName = 'Textarea'
 
 // Select component
+interface SelectProps {
+  className?: string
+  label?: string
+  error?: string
+  helperText?: string
+  fullWidth?: boolean
+  id?: string
+  options: Array<{ value: string; label: string; disabled?: boolean }>
+  disabled?: boolean
+  value?: string
+  defaultValue?: string
+  onChange?: React.ChangeEventHandler<HTMLSelectElement>
+  onBlur?: React.FocusEventHandler<HTMLSelectElement>
+  onFocus?: React.FocusEventHandler<HTMLSelectElement>
+  name?: string
+  required?: boolean
+}
+
 export const Select = React.forwardRef<
   HTMLSelectElement,
-  Omit<InputProps, 'type'> & {
-    options: Array<{ value: string; label: string; disabled?: boolean }>
-  }
+  SelectProps
 >(({ className, label, error, helperText, fullWidth = true, id, options, ...props }, ref) => {
   const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`
   const hasError = !!error

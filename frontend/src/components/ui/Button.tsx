@@ -1,11 +1,11 @@
-import React from 'react'
-import { cn } from '@/lib/utils'
+import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'outline' | 'ghost'
-  size?: 'sm' | 'md' | 'lg'
-  loading?: boolean
-  children: React.ReactNode
+  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'outline' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  loading?: boolean;
+  children: React.ReactNode;
 }
 
 const variantClasses = {
@@ -15,13 +15,13 @@ const variantClasses = {
   success: 'btn-success',
   outline: 'border border-gray-300 bg-transparent text-gray-700 hover:bg-gray-50',
   ghost: 'bg-transparent text-gray-700 hover:bg-gray-100',
-}
+};
 
 const sizeClasses = {
   sm: 'px-3 py-1.5 text-sm',
   md: 'px-4 py-2 text-sm',
   lg: 'px-6 py-3 text-base',
-}
+};
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
@@ -101,17 +101,18 @@ export const ButtonGroup: React.FC<{
 }> = ({ children, className }) => {
   return (
     <div className={cn('flex space-x-2', className)}>
-      {React.Children.map(children, (child, index) =>
-        React.isValidElement(child)
-          ? React.cloneElement(child, {
-              className: cn(
-                child.props.className,
-                index > 0 && 'rounded-l-none',
-                index < React.Children.count(children) - 1 && 'rounded-r-none',
-              ),
-            })
-          : child,
-      )}
+      {React.Children.map(children, (child, index) => {
+        if (React.isValidElement<React.HTMLAttributes<HTMLElement>>(child) && 'className' in child.props) {
+          return React.cloneElement<React.HTMLAttributes<HTMLElement>>(child, {
+            className: cn(
+              child.props.className,
+              index > 0 && 'rounded-l-none',
+              index < React.Children.count(children) - 1 && 'rounded-r-none'
+            ),
+          })
+        }
+        return child
+      })}
     </div>
   )
 }

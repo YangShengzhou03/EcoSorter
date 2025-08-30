@@ -1,7 +1,7 @@
-import React from 'react'
-import { useAuthStore } from '@/store/auth'
-import { Button } from '@/components/ui/Button'
-import { StatsCard } from '@/components/ui/Card'
+import React from 'react';
+import { useAuthStore } from '@/store/auth';
+import { Button } from '@/components/ui/Button';
+import { StatsCard } from '@/components/ui/Card';
 import { 
   TrashIcon, 
   ChartBarIcon, 

@@ -1,7 +1,7 @@
-import React from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
-import { useAuthStore } from '@/store/auth'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import React from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuthStore } from '@/store/auth';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -16,7 +16,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRole,
   fallbackPath = '/login',
 }) => {
-  const { currentUser, isLoading } = useAuthStore()
+  const { isLoading } = useAuthStore()
   const location = useLocation()
 
   if (isLoading) {
@@ -39,8 +39,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Check role-based access if required
-  if (requiredRole && currentUser) {
-    const hasRequiredRole = requiredRole.includes(currentUser.role)
+  if (requiredRole) {
+    const { currentUser } = useAuthStore()
+    const hasRequiredRole = currentUser && requiredRole.includes(currentUser.role)
     
     if (!hasRequiredRole) {
       return (
@@ -102,8 +103,7 @@ export const PermissionGuard: React.FC<{
   children: React.ReactNode
   permissions: string[]
   fallback?: React.ReactNode
-}> = ({ children, permissions, fallback }) => {
-  const { currentUser } = useAuthStore()
+}> = ({ children, fallback }) => {
   
   // Mock permission check - replace with actual permission logic
   const hasPermission = true // Implement actual permission check logic

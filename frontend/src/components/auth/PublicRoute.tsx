@@ -1,7 +1,7 @@
-import React from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
-import { useAuthStore } from '@/store/auth'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import React from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuthStore } from '@/store/auth';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface PublicRouteProps {
   children: React.ReactNode
