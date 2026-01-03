@@ -1,0 +1,163 @@
+@startuml
+skinparam classBackgroundColor #F9F9F9
+skinparam classBorderColor #333
+
+' ====== 实体类 ======
+class 居民 {
+  - id: String
+  - name: String
+  - phone: String
+  - totalPoints: Integer
+  + authenticate()
+  + viewRecords()
+  + redeemPoints()
+}
+
+class 垃圾收集员 {
+  - id: String
+  - name: String
+  - currentTask: String
+  + receiveTask()
+  + reportStatus()
+  + confirmCollection()
+}
+
+class 智能垃圾桶 {
+  - binId: String
+  - location: String
+  - fillLevel: Float
+  - status: DeviceStatus
+  + detectAction()
+  + reportStatus()
+  + executeCommand()
+}
+
+class 投放记录 {
+  - recordId: String
+  - userId: String
+  - binId: String
+  - timestamp: DateTime
+  - garbageType: String
+  - weight: Float
+  - points: Integer
+}
+
+class 清运任务 {
+  - taskId: String
+  - binId: String
+  - collectorId: String
+  - status: TaskStatus
+  - assignedTime: DateTime
+}
+
+class 垃圾类别 {
+  - categoryId: String
+  - name: String
+  - description: String
+  - recycleCode: String
+}
+
+class 积分规则 {
+  - ruleId: String
+  - categoryId: String
+  - basePoints: Integer
+  - bonusCondition: String
+}
+
+' ====== 控制类 ======
+class 身份认证控制器 {
+  + verifyUser()
+  + generateToken()
+  + refreshToken()
+}
+
+class 积分计算控制器 {
+  + calculatePoints()
+  + updateUserPoints()
+  + generatePointLog()
+}
+
+class 任务调度控制器 {
+  + generateTasks()
+  + assignCollector()
+  + optimizeRoute()
+}
+
+class 设备管理控制器 {
+  + monitorStatus()
+  + updateFirmware()
+  + configureDevice()
+}
+
+class AI识别控制器 {
+  + recognizeGarbage()
+  + checkConfidence()
+  + trainModel()
+}
+
+' ====== 边界类 ======
+class 居民APP界面 {
+  + showRecords()
+  + displayPoints()
+  + submitComplaint()
+}
+
+class 收集员终端界面 {
+  + showTaskMap()
+  + scanBinQR()
+  + reportIssue()
+}
+
+class 管理员控制台界面 {
+  + monitorSystem()
+  + configureRules()
+  + generateReports()
+}
+
+class 垃圾桶硬件接口 {
+  + readSensors()
+  + controlActuators()
+  + captureImage()
+}
+
+' ====== 关系定义 ======
+居民 "1" -- "*" 投放记录 : 拥有
+垃圾收集员 "1" -- "*" 清运任务 : 执行
+智能垃圾桶 "1" -- "*" 投放记录 : 产生
+智能垃圾桶 "1" -- "*" 清运任务 : 关联
+
+身份认证控制器 -- 居民 : 管理
+积分计算控制器 -- 积分规则 : 使用
+积分计算控制器 -- 投放记录 : 计算
+任务调度控制器 -- 清运任务 : 生成
+设备管理控制器 -- 智能垃圾桶 : 监控
+AI识别控制器 -- 垃圾类别 : 分类
+
+居民APP界面 -- 居民 : 交互
+收集员终端界面 -- 垃圾收集员 : 交互
+管理员控制台界面 -- 设备管理控制器 : 调用
+垃圾桶硬件接口 -- 智能垃圾桶 : 实现
+
+投放记录 "1" -- "1" 垃圾类别 : 属于
+清运任务 "1" -- "1" 智能垃圾桶 : 对应
+
+' ====== 枚举类型 ======
+enum DeviceStatus {
+  NORMAL
+  FULL
+  FAULT
+  OFFLINE
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+' ====== 服务关联 ======
+设备管理控制器 -- AI识别控制器 : 请求识别
+积分计算控制器 -- 任务调度控制器 : 提供激励数据
+身份认证控制器 -- 所有控制器 : 权限验证
+@enduml

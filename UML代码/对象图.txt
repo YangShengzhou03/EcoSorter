@@ -1,0 +1,51 @@
+@startuml
+!theme plain
+title 投放记录对象状态快照
+skinparam object {
+  BackgroundColor #F9F9F9
+  BorderColor #333
+}
+
+object "居民: 张三" as user {
+  id = "U2023001"
+  name = "张三"
+  phone = "138****1234"
+  totalPoints = 356
+  creditScore = 85
+}
+
+object "投放记录: REC20230602001" as record {
+  recordId = "REC20230602001"
+  timestamp = "2023-06-02 10:30:45"
+  garbageType = "塑料"
+  weight = 1.24
+  points = 15
+  status = "VERIFIED"
+}
+
+object "智能垃圾桶: BIN1001" as bin {
+  binId = "BIN1001"
+  location = "A栋1单元入口"
+  fillLevel = 68.5%
+  status = "NORMAL"
+  lastMaintenance = "2023-05-28"
+}
+
+object "积分规则: PLASTIC" as rule {
+  ruleId = "RULE-PLASTIC"
+  basePoints = 10
+  bonusCondition = "重量≥1kg +20%"
+  difficultyBonus = 0%
+}
+
+user "1" -- "1" record : 拥有
+record "1" -- "1" bin : 产生于
+record "1" -- "1" rule : 使用规则
+bin "1" -- "1" rule : 当前应用
+
+note right of record
+  <b>验证机制：</b>
+  置信度：82%
+  验证方式：多模态
+  重量偏差：+0.04kg
+end note
