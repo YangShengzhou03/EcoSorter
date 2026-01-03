@@ -1,0 +1,68 @@
+@startuml
+!theme plain
+title 垃圾投放时序图
+skinparam sequence {
+  ArrowColor #333
+  ActorBorderColor #333
+  ParticipantBorderColor #333
+  LifeLineBorderColor #666
+  LifeLineBackgroundColor #F9F9F9
+}
+
+actor 居民 as Resident
+participant "居民手机APP" as App
+participant "智能垃圾桶终端" as Bin
+participant "边缘处理器" as Edge
+participant "AI推理服务" as AI
+participant "积分计算引擎" as Points
+participant "用户数据库" as DB
+participant "设备管理服务" as DeviceMgr
+
+autonumber
+
+Resident -> App : NFC/人脸认证
+App -> Bin : 发送用户凭证
+Bin -> Edge : 验证身份请求
+activate Edge
+Edge -> DB : 查询用户信息
+DB --> Edge : 返回认证结果
+Edge --> Bin : 认证通过
+Bin -> Resident : 显示欢迎信息\n(触摸屏)
+
+Resident -> Bin : 放置垃圾
+Bin -> Edge : 触发感知事件
+Edge -> Edge : 采集传感器数据\n(图像+重量)
+Edge -> Edge : 运行本地AI模型(TensorRT)
+alt 置信度≥70%
+    Edge -> Points : 发送识别结果\n(类型+重量)
+else 50%≤置信度<70%
+    Edge -> AI : 请求云端识别(gRPC)
+    activate AI
+    AI --> Edge : 返回增强结果\n(置信度>90%)
+    deactivate AI
+    Edge -> Points : 发送最终结果
+end
+
+Points -> Points : 计算动态积分\n(基础×类别×重量)
+Points -> DB : 更新积分记录(MySQL)
+Points -> App : 推送积分通知\n(Firebase)
+Points -> DeviceMgr : 更新桶状态
+DeviceMgr -> Bin : 刷新显示屏信息\n(满溢度更新)
+Bin -> Resident : 显示投放结果\n(积分+分类)
+
+autonumber stop
+note over Edge #FFD700
+  <b>边缘处理逻辑：</b>
+  1. 本地AI推理≤800ms
+  2. 置信度<50%触发异常流程
+  3. 多模态验证(重量+图像)
+end note
+
+note over Points #D4F2DB
+  <b>积分计算规则：</b>
+  基础分×置信度系数
+  + 有害垃圾50%加成
+  + 大重量20%奖励
+end note
+
+@enduml

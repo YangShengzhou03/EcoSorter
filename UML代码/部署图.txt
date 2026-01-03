@@ -1,0 +1,256 @@
+部署图绘制步骤（Rational Rose 可用元素版）
+一、拖放 Package 模拟部署节点
+云端集群
+拖放 Package → 命名为 云端集群
+边缘层
+拖放 Package → 命名为 边缘层
+移动端
+拖放 Package → 命名为 移动端
+管理端
+拖放 Package → 命名为 管理端
+二、拖放 Component 到对应 Package
+1. 云端集群 Package 内
+拖放 Component → 命名为 Nginx → 别名 gateway
+拖放 Component → 命名为 身份认证服务 → 别名 auth
+拖放 Component → 命名为 积分计算引擎 → 别名 points
+拖放 Component → 命名为 任务调度中心 → 别名 scheduler
+拖放 Component → 命名为 设备管理服务 → 别名 device
+拖放 Component → 命名为 AI推理服务 → 别名 ai
+数据库组：
+拖放 Component → 命名为 MySQL集群 → 别名 mysql
+拖放 Component → 命名为 用户数据库 → 拖入 mysql 内
+拖放 Component → 命名为 积分记录库 → 拖入 mysql 内
+拖放 Component → 命名为 MongoDB → 别名 mongo
+拖放 Component → 命名为 任务数据库 → 拖入 mongo 内
+拖放 Component → 命名为 InfluxDB → 别名 influx
+拖放 Component → 命名为 设备状态库 → 拖入 influx 内
+拖放 Component → 命名为 MinIO存储 → 别名 minio
+拖放 Component → 命名为 图像存储 → 拖入 minio 内
+2. 边缘层 Package 内
+拖放 Component → 命名为 智能垃圾桶终端 → 别名 bin
+拖放 Component → 命名为 Jetson Nano → 别名 jetson → 拖入 bin 内
+拖放 Component → 命名为 传感器控制器 → 拖入 jetson 内
+拖放 Component → 命名为 执行器驱动器 → 拖入 jetson 内
+拖放 Component → 命名为 TensorRT模型 → 拖入 jetson 内
+拖放 Component → 命名为 摄像头 → 拖入 bin 内
+拖放 Component → 命名为 称重传感器 → 拖入 bin 内
+拖放 Component → 命名为 通信模块 → 拖入 bin 内
+3. 移动端 Package 内
+拖放 Component → 命名为 居民APP → 别名 userapp
+拖放 Component → 命名为 收集员终端 → 别名 collector
+4. 管理端 Package 内
+拖放 Component → 命名为 管理控制台 → 别名 admin
+三、绘制 Dependency 连接关系
+网关到服务
+拖放 Dependency 从 gateway → auth → 标注 HTTPS
+拖放 Dependency 从 gateway → points → 标注 gRPC
+拖放 Dependency 从 gateway → scheduler → 标注 AMQP
+拖放 Dependency 从 gateway → device → 标注 MQTT
+拖放 Dependency 从 gateway → ai → 标注 gRPC
+服务到数据库
+拖放 Dependency 从 auth → mysql → 标注 JDBC
+拖放 Dependency 从 points → mysql → 标注 JDBC
+拖放 Dependency 从 scheduler → mongo → 标注 MongoDB驱动
+拖放 Dependency 从 device → influx → 标注 Influx协议
+拖放 Dependency 从 ai → minio → 标注 S3协议
+边缘层连接
+拖放 Dependency 从 bin → gateway → 标注 MQTT/CoAP\n(状态数据)
+拖放 Dependency 从 gateway → bin → 标注 MQTT\n(控制指令)
+拖放 Dependency 从 ai → bin → 标注 HTTP\n(模型更新)
+终端连接
+拖放 Dependency 从 userapp → gateway → 标注 HTTPS/JSON
+拖放 Dependency 从 collector → gateway → 标注 HTTPS/JSON
+拖放 Dependency 从 admin → gateway → 标注 WebSocket
+推送与告警
+拖放 Dependency 从 points → userapp → 标注 Firebase推送
+拖放 Dependency 从 scheduler → collector → 标注 APNs推送
+拖放 Dependency 从 device → admin → 标注 邮件告警
+四、添加文本注释（利用 Package/Component 备注）
+云平台配置
+右键 gateway → Component Specification → Notes 标签页 → 输入：
+plaintext
+<b>云平台配置：</b>
+• Kubernetes集群管理
+• 自动扩缩容策略
+• 跨可用区部署
+
+边缘配置
+右键 bin → Component Specification → Notes 标签页 → 输入：
+plaintext
+<b>边缘配置：</b>
+• 内存：4GB LPDDR4
+• 存储：32GB eMMC
+• 功耗：<10W
+
+
+@startuml
+!theme plain
+skinparam componentStyle uml2
+skinparam nodesep 20
+skinparam ranksep 30
+
+node "云端服务平台" <<云平台>> {
+  node "应用服务器集群" {
+    component "身份认证服务"
+    component "积分计算引擎"
+    component "任务调度中心"
+    component "设备管理服务"
+    component "AI推理服务"
+    
+    身份认证服务 - 积分计算引擎
+    积分计算引擎 - 任务调度中心
+    任务调度中心 - 设备管理服务
+    设备管理服务 - AI推理服务
+  }
+  
+  node "数据库集群" {
+    database "用户数据库" <<MySQL>>
+    database "设备状态数据库" <<时序数据库>>
+    database "积分记录数据库" <<MySQL>>
+    database "任务数据库" <<MongoDB>>
+    
+    身份认证服务 --> 用户数据库 : 读写
+    积分计算引擎 --> 积分记录数据库 : 读写
+    设备管理服务 --> 设备状态数据库 : 读写
+    任务调度中心 --> 任务数据库 : 读写
+  }
+  
+  node "AI训练平台" {
+    component "模型训练系统" <<GPU集群>>
+    database "图像存储" <<对象存储>>
+    
+    AI推理服务 --> 模型训练系统 : 模型更新请求
+    模型训练系统 --> 图像存储 : 训练数据访问
+  }
+}
+
+node "边缘计算层" {
+  artifact "智能垃圾桶终端" <<嵌入式系统>> {
+    component "边缘处理器" <<Jetson Nano>> {
+      component "传感器控制器"
+      component "执行器驱动器"
+      component "轻量AI模型" <<TensorRT>>
+    }
+    
+    device "高清摄像头" <<1080P, 广角>>
+    device "高精度称重传感器" <<±5g精度>>
+    device "红外测距仪" <<0-100cm量程>>
+    device "桶盖控制电机" <<防水直流电机>>
+    device "触摸显示屏" <<7寸IPS LCD>>
+    device "4G通信模块" <<Cat-M1/NB-IoT>>
+    
+    传感器控制器 --> 高清摄像头
+    传感器控制器 --> 高精度称重传感器
+    传感器控制器 --> 红外测距仪
+    执行器驱动器 --> 桶盖控制电机
+    执行器驱动器 --> 触摸显示屏
+    边缘处理器 --> 4G通信模块
+  }
+}
+
+node "移动终端层" {
+  [居民手机APP] <<Android/iOS>>
+  [收集员终端APP] <<工业平板/PDA>>
+}
+
+node "管理控制台" {
+  [管理员工作站] <<Web浏览器>>
+}
+
+' ========== 连接关系 ==========
+' 智能垃圾桶通信
+智能垃圾桶终端 .[#green].> 应用服务器集群 : MQTT/CoAP协议\n<<实时数据流>>\n• 传感器数据\n• 设备状态\n• 识别请求
+应用服务器集群 .[#green].> 智能垃圾桶终端 : MQTT/CoAP协议\n<<控制指令>>\n• 开盖命令\n• 配置更新\n• 固件升级
+
+' AI服务连接
+智能垃圾桶终端 .[#blue].> AI推理服务 : gRPC协议\n<<图像识别>>\n(低置信度场景)
+AI推理服务 .[#blue].> 模型训练系统 : gRPC协议\n<<模型更新>>
+
+' 移动端连接
+居民手机APP .[#red].> 应用服务器集群 : HTTPS/JSON API\n<<用户操作>>\n• 记录查询\n• 积分兑换
+收集员终端APP .[#red].> 应用服务器集群 : HTTPS/JSON API\n<<任务管理>>\n• 任务接收\n• 状态上报
+
+' 管理端连接
+管理员工作站 .[#purple].> 应用服务器集群 : HTTPS/WebSocket\n<<系统管理>>\n• 设备监控\n• 规则配置\n• 报表查看
+
+' 通知服务
+应用服务器集群 .[#orange].> 居民手机APP : 推送通知\n<<Firebase/APNs>>\n• 积分变动\n• 投放反馈
+应用服务器集群 .[#orange].> 收集员终端APP : 推送通知\n<<Firebase/APNs>>\n• 新任务提醒\n• 紧急告警
+应用服务器集群 .[#orange].> 管理员工作站 : 邮件/WebSocket\n<<系统告警>>\n• 设备故障\n• 异常事件
+
+' 内部关键连接
+设备管理服务 .[#black].> 边缘处理器 : HTTP协议\n<<固件OTA更新>>
+积分计算引擎 .[#black].> 居民手机APP : 实时通知\n<<积分变动详情>>
+任务调度中心 .[#black].> 收集员终端APP : 任务推送\n<<最优路径规划>>
+
+' 物理连接说明
+note right of 智能垃圾桶终端
+  <b>物理接口说明：</b>
+  • 电源输入：220V市电 + 太阳能备用
+  • 网络连接：主用4G，备用WiFi
+  • 维护接口：USB-C调试端口
+  • 环境防护：IP65防水防尘
+end note
+
+' 离线处理机制
+note bottom of 边缘处理器
+  <b>离线处理能力：</b>
+  • 本地缓存1000条投放记录
+  • 基础AI模型持续工作
+  • 网络恢复后自动同步数据
+end note
+
+@enduml
+
+一、处理器（Processors）清单
+处理器名称	部署位置	类型	核心功能
+边缘处理器	智能垃圾桶终端内部	嵌入式处理器	实时处理传感器数据、运行轻量AI模型、控制硬件执行器
+身份认证服务	应用服务器集群	微服务	管理用户身份验证（居民/收集员/管理员）
+积分计算引擎	应用服务器集群	微服务	执行动态积分算法，处理积分增减事务
+任务调度中心	应用服务器集群	微服务	智能分配清运任务基于垃圾桶状态和收集员位置
+设备管理服务	应用服务器集群	微服务	监控垃圾桶状态，远程配置参数
+AI推理服务	应用服务器集群	微服务	处理复杂AI识别请求（当边缘AI置信度低时）
+模型训练系统	AI训练平台	GPU计算集群	持续优化垃圾分类模型
+二、设备（Devices）清单
+设备名称	部署位置	类型	核心功能
+高清摄像头	智能垃圾桶终端	感知设备	采集垃圾图像（1080P+广角）
+高精度称重传感器	智能垃圾桶终端	感知设备	检测投放垃圾重量（±5g精度）
+红外测距仪	智能垃圾桶终端	感知设备	监测垃圾桶满溢状态
+桶盖控制电机	智能垃圾桶终端	执行设备	控制垃圾桶盖开闭
+触摸显示屏	智能垃圾桶终端	交互设备	显示操作指引和反馈信息
+4G通信模块	智能垃圾桶终端	通信设备	主用通信通道（Cat-M1/NB-IoT）
+居民手机APP	移动终端层	移动应用	提供投放记录查询和积分管理
+收集员终端APP	移动终端层	工业级应用	支持任务导航和垃圾桶扫描
+管理员工作站	管理控制台	Web终端	系统监控和配置管理
+用户数据库	数据库集群	存储设备	存储用户账户信息
+设备状态数据库	数据库集群	时序数据库	记录垃圾桶实时状态
+积分记录数据库	数据库集群	关系数据库	管理积分流水数据
+任务数据库	数据库集群	文档数据库	存储清运任务信息
+图像存储	AI训练平台	对象存储	保存训练用垃圾图像
+
+具体连接关系清单
+1. 智能垃圾桶内部连接
+来源	目标	连接类型	协议/接口	说明
+高清摄像头	边缘处理器	物理连接	USB3.0	传输1080P视频流
+高精度称重传感器	边缘处理器	物理连接	SPI	实时重量数据（±5g）
+红外测距仪	边缘处理器	物理连接	I2C	每秒10次距离采样
+边缘处理器	桶盖控制电机	控制信号	PWM	控制开合角度（0-90°）
+边缘处理器	触摸显示屏	数据输出	HDMI	显示交互界面
+边缘处理器	4G通信模块	数据传输	USB	移动网络接入
+2. 云端服务间连接
+来源	目标	连接类型	协议	数据内容
+身份认证服务	用户数据库	数据库连接	JDBC	用户账号CRUD
+积分计算引擎	积分记录数据库	事务操作	JDBC	积分流水记录
+设备管理服务	设备状态数据库	时序数据写入	InfluxDB协议	垃圾桶状态时间序列
+AI推理服务	图像存储	对象存储访问	S3协议	训练图像读取
+3. 跨系统关键连接
+来源	目标	连接类型	协议	业务场景
+边缘处理器	AI推理服务	远程调用	gRPC	低置信度图像复核
+边缘处理器	设备管理服务	消息队列	MQTT	心跳包/传感器数据上报
+设备管理服务	边缘处理器	消息队列	MQTT	配置更新/固件升级指令
+积分计算引擎	居民手机APP	推送通知	Firebase	实时积分变动提醒
+任务调度中心	收集员终端APP	推送通知	APNs	紧急任务分配
+4. 管理类连接
+来源	目标	连接类型	协议	操作类型
+管理员工作站	设备管理服务	API调用	HTTPS	参数配置/设备重启
+管理员工作站	任务调度中心	实时数据流	WebSocket	监控清运车辆轨迹

@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoSorter - 智能垃圾分类督导系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2ecc71',
+                        secondary: '#1e3a8a',
+                        accent: '#f59e0b',
+                        dark: '#1f2937',
+                        light: '#f9fafb'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <!-- 自定义工具类 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .card-hover {
+                @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+            }
+            .gradient-bg {
+                background: linear-gradient(135deg, #2ecc71 0%, #1e3a8a 100%);
+            }
+            .no-scrollbar::-webkit-scrollbar {
+                display: none;
+            }
+            .no-scrollbar {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+        }
+    </style>
+    
+    <!-- 预加载字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="font-inter bg-light text-dark overflow-x-hidden">
+    <!-- 导航栏 -->
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-300 bg-transparent">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="#" class="flex items-center space-x-2">
+                <i class="fa fa-recycle text-2xl text-primary"></i>
+                <span class="text-xl font-bold text-white text-shadow">EcoSorter</span>
+            </a>
+            
+            <!-- 桌面导航 -->
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#features" class="text-white hover:text-primary transition-colors">功能</a>
+                <a href="#tech" class="text-white hover:text-primary transition-colors">技术栈</a>
+                <a href="#cases" class="text-white hover:text-primary transition-colors">应用案例</a>
+                <a href="#contact" class="text-white hover:text-primary transition-colors">联系我们</a>
+                <a href="https://gitee.com/Yangshengzhou/eco-sorter" class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-full transition-all transform hover:scale-105">
+                    <i class="fa fa-code mr-2"></i> 查看源码
+                </a>
+            </div>
+            
+            <!-- 移动端菜单按钮 -->
+            <button id="menu-toggle" class="md:hidden text-white text-2xl">
+                <i class="fa fa-bars"></i>
+            </button>
+        </div>
+        
+        <!-- 移动端导航菜单 -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg absolute w-full">
+            <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+                <a href="#features" class="text-dark hover:text-primary py-2 transition-colors">功能</a>
+                <a href="#tech" class="text-dark hover:text-primary py-2 transition-colors">技术栈</a>
+                <a href="#cases" class="text-dark hover:text-primary py-2 transition-colors">应用案例</a>
+                <a href="#contact" class="text-dark hover:text-primary py-2 transition-colors">联系我们</a>
+                <a href="https://gitee.com/Yangshengzhou/eco-sorter" class="bg-primary text-white px-5 py-2 rounded-full text-center">
+                    <i class="fa fa-code mr-2"></i> 查看源码
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero 区域 -->
+    <header class="relative h-screen flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <div class="absolute inset-0 bg-dark/60 z-10"></div>
+            <img src="https://picsum.photos/id/1043/1920/1080" alt="环保背景图" class="w-full h-full object-cover">
+        </div>
+        
+        <div class="container mx-auto px-4 z-20 text-center">
+            <h1 class="text-[clamp(2.5rem,6vw,4.5rem)] font-bold text-white mb-6 leading-tight">
+                🗑️ EcoSorter: GreenGuardian<br>智能垃圾分类督导系统 🚀
+            </h1>
+            <p class="text-[clamp(1rem,2vw,1.25rem)] text-white/90 mb-10 max-w-3xl mx-auto">
+                基于先进AI与物联网技术的全流程垃圾分类解决方案，助力智慧城市建设，守护绿水青山
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#features" class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-full text-lg font-medium transition-all transform hover:scale-105 shadow-lg">
+                    了解功能
+                </a>
+                <a href="https://yangshengzhou.gitbook.io/eco-sorter" class="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/30 px-8 py-3 rounded-full text-lg font-medium transition-all transform hover:scale-105">
+                    查看文档
+                </a>
+            </div>
+            
+            <!-- 统计数据 -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-20">
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                    <p class="text-4xl font-bold text-white mb-2" id="counter1">0</p>
+                    <p class="text-white/80">智能识别准确率</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                    <p class="text-4xl font-bold text-white mb-2" id="counter2">0</p>
+                    <p class="text-white/80">已服务社区</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                    <p class="text-4xl font-bold text-white mb-2" id="counter3">0</p>
+                    <p class="text-white/80">减少碳排放</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                    <p class="text-4xl font-bold text-white mb-2" id="counter4">0</p>
+                    <p class="text-white/80">用户满意度</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 向下滚动指示 -->
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-white animate-bounce">
+            <a href="#features" class="flex flex-col items-center">
+                <span class="mb-2">向下滚动</span>
+                <i class="fa fa-chevron-down"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- 功能亮点部分 -->
+    <section id="features" class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark mb-4">核心功能与亮点</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">我们的智能垃圾分类系统提供全面的解决方案，从识别到处理全流程覆盖，打造绿色环保新生态</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- 功能卡片 1 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://picsum.photos/id/1048/600/400" alt="智能垃圾识别" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-eye text-primary text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">智能垃圾识别</h3>
+                        <p class="text-gray-600 mb-4">基于深度学习的视觉识别系统，支持400+常见垃圾品类识别，准确率高达98.7%。</p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>多模态识别技术</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>实时反馈分类结果</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>持续学习与优化</span>
+                            </li>
+                        </ul>
+                        <a href="#" class="text-primary font-medium flex items-center">
+                            了解更多 <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 功能卡片 2 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://picsum.photos/id/1049/600/400" alt="积分奖励系统" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-trophy text-primary text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">积分奖励系统</h3>
+                        <p class="text-gray-600 mb-4">通过垃圾分类获取积分，可兑换实物奖励或服务，提高居民参与度和环保意识。</p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>公平透明的积分规则</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>多样化的奖励兑换</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>社区排名与荣誉体系</span>
+                            </li>
+                        </ul>
+                        <a href="#" class="text-primary font-medium flex items-center">
+                            了解更多 <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 功能卡片 3 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://picsum.photos/id/1059/600/400" alt="任务调度系统" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-calendar-check-o text-primary text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">任务调度系统</h3>
+                        <p class="text-gray-600 mb-4">基于实时数据的智能调度算法，优化垃圾清运路线，降低运营成本，提高效率。</p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>智能路径规划</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>实时任务分配</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>清运过程监控</span>
+                            </li>
+                        </ul>
+                        <a href="#" class="text-primary font-medium flex items-center">
+                            了解更多 <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 功能卡片 4 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://picsum.photos/id/1060/600/400" alt="设备监控管理" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-desktop text-primary text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">设备监控管理</h3>
+                        <p class="text-gray-600 mb-4">全方位监控智能垃圾桶状态，实时数据采集与分析，提前预警设备故障。</p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>实时状态监测</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>异常自动报警</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>远程设备管理</span>
+                            </li>
+                        </ul>
+                        <a href="#" class="text-primary font-medium flex items-center">
+                            了解更多 <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 功能卡片 5 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://picsum.photos/id/1062/600/400" alt="数据分析平台" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-bar-chart text-primary text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">数据分析平台</h3>
+                        <p class="text-gray-600 mb-4">多维度数据可视化分析，提供决策支持，帮助优化垃圾分类策略。</p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>实时数据仪表盘</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>趋势预测分析</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>报表自动生成</span>
+                            </li>
+                        </ul>
+                        <a href="#" class="text-primary font-medium flex items-center">
+                            了解更多 <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 功能卡片 6 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://picsum.photos/id/1063/600/400" alt="多角色管理系统" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-users text-primary text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">多角色管理系统</h3>
+                        <p class="text-gray-600 mb-4">为居民、收集员、管理员提供专属操作界面，满足不同角色的业务需求。</p>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>权限精细控制</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>个性化操作界面</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-primary mt-1 mr-2"></i>
+                                <span>工作流程闭环</span>
+                            </li>
+                        </ul>
+                        <a href="#" class="text-primary font-medium flex items-center">
+                            了解更多 <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 技术栈部分 -->
+    <section id="tech" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark mb-4">强大的技术栈</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">我们采用业界领先的技术架构，确保系统高性能、高可靠、易扩展</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                <div>
+                    <div class="space-y-8">
+                        <div class="bg-white p-6 rounded-xl shadow-md">
+                            <div class="flex items-start">
+                                <div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center mr-4">
+                                    <i class="fa fa-microchip text-secondary text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold mb-2">边缘计算</h3>
+                                    <p class="text-gray-600">采用 NVIDIA Jetson Nano 边缘计算平台，实现低延迟、高可靠性的本地智能处理，降低云端压力。</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-xl shadow-md">
+                            <div class="flex items-start">
+                                <div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center mr-4">
+                                    <i class="fa fa-cloud text-secondary text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold mb-2">云端平台</h3>
+                                    <p class="text-gray-600">基于 Kubernetes 构建的微服务架构，支持自动扩缩容，确保系统在高并发下稳定运行。</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-xl shadow-md">
+                            <div class="flex items-start">
+                                <div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center mr-4">
+                                    <i class="fa fa-brain text-secondary text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold mb-2">AI 框架</h3>
+                                    <p class="text-gray-600">结合 TensorFlow Serving 和 OpenVINO 优化模型推理性能，支持模型在线更新与持续学习。</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-xl shadow-md">
+                            <div class="flex items-start">
+                                <div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center mr-4">
+                                    <i class="fa fa-database text-secondary text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold mb-2">数据库技术</h3>
+                                    <p class="text-gray-600">采用 MySQL + InfluxDB + MongoDB 组合，满足不同类型数据的存储需求，确保数据安全可靠。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <div class="bg-white p-8 rounded-2xl shadow-xl">
+                        <h3 class="text-xl font-semibold mb-6 text-center">技术架构图</h3>
+                        <div class="space-y-6">
+                            <div class="flex items-center justify-between">
+                                <div class="w-1/5 text-center">
+                                    <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2">
+                                        <i class="fa fa-mobile text-primary text-2xl"></i>
+                                    </div>
+                                    <p class="text-sm font-medium">终端设备</p>
+                                </div>
+                                <div class="w-2/5 h-1 bg-gray-200 rounded-full">
+                                    <div class="h-full w-full bg-primary/30 rounded-full"></div>
+                                </div>
+                                <div class="w-1/5 text-center">
+                                    <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2">
+                                        <i class="fa fa-wifi text-primary text-2xl"></i>
+                                    </div>
+                                    <p class="text-sm font-medium">通信层</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <div class="w-1/5 text-center">
+                                    <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2">
+                                        <i class="fa fa-server text-primary text-2xl"></i>
+                                    </div>
+                                    <p class="text-sm font-medium">边缘层</p>
+                                </div>
+                                <div class="w-2/5 h-1 bg-gray-200 rounded-full">
+                                    <div class="h-full w-full bg-primary/30 rounded-full"></div>
+                                </div>
+                                <div class="w-1/5 text-center">
+                                    <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2">
+                                        <i class="fa fa-cloud text-primary text-2xl"></i>
+                                    </div>
+                                    <p class="text-sm font-medium">云端</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <div class="w-1/5 text-center">
+                                    <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2">
+                                        <i class="fa fa-database text-primary text-2xl"></i>
+                                    </div>
+                                    <p class="text-sm font-medium">数据层</p>
+                                </div>
+                                <div class="w-2/5 h-1 bg-gray-200 rounded-full">
+                                    <div class="h-full w-full bg-primary/30 rounded-full"></div>
+                                </div>
+                                <div class="w-1/5 text-center">
+                                    <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2">
+                                        <i class="fa fa-line-chart text-primary text-2xl"></i>
+                                    </div>
+                                    <p class="text-sm font-medium">应用层</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 装饰元素 -->
+                    <div class="absolute -top-6 -right-6 w-24 h-24 bg-primary/10 rounded-full -z-10"></div>
+                    <div class="absolute -bottom-8 -left-8 w-32 h-32 bg-secondary/10 rounded-full -z-10"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 应用案例部分 -->
+    <section id="cases" class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark mb-4">成功应用案例</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">我们的系统已在多个社区和公共场所成功部署，有效提升垃圾分类效率</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- 案例 1 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="h-56 overflow-hidden">
+                        <img src="https://picsum.photos/id/1070/600/400" alt="智慧社区案例" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">智慧社区</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">阳光花园智慧社区项目</h3>
+                        <p class="text-gray-600 mb-4">部署 EcoSorter 系统后，社区垃圾分类准确率提升至95%，居民参与度提高80%，垃圾处理成本降低30%。</p>
+                        <div class="flex items-center text-sm text-gray-500 mb-4">
+                            <div class="flex items-center mr-4">
+                                <i class="fa fa-calendar-o mr-1"></i>
+                                <span>2024年3月</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fa fa-map-marker mr-1"></i>
+                                <span>上海市浦东新区</span>
+                            </div>
+                        </div>
+                        <a href="#" class="inline-flex items-center text-primary font-medium">
+                            查看详情 <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 案例 2 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="h-56 overflow-hidden">
+                        <img src="https://picsum.photos/id/1072/600/400" alt="商业园区案例" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">商业园区</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">科技园区智能垃圾分类项目</h3>
+                        <p class="text-gray-600 mb-4">为科技园区提供智能垃圾分类解决方案，实现可回收物回收率提升45%，有害垃圾单独收集率达100%。</p>
+                        <div class="flex items-center text-sm text-gray-500 mb-4">
+                            <div class="flex items-center mr-4">
+                                <i class="fa fa-calendar-o mr-1"></i>
+                                <span>2024年5月</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fa fa-map-marker mr-1"></i>
+                                <span>北京市海淀区</span>
+                            </div>
+                        </div>
+                        <a href="#" class="inline-flex items-center text-primary font-medium">
+                            查看详情 <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 案例 3 -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="h-56 overflow-hidden">
+                        <img src="https://picsum.photos/id/1074/600/400" alt="学校案例" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full">教育机构</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">绿色校园垃圾分类示范项目</h3>
+                        <p class="text-gray-600 mb-4">在多所学校部署智能垃圾分类系统，结合环保教育课程，培养学生环保意识，校园垃圾减量达25%。</p>
+                        <div class="flex items-center text-sm text-gray-500 mb-4">
+                            <div class="flex items-center mr-4">
+                                <i class="fa fa-calendar-o mr-1"></i>
+                                <span>2024年9月</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fa fa-map-marker mr-1"></i>
+                                <span>广州市天河区</span>
+                            </div>
+                        </div>
+                        <a href="#" class="inline-flex items-center text-primary font-medium">
+                            查看详情 <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-12">
+                <a href="#" class="inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-full text-lg font-medium transition-all transform hover:scale-105 shadow-lg">
+                    查看更多案例 <i class="fa fa-long-arrow-right ml-2"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 联系我们部分 -->
+    <section id="contact" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <div>
+                    <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark mb-6">联系与支持</h2>
+                    <p class="text-gray-600 mb-8">如果您对我们的智能垃圾分类督导系统感兴趣，或者有任何问题需要咨询，欢迎随时联系我们。我们的团队将竭诚为您提供专业的技术支持和解决方案。</p>
+                    
+                    <div class="space-y-6">
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mr-4">
+                                <i class="fa fa-envelope text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold mb-1">电子邮件</h3>
+                                <p class="text-gray-600">3555844679@qq.com</p>
+                                <p class="text-gray-500 text-sm">商务合作、技术咨询</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mr-4">
+                                <i class="fa fa-github text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold mb-1">代码仓库</h3>
+                                <p class="text-gray-600">https://gitee.com/Yangshengzhou/eco-sorter</p>
+                                <p class="text-gray-500 text-sm">项目源码、问题反馈</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mr-4">
+                                <i class="fa fa-book text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold mb-1">文档中心</h3>
+                                <p class="text-gray-600">https://yangshengzhou.gitbook.io/eco-sorter</p>
+                                <p class="text-gray-500 text-sm">详细技术文档、使用指南</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-10">
+                        <h3 class="text-lg font-semibold mb-4">关注我们</h3>
+                        <div class="flex space-x-4">
+                            <a href="#" class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors">
+                                <i class="fa fa-weixin"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors">
+                                <i class="fa fa-weibo"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors">
+                                <i class="fa fa-linkedin"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="bg-white p-8 rounded-2xl shadow-xl">
+                        <h3 class="text-2xl font-semibold mb-6">发送消息</h3>
+                        <form>
+                            <div class="mb-6">
+                                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">姓名</label>
+                                <input type="text" id="name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors" placeholder="请输入您的姓名">
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">邮箱</label>
+                                <input type="email" id="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors" placeholder="请输入您的邮箱">
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label for="subject" class="block text-sm font-medium text-gray-700 mb-1">主题</label>
+                                <select id="subject" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                                    <option value="">请选择咨询主题</option>
+                                    <option value="product">产品咨询</option>
+                                    <option value="cooperation">商务合作</option>
+                                    <option value="support">技术支持</option>
+                                    <option value="other">其他问题</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label for="message" class="block text-sm font-medium text-gray-700 mb-1">消息内容</label>
+                                <textarea id="message" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors" placeholder="请输入您的消息内容"></textarea>
+                            </div>
+                            
+                            <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                                发送消息
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-6">
+                        <i class="fa fa-recycle text-2xl text-primary"></i>
+                        <span class="text-xl font-bold">EcoSorter</span>
+                    </div>
+                    <p class="text-gray-400 mb-6">智能垃圾分类督导系统，助力环保事业，共建绿色家园。</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+                            <i class="fa fa-weixin"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+                            <i class="fa fa-weibo"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">快速链接</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#features" class="text-gray-400 hover:text-primary transition-colors">功能介绍</a></li>
+                        <li><a href="#tech" class="text-gray-400 hover:text-primary transition-colors">技术栈</a></li>
+                        <li><a href="#cases" class="text-gray-400 hover:text-primary transition-colors">应用案例</a></li>
+                        <li><a href="#contact" class="text-gray-400 hover:text-primary transition-colors">联系我们</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">资源中心</h3>
+                    <ul class="space-y-2">
+                        <li><a href="https://yangshengzhou.gitbook.io/eco-sorter" class="text-gray-400 hover:text-primary transition-colors">技术文档</a></li>
+                        <li><a href="https://gitee.com/Yangshengzhou/eco-sorter" class="text-gray-400 hover:text-primary transition-colors">项目源码</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-primary transition-colors">API 参考</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-primary transition-colors">开发指南</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">联系信息</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-start">
+                            <i class="fa fa-envelope text-primary mt-1 mr-2"></i>
+                            <span class="text-gray-400">3555844679@qq.com</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-map-marker text-primary mt-1 mr-2"></i>
+                            <span class="text-gray-400">江西科技师范大学（红角洲校区）</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm">© 2025 Yangshengzhou. All rights reserved.</p>
+                <div class="mt-4 md:mt-0">
+                    <ul class="flex space-x-6 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-primary transition-colors">隐私政策</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">服务条款</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Cookie 政策</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // 导航栏滚动效果
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('bg-dark', 'shadow-lg');
+                navbar.classList.remove('bg-transparent');
+            } else {
+                navbar.classList.add('bg-transparent');
+                navbar.classList.remove('bg-dark', 'shadow-lg');
+            }
+        });
+        
+        // 移动端菜单切换
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            if (mobileMenu.classList.contains('hidden')) {
+                menuToggle.innerHTML = '<i class="fa fa-bars"></i>';
+            } else {
+                menuToggle.innerHTML = '<i class="fa fa-times"></i>';
+            }
+        });
+        
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                // 关闭移动菜单
+                if (!mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                    menuToggle.innerHTML = '<i class="fa fa-bars"></i>';
+                }
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // 数字计数器动画
+        function animateCounter(elementId, targetValue, duration) {
+            const element = document.getElementById(elementId);
+            const startValue = 0;
+            const increment = targetValue / (duration / 16);
+            let currentValue = startValue;
+            
+            const timer = setInterval(() => {
+                currentValue += increment;
+                if (currentValue >= targetValue) {
+                    clearInterval(timer);
+                    currentValue = targetValue;
+                }
+                
+                if (elementId === 'counter1' || elementId === 'counter4') {
+                    element.textContent = currentValue.toFixed(1) + '%';
+                } else if (elementId === 'counter3') {
+                    element.textContent = Math.floor(currentValue) + '吨';
+                } else {
+                    element.textContent = Math.floor(currentValue);
+                }
+            }, 16);
+        }
+        
+        // 检测元素是否在视口中
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // 开始动画
+                    animateCounter('counter1', 98.7, 2000);
+                    animateCounter('counter2', 125, 2000);
+                    animateCounter('counter3', 5800, 2000);
+                    animateCounter('counter4', 96.3, 2000);
+                    
+                    // 只观察一次
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+        
+        // 观察包含计数器的元素
+        const statsSection = document.querySelector('header');
+        if (statsSection) {
+            observer.observe(statsSection);
+        }
+    </script>
+</body>
+</html>

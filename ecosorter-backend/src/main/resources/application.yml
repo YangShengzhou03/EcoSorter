@@ -1,0 +1,118 @@
+spring:
+  application:
+    name: ecosorter-backend
+  
+  profiles:
+    active: dev
+  
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/ecosorter
+      auto-index-creation: true
+  
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:ecosorter-super-secret-key-that-should-be-at-least-256-bits-long}
+  expiration: ${JWT_EXPIRATION:86400000} # 24 hours
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 7 days
+
+# File Upload Configuration
+file:
+  upload:
+    dir: ${FILE_UPLOAD_DIR:./uploads}
+    max-size: 10MB
+    allowed-extensions: jpg,jpeg,png,gif,bmp,webp
+
+# Mail Configuration
+spring:
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# Logging Configuration
+logging:
+  level:
+    com.ecosorter: DEBUG
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/ecosorter.log
+    max-size: 10MB
+    max-history: 30
+
+# Rate Limiting
+rate-limiting:
+  enabled: true
+  general:
+    capacity: 100
+    refill-tokens: 10
+    refill-period: 1 # minute
+  auth:
+    capacity: 5
+    refill-tokens: 1
+    refill-period: 15 # minutes
+
+# Swagger Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+  info:
+    title: EcoSorter Backend API
+    description: Intelligent Waste Classification System Backend API
+    version: 1.0.0
+    contact:
+      name: EcoSorter Team
+      email: support@ecosorter.com
+    license:
+      name: MIT
+      url: https://opensource.org/licenses/MIT
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# CORS Configuration
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080}
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: "*"
+  allow-credentials: true
+  max-age: 3600
+
+# Security Configuration
+security:
+  bcrypt:
+    rounds: 12
+  account:
+    lock-attempts: 5
+    lock-duration: 2 # hours
