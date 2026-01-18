@@ -1,54 +1,153 @@
 package com.ecosorter.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@Schema(description = "Waste category response")
 public class WasteCategoryResponse {
     
-    @Schema(description = "Category ID", example = "cat_plastic")
     private String id;
     
-    @Schema(description = "Category name", example = "Plastic")
     private String name;
     
-    @Schema(description = "Category description", example = "Plastic waste materials")
     private String description;
     
-    @Schema(description = "Disposal method", example = "recycling")
     private String disposalMethod;
     
-    @Schema(description = "Color code for category", example = "#2196F3")
     private String color;
     
-    @Schema(description = "Icon for category", example = "🗑️")
     private String icon;
     
-    @Schema(description = "Environmental impact score (1-10)", example = "8")
     private Integer environmentalImpact;
     
-    @Schema(description = "Recycling rate (0-100)", example = "85.0")
     private Double recyclingRate;
     
-    @Schema(description = "Common items in this category", example = "[\"bottle\", \"bag\", \"container\"]")
     private String[] commonItems;
     
-    @Schema(description = "Disposal instructions", example = "Rinse and place in recycling bin")
     private String disposalInstructions;
     
-    @Schema(description = "Special handling required", example = "false")
     private Boolean specialHandling;
     
-    @Schema(description = "Hazardous material", example = "false")
     private Boolean hazardous;
     
-    @Schema(description = "Category is active", example = "true")
     private Boolean active;
+
+    public WasteCategoryResponse() {
+    }
+
+    public WasteCategoryResponse(String id, String name, String description, String disposalMethod, String color, String icon, Integer environmentalImpact, Double recyclingRate, String[] commonItems, String disposalInstructions, Boolean specialHandling, Boolean hazardous, Boolean active) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.disposalMethod = disposalMethod;
+        this.color = color;
+        this.icon = icon;
+        this.environmentalImpact = environmentalImpact;
+        this.recyclingRate = recyclingRate;
+        this.commonItems = commonItems;
+        this.disposalInstructions = disposalInstructions;
+        this.specialHandling = specialHandling;
+        this.hazardous = hazardous;
+        this.active = active;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getDisposalMethod() {
+        return disposalMethod;
+    }
+
+    public void setDisposalMethod(String disposalMethod) {
+        this.disposalMethod = disposalMethod;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
+
+    public Integer getEnvironmentalImpact() {
+        return environmentalImpact;
+    }
+
+    public void setEnvironmentalImpact(Integer environmentalImpact) {
+        this.environmentalImpact = environmentalImpact;
+    }
+
+    public Double getRecyclingRate() {
+        return recyclingRate;
+    }
+
+    public void setRecyclingRate(Double recyclingRate) {
+        this.recyclingRate = recyclingRate;
+    }
+
+    public String[] getCommonItems() {
+        return commonItems;
+    }
+
+    public void setCommonItems(String[] commonItems) {
+        this.commonItems = commonItems;
+    }
+
+    public String getDisposalInstructions() {
+        return disposalInstructions;
+    }
+
+    public void setDisposalInstructions(String disposalInstructions) {
+        this.disposalInstructions = disposalInstructions;
+    }
+
+    public Boolean getSpecialHandling() {
+        return specialHandling;
+    }
+
+    public void setSpecialHandling(Boolean specialHandling) {
+        this.specialHandling = specialHandling;
+    }
+
+    public Boolean getHazardous() {
+        return hazardous;
+    }
+
+    public void setHazardous(Boolean hazardous) {
+        this.hazardous = hazardous;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
 }

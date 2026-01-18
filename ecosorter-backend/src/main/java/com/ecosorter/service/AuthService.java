@@ -8,183 +8,119 @@ import com.ecosorter.exception.BadRequestException;
 import com.ecosorter.exception.ResourceNotFoundException;
 import com.ecosorter.model.User;
 import com.ecosorter.repository.UserRepository;
-import com.ecosorter.security.JwtUtils;
-import com.ecosorter.security.UserPrincipal;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
-/**
- * Authentication service implementation
- */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class AuthService {
     
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtUtils jwtUtils;
-    private final UserService userService;
     
-    /**
-     * Register a new user
-     */
+    public AuthService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+    
+    private UserResponse convertToUserResponse(User user) {
+        if (user == null) {
+            return null;
+        }
+        
+        UserResponse response = new UserResponse();
+        response.setId(user.getId() != null ? user.getId().toString() : null);
+        response.setUsername(user.getUsername());
+        response.setEmail(user.getEmail());
+        response.setRole(user.getRole());
+        response.setIsActive(user.getIsActive());
+        response.setLastLogin(user.getLastLogin() != null ? user.getLastLogin().toString() : null);
+        response.setCreatedAt(user.getCreatedAt() != null ? user.getCreatedAt().toString() : null);
+        response.setUpdatedAt(user.getUpdatedAt() != null ? user.getUpdatedAt().toString() : null);
+        
+        UserResponse.UserProfileDto profileDto = new UserResponse.UserProfileDto();
+        profileDto.setAvatar(user.getAvatarUrl());
+        profileDto.setPhone(user.getPhone());
+        profileDto.setFullName(user.getFullName());
+        response.setProfile(profileDto);
+        
+        return response;
+    }
+    
     public AuthResponse register(RegisterRequest registerRequest) {
-        // Check if username already exists
         if (userRepository.existsByUsername(registerRequest.getUsername())) {
             throw new BadRequestException("Username is already taken!");
         }
         
-        // Check if email already exists
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
             throw new BadRequestException("Email is already in use!");
         }
         
-        // Create new user
-        User user = User.builder()
-                .username(registerRequest.getUsername())
-                .email(registerRequest.getEmail())
-                .password(passwordEncoder.encode(registerRequest.getPassword()))
-                .role(User.UserRole.USER)
-                .status(User.UserStatus.ACTIVE)
-                .loginAttempts(0)
-                .emailVerified(false)
-                .twoFactorEnabled(false)
-                .build();
-        
-        // Set profile information
-        if (registerRequest.getFirstName() != null || registerRequest.getLastName() != null) {
-            user.setProfile(com.ecosorter.model.UserProfile.builder()
-                    .firstName(registerRequest.getFirstName())
-                    .lastName(registerRequest.getLastName())
-                    .phone(registerRequest.getPhone())
-                    .build());
-        }
-        
-        // Set default preferences
-        user.setPreferences(com.ecosorter.model.UserPreferences.builder()
-                .theme(com.ecosorter.model.UserPreferences.Theme.LIGHT)
-                .language("zh-CN")
-                .notifications(com.ecosorter.model.UserNotifications.builder()
-                        .email(true)
-                        .push(true)
-                        .classification(true)
-                        .build())
-                .build());
-        
-        // Set default statistics
-        user.setStatistics(com.ecosorter.model.UserStatistics.builder()
-                .totalClassifications(0)
-                .correctClassifications(0)
-                .accuracy(0.0)
-                .totalWasteWeight(0.0)
-                .carbonSaved(0.0)
-                .build());
+        User user = new User();
+        user.setUsername(registerRequest.getUsername());
+        user.setEmail(registerRequest.getEmail());
+        user.setPassword(registerRequest.getPassword());
+        user.setRole(User.UserRole.RESIDENT);
+        user.setIsActive(true);
         
         User savedUser = userRepository.save(user);
-        log.info("User registered successfully: {}", savedUser.getUsername());
         
-        // Generate tokens
-        String accessToken = jwtUtils.generateTokenFromUsername(savedUser.getUsername());
-        String refreshToken = jwtUtils.generateRefreshToken(savedUser.getUsername());
+        UserResponse userResponse = convertToUserResponse(savedUser);
         
-        // Convert to response
-        UserResponse userResponse = userService.convertToUserResponse(savedUser);
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setAccessToken("simple-token-" + savedUser.getId());
+        authResponse.setExpiresIn(86400000L);
+        authResponse.setUser(userResponse);
         
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .expiresIn(86400000L) // 24 hours
-                .user(userResponse)
-                .build();
+        return authResponse;
     }
     
-    /**
-     * User login
-     */
-    public AuthResponse login(Authentication authentication, LoginRequest loginRequest) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+    public AuthResponse login(LoginRequest loginRequest) {
+        User user = userRepository.findByUsername(loginRequest.getIdentifier())
+                .orElseThrow(() -> new BadRequestException("User not found"));
         
-        User user = userRepository.findByUsername(userPrincipal.getUsername())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        
-        // Update last login time
-        user.setLastLoginAt(LocalDateTime.now());
-        userRepository.save(user);
-        
-        // Generate tokens
-        String accessToken = jwtUtils.generateJwtToken(authentication);
-        String refreshToken = jwtUtils.generateRefreshToken(user.getUsername());
-        
-        // Convert to response
-        UserResponse userResponse = userService.convertToUserResponse(user);
-        
-        log.info("User logged in successfully: {}", user.getUsername());
-        
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .expiresIn(86400000L) // 24 hours
-                .user(userResponse)
-                .build();
-    }
-    
-    /**
-     * Refresh access token
-     */
-    public AuthResponse refreshToken(String refreshToken) {
-        if (!jwtUtils.validateJwtToken(refreshToken)) {
-            throw new BadRequestException("Invalid refresh token");
+        if (!user.getPassword().equals(loginRequest.getPassword())) {
+            throw new BadRequestException("Invalid password");
         }
         
-        String username = jwtUtils.getUserNameFromJwtToken(refreshToken);
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        user.setLastLogin(LocalDateTime.now());
+        userRepository.save(user);
         
-        // Generate new access token
-        String newAccessToken = jwtUtils.generateTokenFromUsername(username);
+        UserResponse userResponse = convertToUserResponse(user);
         
-        // Convert to response
-        UserResponse userResponse = userService.convertToUserResponse(user);
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setAccessToken("simple-token-" + user.getId());
+        authResponse.setExpiresIn(86400000L);
+        authResponse.setUser(userResponse);
         
-        return AuthResponse.builder()
-                .accessToken(newAccessToken)
-                .refreshToken(refreshToken) // Keep the same refresh token
-                .expiresIn(86400000L) // 24 hours
-                .user(userResponse)
-                .build();
+        return authResponse;
     }
     
-    /**
-     * User logout
-     */
-    public void logout(Authentication authentication) {
-        // In a real implementation, you might want to:
-        // 1. Add the token to a blacklist
-        // 2. Remove refresh tokens from database
-        // 3. Clear user sessions
+    public AuthResponse refreshToken(String refreshToken) {
+        String userIdStr = refreshToken.replace("simple-token-", "");
+        Long userId = Long.parseLong(userIdStr);
         
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        log.info("User logged out: {}", userPrincipal.getUsername());
-    }
-    
-    /**
-     * Get current user information
-     */
-    public UserResponse getCurrentUser(Authentication authentication) {
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        
-        User user = userRepository.findByUsername(userPrincipal.getUsername())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         
-        return userService.convertToUserResponse(user);
+        UserResponse userResponse = convertToUserResponse(user);
+        
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setAccessToken(refreshToken);
+        authResponse.setExpiresIn(86400000L);
+        authResponse.setUser(userResponse);
+        
+        return authResponse;
+    }
+    
+    public void logout(String token) {
+    }
+    
+    public UserResponse getCurrentUser(String token) {
+        String userIdStr = token.replace("simple-token-", "");
+        Long userId = Long.parseLong(userIdStr);
+        
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        return convertToUserResponse(user);
     }
 }

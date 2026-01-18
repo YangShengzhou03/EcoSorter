@@ -1,132 +1,300 @@
 package com.ecosorter.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@Schema(description = "Classification response with waste identification results")
 public class ClassificationResponse {
     
-    @Schema(description = "Classification ID", example = "cls_1234567890")
     private String id;
     
-    @Schema(description = "User ID who performed the classification", example = "user_1234567890")
     private String userId;
     
-    @Schema(description = "Username of the user", example = "john_doe")
     private String username;
     
-    @Schema(description = "Waste category information")
     private WasteCategoryResponse category;
     
-    @Schema(description = "Classification confidence score (0-100)", example = "95.5")
+    private String categoryName;
+    
     private Double confidence;
     
-    @Schema(description = "Classification result", example = "plastic_bottle")
     private String result;
     
-    @Schema(description = "Classification status", example = "completed")
     private String status;
     
-    @Schema(description = "Image file path", example = "uploads/classifications/cls_1234567890.jpg")
     private String imageUrl;
     
-    @Schema(description = "Processing time in milliseconds", example = "1250")
     private Long processingTime;
     
-    @Schema(description = "AI model used for classification", example = "eco-sorter-v1.0")
     private String model;
     
-    @Schema(description = "Classification timestamp", example = "2023-12-29T10:30:00")
     private LocalDateTime createdAt;
     
-    @Schema(description = "Additional notes or warnings", example = "Clean before recycling")
     private String notes;
     
-    @Schema(description = "Disposal instructions", example = "Rinse and place in recycling bin")
     private String disposalInstructions;
     
-    @Schema(description = "Environmental impact score (1-10)", example = "8")
     private Integer environmentalImpact;
     
-    @Schema(description = "Alternative suggestions", example = "[\"glass_bottle\", \"aluminum_can\"]")
     private List<String> alternatives;
     
-    @Schema(description = "User feedback on classification", example = "accurate")
     private String userFeedback;
     
-    @Schema(description = "Classification accuracy metrics")
+    private Integer points;
+    
     private ClassificationMetrics metrics;
     
-    @Schema(description = "Processing details")
     private ProcessingDetails processingDetails;
-    
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class WasteCategoryResponse {
-        @Schema(description = "Category ID", example = "cat_plastic")
-        private String id;
-        
-        @Schema(description = "Category name", example = "Plastic")
-        private String name;
-        
-        @Schema(description = "Category description", example = "Plastic waste materials")
-        private String description;
-        
-        @Schema(description = "Disposal method", example = "recycling")
-        private String disposalMethod;
-        
-        @Schema(description = "Color code for category", example = "#2196F3")
-        private String color;
-        
-        @Schema(description = "Icon for category", example = "🗑️")
-        private String icon;
+
+    public ClassificationResponse() {
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public WasteCategoryResponse getCategory() {
+        return category;
+    }
+
+    public void setCategory(WasteCategoryResponse category) {
+        this.category = category;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public Double getConfidence() {
+        return confidence;
+    }
+
+    public void setConfidence(Double confidence) {
+        this.confidence = confidence;
+    }
+
+    public String getResult() {
+        return result;
+    }
+
+    public void setResult(String result) {
+        this.result = result;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public Long getProcessingTime() {
+        return processingTime;
+    }
+
+    public void setProcessingTime(Long processingTime) {
+        this.processingTime = processingTime;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public String getDisposalInstructions() {
+        return disposalInstructions;
+    }
+
+    public void setDisposalInstructions(String disposalInstructions) {
+        this.disposalInstructions = disposalInstructions;
+    }
+
+    public Integer getEnvironmentalImpact() {
+        return environmentalImpact;
+    }
+
+    public void setEnvironmentalImpact(Integer environmentalImpact) {
+        this.environmentalImpact = environmentalImpact;
+    }
+
+    public List<String> getAlternatives() {
+        return alternatives;
+    }
+
+    public void setAlternatives(List<String> alternatives) {
+        this.alternatives = alternatives;
+    }
+
+    public String getUserFeedback() {
+        return userFeedback;
+    }
+
+    public void setUserFeedback(String userFeedback) {
+        this.userFeedback = userFeedback;
+    }
+
+    public Integer getPoints() {
+        return points;
+    }
+
+    public void setPoints(Integer points) {
+        this.points = points;
+    }
+
+    public ClassificationMetrics getMetrics() {
+        return metrics;
+    }
+
+    public void setMetrics(ClassificationMetrics metrics) {
+        this.metrics = metrics;
+    }
+
+    public ProcessingDetails getProcessingDetails() {
+        return processingDetails;
+    }
+
+    public void setProcessingDetails(ProcessingDetails processingDetails) {
+        this.processingDetails = processingDetails;
     }
     
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class ClassificationMetrics {
-        @Schema(description = "Accuracy score (0-100)", example = "95.5")
         private Double accuracy;
         
-        @Schema(description = "Precision score (0-100)", example = "92.3")
         private Double precision;
         
-        @Schema(description = "Recall score (0-100)", example = "89.7")
         private Double recall;
         
-        @Schema(description = "F1 score (0-100)", example = "90.9")
         private Double f1Score;
+
+        public ClassificationMetrics() {
+        }
+
+        public Double getAccuracy() {
+            return accuracy;
+        }
+
+        public void setAccuracy(Double accuracy) {
+            this.accuracy = accuracy;
+        }
+
+        public Double getPrecision() {
+            return precision;
+        }
+
+        public void setPrecision(Double precision) {
+            this.precision = precision;
+        }
+
+        public Double getRecall() {
+            return recall;
+        }
+
+        public void setRecall(Double recall) {
+            this.recall = recall;
+        }
+
+        public Double getF1Score() {
+            return f1Score;
+        }
+
+        public void setF1Score(Double f1Score) {
+            this.f1Score = f1Score;
+        }
     }
     
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class ProcessingDetails {
-        @Schema(description = "Image preprocessing time (ms)", example = "250")
         private Long preprocessingTime;
         
-        @Schema(description = "Model inference time (ms)", example = "800")
         private Long inferenceTime;
         
-        @Schema(description = "Post-processing time (ms)", example = "200")
         private Long postprocessingTime;
         
-        @Schema(description = "Total processing stages", example = "3")
         private Integer stages;
+
+        public ProcessingDetails() {
+        }
+
+        public Long getPreprocessingTime() {
+            return preprocessingTime;
+        }
+
+        public void setPreprocessingTime(Long preprocessingTime) {
+            this.preprocessingTime = preprocessingTime;
+        }
+
+        public Long getInferenceTime() {
+            return inferenceTime;
+        }
+
+        public void setInferenceTime(Long inferenceTime) {
+            this.inferenceTime = inferenceTime;
+        }
+
+        public Long getPostprocessingTime() {
+            return postprocessingTime;
+        }
+
+        public void setPostprocessingTime(Long postprocessingTime) {
+            this.postprocessingTime = postprocessingTime;
+        }
+
+        public Integer getStages() {
+            return stages;
+        }
+
+        public void setStages(Integer stages) {
+            this.stages = stages;
+        }
     }
 }

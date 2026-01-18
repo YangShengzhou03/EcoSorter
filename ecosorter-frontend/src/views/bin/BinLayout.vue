@@ -9,6 +9,19 @@
         <div class="bin-datetime">{{ currentTime }}</div>
       </div>
       
+      <div class="bin-banners" v-if="banners.length > 0">
+        <el-carousel :interval="5000" arrow="hover" height="120px" class="banner-carousel">
+          <el-carousel-item v-for="(banner, index) in banners" :key="index">
+            <div class="banner-item" :style="{ background: banner.background }">
+              <div class="banner-content">
+                <h3>{{ banner.title }}</h3>
+                <p>{{ banner.description }}</p>
+              </div>
+            </div>
+          </el-carousel-item>
+        </el-carousel>
+      </div>
+      
       <div class="bin-content">
         <router-view />
       </div>
@@ -20,9 +33,11 @@
         </div>
         <div class="fill-level">
           <div class="fill-bar">
-            <div class="fill-progress" :style="{ width: binInfo.fillLevel + '%' }"></div>
+            <div class="fill-progress" :class="getFillLevelClass()" :style="{ width: getFillPercentage() + '%' }"></div>
           </div>
-          <span class="fill-text">{{ binInfo.fillLevel }}%</span>
+          <span class="fill-text">{{ binInfo.fillLevel }} / {{ binInfo.maxCapacity }}</span>
+          <el-tag v-if="isNearFull" type="warning" size="small" style="margin-left: 10px">接近满载</el-tag>
+          <el-tag v-if="isFull" type="danger" size="small" style="margin-left: 10px">已满</el-tag>
         </div>
       </div>
     </div>
@@ -31,19 +46,26 @@
 
 <script>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { binApi } from '@/api/bin'
+import { bannerApi } from '@/api/banner'
 
 export default {
   name: 'BinLayout',
   setup() {
     const currentTime = ref('')
+    const banners = ref([])
     const binInfo = ref({
-      binId: 'BIN-001',
+      binId: localStorage.getItem('binDeviceId') || 'BIN-001',
       location: 'A区-1号楼',
       fillLevel: 65,
+      maxCapacity: 100,
+      threshold: 80,
       status: 'online'
     })
     
     let timeInterval = null
+    let statusInterval = null
     
     const binStatusClass = computed(() => ({
       'status-online': binInfo.value.status === 'online',
@@ -59,6 +81,28 @@ export default {
       'full': '已满'
     }[binInfo.value.status] || '未知'))
     
+    const getFillPercentage = () => {
+      if (!binInfo.value.maxCapacity || binInfo.value.maxCapacity === 0) return 0
+      return Math.round((binInfo.value.fillLevel / binInfo.value.maxCapacity) * 100)
+    }
+    
+    const getFillLevelClass = () => {
+      const percentage = getFillPercentage()
+      if (percentage >= 90) return 'fill-full'
+      if (percentage >= binInfo.value.threshold) return 'fill-warning'
+      return 'fill-normal'
+    }
+    
+    const isNearFull = computed(() => {
+      const percentage = getFillPercentage()
+      return percentage >= binInfo.value.threshold && percentage < 90
+    })
+    
+    const isFull = computed(() => {
+      const percentage = getFillPercentage()
+      return percentage >= 90
+    })
+    
     const updateTime = () => {
       currentTime.value = new Date().toLocaleString('zh-CN', {
         year: 'numeric',
@@ -70,28 +114,52 @@ export default {
       })
     }
     
-    const fetchBinStatus = () => {
-      const statuses = ['online', 'offline', 'error', 'full']
-      binInfo.value.status = statuses[Math.floor(Math.random() * statuses.length)]
-      binInfo.value.fillLevel = Math.floor(Math.random() * 100)
+    const loadBanners = async () => {
+      try {
+        const response = await bannerApi.getList('bin')
+        banners.value = response || []
+      } catch (error) {
+        console.error('加载轮播图失败:', error)
+        banners.value = []
+      }
+    }
+    
+    const fetchBinStatus = async () => {
+      try {
+        const response = await binApi.getBinStatus(binInfo.value.binId)
+        binInfo.value.binId = response.binId
+        binInfo.value.location = response.location
+        binInfo.value.fillLevel = response.fillLevel || 0
+        binInfo.value.maxCapacity = response.maxCapacity || 100
+        binInfo.value.threshold = response.threshold || 80
+        binInfo.value.status = response.status || 'offline'
+      } catch (error) {
+        console.error('获取垃圾桶状态失败:', error)
+      }
     }
     
     onMounted(() => {
       updateTime()
+      loadBanners()
       timeInterval = setInterval(updateTime, 1000)
       fetchBinStatus()
-      setInterval(fetchBinStatus, 30000)
+      statusInterval = setInterval(fetchBinStatus, 30000)
     })
     
     onUnmounted(() => {
       if (timeInterval) clearInterval(timeInterval)
+      if (statusInterval) clearInterval(statusInterval)
     })
     
     return {
       currentTime,
       binInfo,
       binStatusClass,
-      binStatusText
+      binStatusText,
+      getFillPercentage,
+      getFillLevelClass,
+      isNearFull,
+      isFull
     }
   }
 }
@@ -122,7 +190,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 0 40px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom:1px solid rgba(0, 0, 0, 0.1);
 }
 
 .bin-status {
@@ -206,6 +274,10 @@ export default {
   height: 100%;
   background: #67c23a;
 }
+
+.fill-progress.fill-normal { background: #67c23a; }
+.fill-progress.fill-warning { background: #e6a23c; }
+.fill-progress.fill-full { background: #f56c6c; }
 
 .fill-text {
   color: #303133;

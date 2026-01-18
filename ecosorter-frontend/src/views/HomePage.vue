@@ -2,10 +2,7 @@
     <div class="home">
         <nav class="nav">
             <div class="nav-content">
-                <div class="logo">
-                    <img src="@/assets/logo.svg" alt="EcoSorter" />
-                    <span>EcoSorter</span>
-                </div>
+                <div class="logo">EcoSorter</div>
                 <div class="nav-buttons">
                     <el-button @click="$router.push('/login')">登录</el-button>
                     <el-button type="primary" @click="$router.push('/register')">注册</el-button>
@@ -14,210 +11,197 @@
         </nav>
 
         <section class="hero">
-            <h1 class="hero-title">
-                <span class="title-highlight">智能</span>垃圾分类
-            </h1>
-            <p class="hero-desc">拍照识别垃圾类型，给出正确的分类建议</p>
+            <div class="hero-content">
+                <h1 class="hero-title">智能垃圾分类系统</h1>
+                <p class="hero-desc">基于深度学习技术，一键拍照识别垃圾类型</p>
+                <div class="hero-actions">
+                    <el-button type="primary" size="large" @click="$router.push('/register')">立即开始</el-button>
+                    <el-button size="large" @click="$router.push('/login')">了解更多</el-button>
+                </div>
+            </div>
         </section>
 
         <section class="features">
-            <h2 class="section-title">功能介绍</h2>
+            <h2 class="section-title">核心功能</h2>
             <div class="feature-list">
                 <div class="feature-item">
-                    <div class="feature-icon-wrapper">
-                        <el-icon :size="36" color="var(--primary-color)">
-                            <Camera />
-                        </el-icon>
+                    <div class="feature-icon">
+                        <el-icon><Camera /></el-icon>
                     </div>
-                    <h3>拍照识别</h3>
-                    <p>垃圾图片识别返回分类结果</p>
+                    <h3>智能识别</h3>
+                    <p>基于深度学习快速识别垃圾类型</p>
                 </div>
                 <div class="feature-item">
-                    <div class="feature-icon-wrapper">
-                        <el-icon :size="36" color="var(--primary-color)">
-                            <Histogram />
-                        </el-icon>
+                    <div class="feature-icon">
+                        <el-icon><DataAnalysis /></el-icon>
                     </div>
-                    <h3>分类记录</h3>
-                    <p>查看历史识别记录和分类统计</p>
+                    <h3>数据统计</h3>
+                    <p>详细的分类记录和统计分析</p>
                 </div>
                 <div class="feature-item">
-                    <div class="feature-icon-wrapper">
-                        <el-icon :size="36" color="var(--primary-color)">
-                            <Upload />
-                        </el-icon>
+                    <div class="feature-icon">
+                        <el-icon><Upload /></el-icon>
                     </div>
-                    <h3>批量上传</h3>
-                    <p>支持多图同时识别，提高使用效率</p>
+                    <h3>批量处理</h3>
+                    <p>支持多图同时上传识别</p>
                 </div>
                 <div class="feature-item">
-                    <div class="feature-icon-wrapper">
-                        <el-icon :size="36" color="var(--primary-color)">
-                            <Star />
-                        </el-icon>
+                    <div class="feature-icon">
+                        <el-icon><Coin /></el-icon>
                     </div>
-                    <h3>我的收藏</h3>
-                    <p>收藏常用垃圾类型，方便快速查询</p>
+                    <h3>积分奖励</h3>
+                    <p>正确分类可获得积分奖励</p>
                 </div>
             </div>
         </section>
 
         <footer class="footer">
-            <p>© 2025 EcoSorter</p>
+            <p>&copy; 2026 EcoSorter. 智能垃圾分类系统</p>
         </footer>
     </div>
 </template>
 
 <script setup>
-import { Camera, Histogram, Upload, Star } from '@element-plus/icons-vue'
+import { Camera, DataAnalysis, Upload, Coin } from '@element-plus/icons-vue'
 </script>
 
 <style scoped>
 .home {
     min-height: 100vh;
-    background: #f8faf9;
-    padding-top: 56px;
-}
-
-:root {
-    --primary-color: #10b981;
-    --primary-light: #d1fae5;
-    --primary-bg: #ecfdf5;
-    --text-primary: #1f2937;
-    --text-secondary: #6b7280;
-    --text-muted: #9ca3af;
-    --border-color: #e5e7eb;
+    background: #ffffff;
 }
 
 .nav {
-    padding: 0 16px;
+    padding: 0 24px;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 100;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .nav-content {
     max-width: 1200px;
     margin: 0 auto;
-    height: 56px;
+    height: 64px;
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
 .logo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.logo img {
-    width: 32px;
-    height: 32px;
-}
-
-.logo span {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--primary-color);
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f2937;
 }
 
 .nav-buttons {
     display: flex;
-    gap: 8px;
-}
-
-.nav-buttons .el-button {
-    border-radius: 8px;
+    gap: 12px;
 }
 
 .hero {
-    padding: 72px 20px 52px;
+    padding: 120px 24px 80px;
+    background: #f9fafb;
     text-align: center;
+}
+
+.hero-content {
     max-width: 600px;
     margin: 0 auto;
 }
 
 .hero-title {
-    font-size: 36px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 10px;
-    letter-spacing: -0.5px;
-}
-
-.title-highlight {
-    color: var(--primary-color);
+    font-size: 48px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #1f2937;
 }
 
 .hero-desc {
-    font-size: 15px;
-    color: var(--text-secondary);
-    margin-bottom: 20px;
-    line-height: 1.6;
+    font-size: 18px;
+    margin-bottom: 32px;
+    line-height: 1.5;
+    color: #6b7280;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
 }
 
 .features {
-    padding: 40px 20px;
-    max-width: 1100px;
-    margin: 0 auto;
+    padding: 80px 24px;
+    background: #ffffff;
 }
 
 .section-title {
-    font-size: 22px;
+    font-size: 32px;
     font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 48px;
     text-align: center;
-    margin-bottom: 28px;
-    color: var(--text-primary);
-    letter-spacing: -0.3px;
 }
 
 .feature-list {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .feature-item {
-    padding: 18px 14px;
+    padding: 24px;
+    background: #f9fafb;
     border-radius: 8px;
+    border: 1px solid #e5e7eb;
     text-align: center;
-    border: 1px solid var(--border-color);
 }
 
-.feature-icon-wrapper {
-    width: 52px;
-    height: 52px;
-    margin: 0 auto 10px;
-    background: var(--primary-bg);
-    border-radius: 8px;
+.feature-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #10b981;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.feature-icon .el-icon {
+    font-size: 32px;
+    color: white;
 }
 
 .feature-item h3 {
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 600;
-    margin: 8px 0 5px;
-    color: #374151;
+    color: #1f2937;
+    margin: 0 0 12px;
 }
 
 .feature-item p {
-    font-size: 12px;
-    color: var(--text-secondary);
+    font-size: 14px;
+    color: #6b7280;
     line-height: 1.5;
+    margin: 0;
 }
 
 .footer {
-    padding: 20px 20px;
+    padding: 24px;
     text-align: center;
-    color: var(--text-muted);
-    font-size: 12px;
-    background: #f9fafb;
-    border-top: 1px solid #f3f4f6;
+    background: #1f2937;
+    color: white;
+}
+
+.footer p {
+    margin: 0;
+    font-size: 14px;
 }
 
 @media (max-width: 1024px) {
@@ -227,43 +211,20 @@ import { Camera, Histogram, Upload, Star } from '@element-plus/icons-vue'
 }
 
 @media (max-width: 768px) {
-    .home {
-        padding-top: 52px;
-    }
-
-    .nav-content {
-        height: 52px;
-    }
-
-    .logo img {
-        width: 28px;
-        height: 28px;
-    }
-
-    .logo span {
-        font-size: 16px;
-    }
-
-    .hero {
-        padding: 56px 20px 40px;
-    }
-
     .hero-title {
-        font-size: 26px;
+        font-size: 32px;
     }
 
     .hero-desc {
-        font-size: 14px;
-    }
-
-    .section-title {
-        font-size: 18px;
+        font-size: 16px;
     }
 
     .feature-list {
         grid-template-columns: 1fr;
-        max-width: 360px;
-        margin: 0 auto;
+    }
+
+    .hero-actions {
+        flex-direction: column;
     }
 }
 </style>

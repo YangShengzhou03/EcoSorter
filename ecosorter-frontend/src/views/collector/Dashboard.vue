@@ -87,42 +87,47 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { 
   List, 
   CircleCheck, 
   Clock, 
   Warning
 } from '@element-plus/icons-vue'
+import { collectorApi } from '@/api/collector'
 
-const todayTasks = ref(12)
-const completedTasks = ref(8)
-const inProgressTasks = ref(3)
-const abnormalDevices = ref(2)
+const todayTasks = ref(0)
+const completedTasks = ref(0)
+const inProgressTasks = ref(0)
+const abnormalDevices = ref(0)
 
-const taskList = ref([
-  {
-    taskId: 'T001',
-    location: '小区A栋垃圾收集点',
-    garbageType: '可回收物',
-    estimatedWeight: 25.5,
-    priority: '高'
-  },
-  {
-    taskId: 'T002',
-    location: '小区B栋垃圾收集点',
-    garbageType: '厨余垃圾',
-    estimatedWeight: 18.2,
-    priority: '中'
-  },
-  {
-    taskId: 'T003',
-    location: '小区C栋垃圾收集点',
-    garbageType: '有害垃圾',
-    estimatedWeight: 5.8,
-    priority: '高'
+const taskList = ref([])
+
+const loadDashboard = async () => {
+  try {
+    const dashboardResponse = await collectorApi.getDashboard()
+    todayTasks.value = dashboardResponse.todayTasks || 0
+    completedTasks.value = dashboardResponse.completedTasks || 0
+    inProgressTasks.value = dashboardResponse.inProgressTasks || 0
+    abnormalDevices.value = dashboardResponse.abnormalDevices || 0
+  } catch (error) {
+    console.error('加载仪表板数据失败:', error)
   }
-])
+}
+
+const loadTasks = async () => {
+  try {
+    const tasksResponse = await collectorApi.getTasks()
+    taskList.value = tasksResponse || []
+  } catch (error) {
+    console.error('加载任务数据失败:', error)
+  }
+}
+
+onMounted(() => {
+  loadDashboard()
+  loadTasks()
+})
 
 const getGarbageTypeTag = (type) => {
   const typeMap = {
@@ -176,6 +181,6 @@ const getPriorityTag = (priority) => {
 .stat-value {
   font-size: 20px;
   font-weight: bold;
-  color: #303133;
+  color: var(--text-primary);
 }
 </style>

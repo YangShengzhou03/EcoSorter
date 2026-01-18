@@ -5,7 +5,7 @@
         <span>设备状态监控</span>
       </template>
       
-      <el-table :data="deviceList" style="width: 100%">
+      <el-table :data="deviceList" v-loading="loading" style="width: 100%">
         <el-table-column prop="deviceId" label="设备编号" width="140" />
         <el-table-column prop="name" label="设备名称" min-width="150" />
         <el-table-column prop="location" label="设备位置" min-width="200" />
@@ -21,65 +21,36 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="lastUpdate" label="最后更新" width="160" />
+        <el-table-column prop="lastUpdate" label="最后更新" width="160">
+          <template #default="{ row }">
+            {{ formatTime(row.lastUpdate) }}
+          </template>
+        </el-table-column>
       </el-table>
     </el-card>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { adminApi } from '@/api/admin'
 
-const deviceList = ref([
-  {
-    deviceId: 'DEVICE-A01',
-    name: '智能垃圾箱-A01',
-    location: '小区A栋垃圾收集点',
-    capacity: 65,
-    status: '正常',
-    lastUpdate: '2024-01-15 14:30:00'
-  },
-  {
-    deviceId: 'DEVICE-A02',
-    name: '智能垃圾箱-A02',
-    location: '小区A栋垃圾收集点',
-    capacity: 85,
-    status: '异常',
-    lastUpdate: '2024-01-15 14:25:00'
-  },
-  {
-    deviceId: 'DEVICE-B01',
-    name: '智能垃圾箱-B01',
-    location: '小区B栋垃圾收集点',
-    capacity: 45,
-    status: '正常',
-    lastUpdate: '2024-01-15 14:28:00'
-  },
-  {
-    deviceId: 'DEVICE-B02',
-    name: '智能垃圾箱-B02',
-    location: '小区B栋垃圾收集点',
-    capacity: 92,
-    status: '异常',
-    lastUpdate: '2024-01-15 14:20:00'
-  },
-  {
-    deviceId: 'DEVICE-C01',
-    name: '智能垃圾箱-C01',
-    location: '小区C栋垃圾收集点',
-    capacity: 55,
-    status: '正常',
-    lastUpdate: '2024-01-15 14:32:00'
-  },
-  {
-    deviceId: 'DEVICE-C02',
-    name: '智能垃圾箱-C02',
-    location: '小区C栋垃圾收集点',
-    capacity: 30,
-    status: '正常',
-    lastUpdate: '2024-01-15 14:35:00'
+const loading = ref(false)
+const deviceList = ref([])
+
+const loadDeviceStatus = async () => {
+  loading.value = true
+  try {
+    const response = await adminApi.getDevices()
+    deviceList.value = response || []
+  } catch (error) {
+    console.error('加载设备状态失败:', error)
+    ElMessage.error('加载设备状态失败')
+  } finally {
+    loading.value = false
   }
-])
+}
 
 const getStatusTag = (status) => {
   const statusMap = {
@@ -96,6 +67,21 @@ const getCapacityColor = (capacity) => {
   if (capacity >= 50) return '#409EFF'
   return '#67C23A'
 }
+
+const formatTime = (time) => {
+  if (!time) return ''
+  return new Date(time).toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+onMounted(() => {
+  loadDeviceStatus()
+})
 </script>
 
 <style scoped>

@@ -1,56 +1,20 @@
 <template>
   <div class="admin-layout">
-    <el-container>
-      <el-aside width="200px" class="admin-sidebar">
-        <div class="logo">
-          <img src="@/assets/logo.svg" alt="EcoSorter" />
-          <span>管理系统</span>
-        </div>
-        <el-menu
-          :default-active="$route.path"
-          class="admin-menu"
-          background-color="#ffffff"
-          text-color="#303133"
-          active-text-color="#10b981"
-          router
-        >
-          <el-menu-item index="/admin/dashboard">
-            <el-icon><Monitor /></el-icon>
-            <span>监控面板</span>
-          </el-menu-item>
-          <el-menu-item index="/admin/configuration">
-            <el-icon><Setting /></el-icon>
-            <span>系统配置</span>
-          </el-menu-item>
-          <el-menu-item index="/admin/reports">
-            <el-icon><Document /></el-icon>
-            <span>报表统计</span>
-          </el-menu-item>
-          <el-menu-item index="/admin/users">
-            <el-icon><User /></el-icon>
-            <span>用户管理</span>
-          </el-menu-item>
-          <el-menu-item index="/admin/devices">
-            <el-icon><Monitor /></el-icon>
-            <span>设备管理</span>
-          </el-menu-item>
-          <el-menu-item index="/admin/logs">
-            <el-icon><Document /></el-icon>
-            <span>系统日志</span>
-          </el-menu-item>
-        </el-menu>
-      </el-aside>
-      <el-container>
-        <el-header class="admin-header">
-          <div class="header-left">
-            <h2>{{ getPageTitle() }}</h2>
+    <el-container class="layout-container">
+      <el-header class="layout-header">
+        <div class="header-content">
+          <div class="logo-section">
+            <div class="logo">EcoSorter</div>
+            <span class="logo-text">管理端</span>
           </div>
-          <div class="header-right">
-            <el-dropdown @command="handleCommand">
-              <span class="user-info">
-                <el-icon><User /></el-icon>
-                {{ userInfo?.username || '管理员' }}
-              </span>
+
+          <div class="user-section">
+            <el-dropdown @command="handleCommand" trigger="click">
+              <div class="user-info">
+                <el-avatar :size="32" :src="userInfo.avatar || defaultAvatar" />
+                <span class="username">{{ userInfo.username || '管理员' }}</span>
+                <el-icon class="el-icon--right"><arrow-down /></el-icon>
+              </div>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="profile">个人资料</el-dropdown-item>
@@ -59,9 +23,106 @@
               </template>
             </el-dropdown>
           </div>
-        </el-header>
-        <el-main class="admin-main">
-          <router-view />
+        </div>
+      </el-header>
+
+      <el-container class="layout-body">
+        <el-aside width="200px" class="layout-aside">
+          <el-menu :default-active="$route.path" class="el-menu-vertical" router>
+            <el-menu-item index="/admin/dashboard">
+              <el-icon>
+                <Monitor />
+              </el-icon>
+              <span>监控面板</span>
+            </el-menu-item>
+
+            <el-menu-item index="/admin/configuration">
+              <el-icon>
+                <Setting />
+              </el-icon>
+              <span>系统配置</span>
+            </el-menu-item>
+
+            <el-menu-item index="/admin/reports">
+              <el-icon>
+                <Document />
+              </el-icon>
+              <span>报表统计</span>
+            </el-menu-item>
+
+            <el-menu-item index="/admin/users">
+              <el-icon>
+                <User />
+              </el-icon>
+              <span>用户管理</span>
+            </el-menu-item>
+
+            <el-menu-item index="/admin/notifications">
+              <el-icon>
+                <Bell />
+              </el-icon>
+              <span>通知管理</span>
+            </el-menu-item>
+
+            <el-menu-item index="/admin/complaints">
+              <el-icon>
+                <Warning />
+              </el-icon>
+              <span>申诉管理</span>
+            </el-menu-item>
+
+            <el-menu-item index="/admin/banners">
+              <el-icon>
+                <Picture />
+              </el-icon>
+              <span>轮播图管理</span>
+            </el-menu-item>
+
+            <el-menu-item index="/admin/categories">
+              <el-icon>
+                <Grid />
+              </el-icon>
+              <span>垃圾分类管理</span>
+            </el-menu-item>
+
+            <el-menu-item index="/admin/products">
+              <el-icon>
+                <ShoppingBag />
+              </el-icon>
+              <span>商品管理</span>
+            </el-menu-item>
+
+            <el-menu-item index="/admin/orders">
+              <el-icon>
+                <List />
+              </el-icon>
+              <span>订单管理</span>
+            </el-menu-item>
+
+            <el-menu-item index="/admin/devices">
+              <el-icon>
+                <Monitor />
+              </el-icon>
+              <span>设备管理</span>
+            </el-menu-item>
+
+            <el-menu-item index="/admin/logs">
+              <el-icon>
+                <Document />
+              </el-icon>
+              <span>系统日志</span>
+            </el-menu-item>
+          </el-menu>
+        </el-aside>
+
+        <el-main class="layout-main">
+          <div class="main-content">
+            <router-view v-slot="{ Component }">
+              <transition name="fade-slide" mode="out-in">
+                <component :is="Component" />
+              </transition>
+            </router-view>
+          </div>
         </el-main>
       </el-container>
     </el-container>
@@ -70,38 +131,34 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage } from 'element-plus'
 import {
   Monitor,
   Setting,
   Document,
-  User
+  User,
+  Bell,
+  ArrowDown,
+  ShoppingBag,
+  List,
+  Warning,
+  Picture,
+  Grid
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
-const route = useRoute()
 const authStore = useAuthStore()
 
 const userInfo = computed(() => authStore.userInfo)
 
-const getPageTitle = () => {
-  const titles = {
-    '/admin/dashboard': '监控面板',
-    '/admin/configuration': '系统配置',
-    '/admin/reports': '报表统计',
-    '/admin/users': '用户管理',
-    '/admin/devices': '设备管理',
-    '/admin/logs': '系统日志'
-  }
-  return titles[route.path] || '管理系统'
-}
+const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
 
 const handleCommand = (command) => {
   switch (command) {
     case 'profile':
-      ElMessage.info('个人资料功能开发中')
+      router.push('/admin/profile')
       break
     case 'logout':
       authStore.logout()
@@ -115,78 +172,50 @@ const handleCommand = (command) => {
 <style scoped>
 .admin-layout {
   height: 100vh;
-  overflow: hidden;
-}
-
-.admin-layout :deep(.el-container) {
-  height: 100vh;
-}
-
-.admin-layout :deep(.el-aside) {
-  height: 100vh;
-  overflow-y: auto;
-}
-
-.admin-layout :deep(.el-container > .el-container) {
-  height: 100vh;
-  overflow: hidden;
-}
-
-.admin-layout :deep(.el-header) {
-  height: 56px;
-}
-
-.admin-layout :deep(.el-main) {
-  height: calc(100vh - 56px);
-  overflow-y: auto;
-}
-
-.admin-sidebar {
-  background-color: #ffffff;
-  color: #303133;
-  border-right: 1px solid #e8eaed;
-}
-
-.logo {
   display: flex;
-  align-items: center;
-  padding: 13px;
-  border-bottom: 1px solid #e8eaed;
+  flex-direction: column;
+  background: var(--bg-light);
+  overflow: hidden;
 }
 
-.logo img {
-  width: 28px;
-  height: 28px;
-  margin-right: 8px;
+.layout-container {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.logo span {
-  font-size: 16px;
-  font-weight: 600;
-  color: #10b981;
+.layout-header {
+  height: 60px !important;
+  flex-shrink: 0;
 }
 
-.admin-menu {
-  border: none;
+.layout-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
 }
 
-.admin-header {
-  background-color: #ffffff;
-  border-bottom: 1px solid #e8eaed;
+.header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 16px;
+  height: 100%;
+  padding: 0 20px;
 }
 
-.header-left h2 {
-  margin: 0;
-  color: #303133;
-  font-size: 16px;
-  font-weight: 600;
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.header-right {
+.logo-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.user-section {
   display: flex;
   align-items: center;
 }
@@ -194,21 +223,51 @@ const handleCommand = (command) => {
 .user-info {
   display: flex;
   align-items: center;
+  gap: 8px;
   cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 8px;
+  padding: 6px 12px;
+  border-radius: 4px;
 }
 
 .user-info:hover {
-  background-color: #f5f7fa;
+  background-color: var(--bg-light);
 }
 
-.user-info .el-icon {
+.username {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.layout-aside {
+  background-color: var(--el-menu-bg-color);
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.el-menu-vertical {
+  border-right: none;
+  padding: 10px 0;
+}
+
+.el-menu-vertical .el-menu-item {
+  height: 44px;
+  line-height: 44px;
+  margin: 2px 10px;
+  border-radius: 4px;
+}
+
+.el-menu-vertical .el-menu-item .el-icon {
   margin-right: 8px;
 }
 
-.admin-main {
-  background-color: #f5f7fa;
+.layout-main {
   padding: 16px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 </style>

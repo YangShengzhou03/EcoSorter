@@ -1,156 +1,178 @@
 package com.ecosorter.model;
 
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Classification record entity
- */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Document(collection = "classifications")
+@Entity
+@Table(name = "classifications")
 public class Classification {
     
-    private String id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     
     @NotBlank(message = "User ID is required")
-    @Indexed
-    private String userId;
+    @Column(nullable = false)
+    private Long userId;
     
-    @Field("image_url")
+    @Column(name = "trashcan_id")
+    private Long trashcanId;
+    
+    @Column(name = "waste_category_id")
+    private Long wasteCategoryId;
+    
+    @Column(name = "image_url")
     private String imageUrl;
     
-    @Field("image_path")
-    private String imagePath;
-    
-    @Field("thumbnail_url")
-    private String thumbnailUrl;
-    
-    @Field("thumbnail_path")
-    private String thumbnailPath;
-    
-    @NotBlank(message = "Item name is required")
-    @Field("item_name")
-    private String itemName;
-    
-    @Field("description")
-    private String description;
-    
-    @NotNull(message = "Predicted category is required")
-    @Field("predicted_category")
-    private String predictedCategory;
-    
-    @NotNull(message = "Confidence score is required")
-    @Min(0)
-    @Max(100)
-    @Field("confidence_score")
+    @Column(name = "confidence_score")
     private Double confidenceScore;
     
-    @Field("ai_model")
-    private String aiModel;
+    @Column(name = "ai_suggestion")
+    private String aiSuggestion;
     
-    @Field("ai_model_version")
-    private String aiModelVersion;
+    @Column(name = "user_feedback")
+    private String userFeedback;
     
-    @Field("processing_time")
-    private Long processingTime;
+    @Column(name = "corrected_category_id")
+    private Long correctedCategoryId;
     
-    @Field("user_verified")
-    private Boolean userVerified = false;
-    
-    @Field("user_category")
-    private String userCategory;
-    
-    @Field("verification_status")
-    private VerificationStatus verificationStatus = VerificationStatus.PENDING;
-    
-    @Field("feedback")
-    private ClassificationFeedback feedback;
-    
-    @Field("location")
-    private ClassificationLocation location;
-    
-    @Field("device_info")
-    private DeviceInfo deviceInfo;
-    
-    @Field("tags")
-    private List<String> tags;
-    
-    @Field("notes")
+    @Column
     private String notes;
     
-    @CreatedDate
-    @Field("created_at")
+    @Column
+    private String ipAddress;
+    
+    @Column
+    private String userAgent;
+    
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
-    @LastModifiedDate
-    @Field("updated_at")
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-    
-    /**
-     * Verification status
-     */
-    public enum VerificationStatus {
-        PENDING, VERIFIED, REJECTED, FLAGGED
+
+    public Classification() {
     }
-    
-    /**
-     * Classification feedback
-     */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class ClassificationFeedback {
-        private Boolean correct;
-        private String comment;
-        private String suggestedCategory;
-        private LocalDateTime timestamp;
+
+    public Long getId() {
+        return id;
     }
-    
-    /**
-     * Classification location
-     */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class ClassificationLocation {
-        private Double latitude;
-        private Double longitude;
-        private String address;
-        private String city;
-        private String country;
+
+    public void setId(Long id) {
+        this.id = id;
     }
-    
-    /**
-     * Device information
-     */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class DeviceInfo {
-        private String deviceId;
-        private String deviceType;
-        private String os;
-        private String appVersion;
-        private String cameraInfo;
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public Long getTrashcanId() {
+        return trashcanId;
+    }
+
+    public void setTrashcanId(Long trashcanId) {
+        this.trashcanId = trashcanId;
+    }
+
+    public Long getWasteCategoryId() {
+        return wasteCategoryId;
+    }
+
+    public void setWasteCategoryId(Long wasteCategoryId) {
+        this.wasteCategoryId = wasteCategoryId;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public Double getConfidenceScore() {
+        return confidenceScore;
+    }
+
+    public void setConfidenceScore(Double confidenceScore) {
+        this.confidenceScore = confidenceScore;
+    }
+
+    public String getAiSuggestion() {
+        return aiSuggestion;
+    }
+
+    public void setAiSuggestion(String aiSuggestion) {
+        this.aiSuggestion = aiSuggestion;
+    }
+
+    public String getUserFeedback() {
+        return userFeedback;
+    }
+
+    public void setUserFeedback(String userFeedback) {
+        this.userFeedback = userFeedback;
+    }
+
+    public Long getCorrectedCategoryId() {
+        return correctedCategoryId;
+    }
+
+    public void setCorrectedCategoryId(Long correctedCategoryId) {
+        this.correctedCategoryId = correctedCategoryId;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

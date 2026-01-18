@@ -1,18 +1,7 @@
 package com.ecosorter.dto;
 
 import com.ecosorter.model.User;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 
-/**
- * User response DTO
- */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class UserResponse {
     
     private String id;
@@ -20,68 +9,116 @@ public class UserResponse {
     private String email;
     private User.UserRole role;
     private UserProfileDto profile;
-    private UserPreferencesDto preferences;
-    private UserStatisticsDto statistics;
-    private User.UserStatus status;
-    private String lastLoginAt;
+    private Boolean isActive;
+    private String lastLogin;
     private String createdAt;
     private String updatedAt;
-    
-    /**
-     * User profile DTO
-     */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
+
+    public UserResponse() {
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public User.UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(User.UserRole role) {
+        this.role = role;
+    }
+
+    public UserProfileDto getProfile() {
+        return profile;
+    }
+
+    public void setProfile(UserProfileDto profile) {
+        this.profile = profile;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public String getLastLogin() {
+        return lastLogin;
+    }
+
+    public void setLastLogin(String lastLogin) {
+        this.lastLogin = lastLogin;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     public static class UserProfileDto {
-        private String firstName;
-        private String lastName;
         private String avatar;
         private String phone;
-        private String department;
-        private String position;
         private String fullName;
-    }
-    
-    /**
-     * User preferences DTO
-     */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class UserPreferencesDto {
-        private String theme;
-        private String language;
-        private UserNotificationsDto notifications;
-    }
-    
-    /**
-     * User notifications DTO
-     */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class UserNotificationsDto {
-        private Boolean email;
-        private Boolean push;
-        private Boolean classification;
-    }
-    
-    /**
-     * User statistics DTO
-     */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class UserStatisticsDto {
-        private Integer totalClassifications;
-        private Integer correctClassifications;
-        private Double accuracy;
-        private Double totalWasteWeight;
-        private Double carbonSaved;
+
+        public UserProfileDto() {
+        }
+
+        public String getAvatar() {
+            return avatar;
+        }
+
+        public void setAvatar(String avatar) {
+            this.avatar = avatar;
+        }
+
+        public String getPhone() {
+            return phone;
+        }
+
+        public void setPhone(String phone) {
+            this.phone = phone;
+        }
+
+        public String getFullName() {
+            return fullName;
+        }
+
+        public void setFullName(String fullName) {
+            this.fullName = fullName;
+        }
     }
 }

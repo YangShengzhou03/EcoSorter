@@ -2,9 +2,6 @@ package com.ecosorter.exception;
 
 import org.springframework.http.HttpStatus;
 
-/**
- * Exception thrown when a resource is not found
- */
 public class ResourceNotFoundException extends AppException {
     
     public ResourceNotFoundException(String message) {

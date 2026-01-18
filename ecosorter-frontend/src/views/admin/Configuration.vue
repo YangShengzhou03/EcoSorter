@@ -41,15 +41,17 @@
     </div>
 
     <div class="action-section">
-      <el-button type="primary" @click="saveConfig">保存配置</el-button>
+      <el-button type="primary" @click="saveConfig" :loading="saving">保存配置</el-button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { adminApi } from '@/api/admin'
 
+const saving = ref(false)
 const config = reactive({
   systemName: 'EcoSorter 垃圾分类系统',
   maintenanceMode: false,
@@ -59,9 +61,32 @@ const config = reactive({
   offlineTimeout: 600
 })
 
-const saveConfig = () => {
-  ElMessage.success('配置已保存')
+const loadConfig = async () => {
+  try {
+    const response = await adminApi.getConfiguration()
+    Object.assign(config, response)
+  } catch (error) {
+    console.error('加载配置失败:', error)
+    ElMessage.error('加载配置失败')
+  }
 }
+
+const saveConfig = async () => {
+  saving.value = true
+  try {
+    await adminApi.updateConfiguration(config)
+    ElMessage.success('配置已保存')
+  } catch (error) {
+    console.error('保存配置失败:', error)
+    ElMessage.error('保存配置失败')
+  } finally {
+    saving.value = false
+  }
+}
+
+onMounted(() => {
+  loadConfig()
+})
 </script>
 
 <style scoped>
@@ -70,8 +95,8 @@ const saveConfig = () => {
 }
 
 .config-section {
-  background: #fff;
-  border: 1px solid #e8eaed;
+  background: var(--bg-white);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 16px;
@@ -81,12 +106,12 @@ const saveConfig = () => {
   margin: 0 0 16px 0;
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .form-tip {
   margin-left: 10px;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 12px;
 }
 

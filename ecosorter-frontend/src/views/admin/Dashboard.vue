@@ -92,82 +92,70 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { adminApi } from '@/api/admin'
 
 const stats = reactive({
-  totalUsers: 1234,
-  totalDevices: 56,
-  totalCollections: 8923,
-  totalPoints: 45678
+  totalUsers: 0,
+  totalDevices: 0,
+  totalCollections: 0,
+  totalPoints: 0
 })
 
 const deviceStatus = reactive({
-  online: 45,
-  offline: 8,
-  error: 2,
-  maintenance: 1
+  online: 0,
+  offline: 0,
+  error: 0,
+  maintenance: 0
 })
 
+const recentActivities = ref([])
 
-
-const recentActivities = ref([
-  {
-    id: 1,
-    time: new Date(Date.now() - 5 * 60 * 1000),
-    type: 'user_login',
-    description: '用户 张三 登录系统'
-  },
-  {
-    id: 2,
-    time: new Date(Date.now() - 15 * 60 * 1000),
-    type: 'device_online',
-    description: '设备 DEVICE-A01 上线'
-  },
-  {
-    id: 3,
-    time: new Date(Date.now() - 30 * 60 * 1000),
-    type: 'collection_completed',
-    description: '收集员 李四 完成任务 #12345'
-  },
-  {
-    id: 4,
-    time: new Date(Date.now() - 45 * 60 * 1000),
-    type: 'waste_classification',
-    description: '用户 王五 分类垃圾 2.5kg，获得 25 积分'
+const loadDashboard = async () => {
+  try {
+    const response = await adminApi.getDashboard()
+    stats.totalUsers = response.totalUsers || 0
+    stats.totalDevices = response.totalDevices || 0
+    stats.totalCollections = response.totalCollections || 0
+    stats.totalPoints = response.totalPoints || 0
+  } catch (error) {
+    console.error('加载仪表板数据失败:', error)
   }
-])
+}
 
+const loadDeviceStatus = async () => {
+  try {
+    const response = await adminApi.getDeviceStatus()
+    deviceStatus.online = response.online || 0
+    deviceStatus.offline = response.offline || 0
+    deviceStatus.error = response.error || 0
+    deviceStatus.maintenance = response.maintenance || 0
+  } catch (error) {
+    console.error('加载设备状态失败:', error)
+  }
+}
 
+const loadActivities = async () => {
+  try {
+    const response = await adminApi.getActivities()
+    recentActivities.value = response || []
+  } catch (error) {
+    console.error('加载实时活动失败:', error)
+  }
+}
 
 const refreshDeviceStatus = () => {
-  deviceStatus.online = Math.floor(Math.random() * 50) + 40
-  deviceStatus.offline = Math.floor(Math.random() * 10) + 5
-  deviceStatus.error = Math.floor(Math.random() * 5)
-  deviceStatus.maintenance = Math.floor(Math.random() * 3)
-  
+  loadDeviceStatus()
   ElMessage.success('设备状态已刷新')
 }
 
-
-
 const refreshActivities = () => {
-  const newActivity = {
-    id: Date.now(),
-    time: new Date(),
-    type: 'system_notification',
-    description: '系统消息：数据同步完成'
-  }
-  recentActivities.value.unshift(newActivity)
-  
-  if (recentActivities.value.length > 10) {
-    recentActivities.value = recentActivities.value.slice(0, 10)
-  }
-  
+  loadActivities()
   ElMessage.success('实时活动已刷新')
 }
 
 const formatTime = (time) => {
   const now = new Date()
-  const diff = now - time
+  const diff = now - new Date(time)
   const minutes = Math.floor(diff / (1000 * 60))
   
   if (minutes < 1) return '刚刚'
@@ -176,10 +164,13 @@ const formatTime = (time) => {
   const hours = Math.floor(minutes / 60)
   if (hours < 24) return `${hours}小时前`
   
-  return time.toLocaleString()
+  return new Date(time).toLocaleString()
 }
 
 onMounted(() => {
+  loadDashboard()
+  loadDeviceStatus()
+  loadActivities()
 })
 </script>
 
@@ -195,20 +186,20 @@ onMounted(() => {
 .stat-card {
   text-align: center;
   padding: 16px;
-  border: 1px solid #e8eaed;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
 }
 
 .stat-number {
   font-size: 24px;
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary);
   margin-bottom: 5px;
 }
 
 .stat-label {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .device-row {
@@ -233,13 +224,13 @@ onMounted(() => {
 
 .status-label {
   font-size: 14px;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .status-value {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .system-overview {
@@ -248,7 +239,7 @@ onMounted(() => {
 
 .system-overview p {
   margin-bottom: 10px;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .activity-card {
@@ -273,7 +264,7 @@ onMounted(() => {
 .activity-time {
   width: 100px;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
@@ -284,13 +275,13 @@ onMounted(() => {
 
 .activity-desc {
   font-size: 14px;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .no-activity {
   text-align: center;
   padding: 40px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .card-header {

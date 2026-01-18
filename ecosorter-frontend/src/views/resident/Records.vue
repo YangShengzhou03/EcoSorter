@@ -16,7 +16,7 @@
         </div>
         <div class="stat-info">
           <span class="stat-value">{{ totalPoints }}</span>
-          <span class="stat-label">总积分</span>
+          <span class="stat-label">可用积分（剩余积分）</span>
         </div>
       </div>
       <div class="stat-card">
@@ -31,50 +31,126 @@
     </div>
 
     <div class="section-card">
-      <el-table :data="records" style="width: 100%">
-        <el-table-column prop="time" label="投放时间" width="160" />
-        <el-table-column prop="type" label="类型" width="100">
+      <el-table :data="records" v-loading="loading" style="width: 100%">
+        <el-table-column prop="createdAt" label="投放时间" width="200">
           <template #default="{ row }">
-            <el-tag :type="getTagType(row.type)">{{ row.type }}</el-tag>
+            {{ formatTime(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column prop="weight" label="重量(kg)" width="100" />
-        <el-table-column prop="points" label="积分" width="100">
+        <el-table-column prop="categoryName" label="类型" width="150">
+          <template #default="{ row }">
+            <el-tag :type="getTagType(row.categoryName)">{{ row.categoryName }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="confidence" label="置信度" width="150">
+          <template #default="{ row }">
+            {{ (row.confidence * 100).toFixed(0) }}%
+          </template>
+        </el-table-column>
+        <el-table-column prop="points" label="积分" width="150">
           <template #default="{ row }">
             <span class="points-plus">+{{ row.points }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="100" />
+        <el-table-column prop="status" label="状态" width="150">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 'completed' ? 'success' : 'warning'">
+              {{ row.status === 'completed' ? '完成' : '待审核' }}
+            </el-tag>
+          </template>
+        </el-table-column>
       </el-table>
+      
+      <div class="pagination" v-if="total > 0">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :total="total"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="loadRecords"
+          @current-change="loadRecords"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Document, Coin, Box } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { userApi } from '@/api/user'
+import { classificationApi } from '@/api/classification'
 
-const totalCount = ref(156)
-const totalPoints = ref(2340)
-const totalWeight = ref(187.5)
+const loading = ref(false)
+const totalCount = ref(0)
+const totalPoints = ref(0)
+const totalWeight = ref(0)
+const records = ref([])
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 
-const records = ref([
-  { id: 'REC20231201001', time: '2023-12-01 14:30', type: '塑料', weight: 1.2, points: 15, status: '完成' },
-  { id: 'REC20231201002', time: '2023-12-01 09:15', type: '纸张', weight: 0.8, points: 12, status: '完成' },
-  { id: 'REC20231130001', time: '2023-11-30 16:45', type: '玻璃', weight: 2.1, points: 25, status: '完成' },
-  { id: 'REC20231129003', time: '2023-11-29 11:20', type: '金属', weight: 1.5, points: 18, status: '待审核' },
-  { id: 'REC20231128005', time: '2023-11-28 08:45', type: '厨余', weight: 0.6, points: 8, status: '完成' }
-])
+const loadStatistics = async () => {
+  try {
+    const response = await userApi.getStatistics()
+    totalCount.value = response.totalCount || 0
+    totalPoints.value = response.totalPoints || 0
+    totalWeight.value = response.totalWeight || 0
+  } catch (error) {
+    console.error('加载统计数据失败:', error)
+    ElMessage.error('加载统计数据失败')
+  }
+}
+
+const loadRecords = async () => {
+  loading.value = true
+  try {
+    const response = await classificationApi.getClassificationHistory({
+      page: currentPage.value - 1,
+      size: pageSize.value
+    })
+    records.value = response.content || []
+    total.value = response.totalElements || 0
+  } catch (error) {
+    console.error('加载记录失败:', error)
+    ElMessage.error('加载记录失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+const formatTime = (time) => {
+  if (!time) return ''
+  return new Date(time).toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
 
 const getTagType = (type) => {
-  const map = { '塑料': 'primary', '纸张': 'success', '玻璃': 'warning', '金属': 'info', '厨余': 'danger' }
+  const map = { 
+    '可回收物': 'success', 
+    '厨余垃圾': 'warning', 
+    '有害垃圾': 'danger', 
+    '其他垃圾': 'info' 
+  }
   return map[type] || 'info'
 }
+
+onMounted(() => {
+  loadStatistics()
+  loadRecords()
+})
 </script>
 
 <style scoped>
 .page-container {
-  padding: 16px;
+  padding: 0;
 }
 
 .stats-row {
@@ -144,10 +220,10 @@ const getTagType = (type) => {
 }
 
 .section-card {
-  background: #fff;
+  background: var(--bg-white);
   border-radius: 8px;
   padding: 16px;
-  border: 1px solid #e8eaed;
+  border: 1px solid var(--border-color);
 }
 
 .points-plus {

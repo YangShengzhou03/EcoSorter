@@ -1,14 +1,7 @@
 package com.ecosorter.exception;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.springframework.http.HttpStatus;
 
-/**
- * Base exception class for application-specific exceptions
- */
-@Data
-@EqualsAndHashCode(callSuper = true)
 public class AppException extends RuntimeException {
     
     private HttpStatus status;
@@ -29,6 +22,22 @@ public class AppException extends RuntimeException {
     public AppException(String message, HttpStatus status, String code) {
         super(message);
         this.status = status;
+        this.code = code;
+    }
+    
+    public HttpStatus getStatus() {
+        return status;
+    }
+    
+    public void setStatus(HttpStatus status) {
+        this.status = status;
+    }
+    
+    public String getCode() {
+        return code;
+    }
+    
+    public void setCode(String code) {
         this.code = code;
     }
 }

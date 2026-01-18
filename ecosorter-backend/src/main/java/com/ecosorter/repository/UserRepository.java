@@ -1,19 +1,17 @@
 package com.ecosorter.repository;
 
 import com.ecosorter.model.User;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * User repository interface
- */
 @Repository
-public interface UserRepository extends MongoRepository<User, String> {
+public interface UserRepository extends JpaRepository<User, Long> {
     
     Optional<User> findByUsername(String username);
     
@@ -26,24 +24,24 @@ public interface UserRepository extends MongoRepository<User, String> {
     boolean existsByEmail(String email);
     
     List<User> findByRole(User.UserRole role);
-    
-    List<User> findByStatus(User.UserStatus status);
-    
-    List<User> findByLastLoginAtAfter(LocalDateTime date);
+
+    List<User> findByIsActive(Boolean isActive);
+
+    List<User> findByLastLoginAfter(LocalDateTime date);
     
     List<User> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
     
-    @Query("{'lockUntil': {'$gt': ?0}}")
-    List<User> findLockedUsers(LocalDateTime now);
+    @Query("SELECT u FROM User u WHERE u.lockUntil > :now")
+    List<User> findLockedUsers(@Param("now") LocalDateTime now);
     
-    @Query("{'emailVerified': false}")
+    @Query("SELECT u FROM User u WHERE u.emailVerified = false")
     List<User> findUnverifiedUsers();
     
-    @Query(value = "{}", fields = "{'password': 0, 'passwordResetToken': 0, 'passwordResetExpires': 0, 'emailVerificationToken': 0, 'twoFactorSecret': 0}")
+    @Query("SELECT u FROM User u")
     List<User> findAllWithoutSensitiveData();
-    
-    long countByStatus(User.UserStatus status);
-    
+
+    long countByIsActive(Boolean isActive);
+
     long countByRole(User.UserRole role);
     
     long countByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);

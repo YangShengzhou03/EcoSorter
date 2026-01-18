@@ -25,8 +25,28 @@ const routes = [
         meta: { requiresAuth: true },
       },
       {
+        path: "product/:id",
+        component: () => import("./views/resident/ProductDetail.vue"),
+        meta: { requiresAuth: true },
+      },
+      {
         path: "complaint",
         component: () => import("./views/resident/Complaint.vue"),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: "notifications",
+        component: () => import("./views/resident/Notifications.vue"),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: "notifications/:id",
+        component: () => import("./views/resident/NotificationDetail.vue"),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: "profile",
+        component: () => import("./views/resident/Profile.vue"),
         meta: { requiresAuth: true },
       },
     ],
@@ -47,6 +67,11 @@ const routes = [
         meta: { requiresAuth: true, roles: ["collector"] },
       },
       {
+        path: "navigation",
+        component: () => import("./views/collector/NavigationRoute.vue"),
+        meta: { requiresAuth: true, roles: ["collector"] },
+      },
+      {
         path: "collection",
         component: () => import("./views/collector/Collection.vue"),
         meta: { requiresAuth: true, roles: ["collector"] },
@@ -59,6 +84,11 @@ const routes = [
       {
         path: "device-status",
         component: () => import("./views/collector/DeviceStatus.vue"),
+        meta: { requiresAuth: true, roles: ["collector"] },
+      },
+      {
+        path: "profile",
+        component: () => import("./views/collector/Profile.vue"),
         meta: { requiresAuth: true, roles: ["collector"] },
       },
     ],
@@ -89,6 +119,36 @@ const routes = [
         meta: { requiresAuth: true, roles: ["admin"] },
       },
       {
+        path: "notifications",
+        component: () => import("./views/admin/Notifications.vue"),
+        meta: { requiresAuth: true, roles: ["admin"] },
+      },
+      {
+        path: "complaints",
+        component: () => import("./views/admin/Complaints.vue"),
+        meta: { requiresAuth: true, roles: ["admin"] },
+      },
+      {
+        path: "products",
+        component: () => import("./views/admin/Products.vue"),
+        meta: { requiresAuth: true, roles: ["admin"] },
+      },
+      {
+        path: "banners",
+        component: () => import("./views/admin/Banners.vue"),
+        meta: { requiresAuth: true, roles: ["admin"] },
+      },
+      {
+        path: "categories",
+        component: () => import("./views/admin/Categories.vue"),
+        meta: { requiresAuth: true, roles: ["admin"] },
+      },
+      {
+        path: "orders",
+        component: () => import("./views/admin/Orders.vue"),
+        meta: { requiresAuth: true, roles: ["admin"] },
+      },
+      {
         path: "devices",
         component: () => import("./views/admin/Devices.vue"),
         meta: { requiresAuth: true, roles: ["admin"] },
@@ -96,6 +156,11 @@ const routes = [
       {
         path: "logs",
         component: () => import("./views/admin/Logs.vue"),
+        meta: { requiresAuth: true, roles: ["admin"] },
+      },
+      {
+        path: "profile",
+        component: () => import("./views/admin/Profile.vue"),
         meta: { requiresAuth: true, roles: ["admin"] },
       },
     ],

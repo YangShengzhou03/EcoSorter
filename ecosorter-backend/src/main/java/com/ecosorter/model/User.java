@@ -1,135 +1,292 @@
 package com.ecosorter.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * User entity representing application users
- */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Document(collection = "users")
+@Entity
+@Table(name = "users")
 public class User {
     
-    private String id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     
     @NotBlank(message = "Username is required")
     @Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters")
     @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "Username can only contain letters, numbers, and underscores")
-    @Indexed(unique = true)
+    @Column(unique = true, nullable = false, length = 20)
     private String username;
     
     @NotBlank(message = "Email is required")
     @Email(message = "Please provide a valid email address")
-    @Indexed(unique = true)
+    @Column(unique = true, nullable = false)
     private String email;
     
     @NotBlank(message = "Password is required")
     @Size(min = 6, message = "Password must be at least 6 characters long")
     @JsonIgnore
+    @Column(nullable = false)
     private String password;
     
-    @Field("role")
-    private UserRole role = UserRole.USER;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole role = UserRole.RESIDENT;
     
-    @Field("profile")
-    private UserProfile profile;
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
     
-    @Field("preferences")
-    private UserPreferences preferences;
+    @Column(name = "avatar_url")
+    private String avatarUrl;
     
-    @Field("statistics")
-    private UserStatistics statistics;
+    @Column
+    private String phone;
     
-    @Field("status")
-    private UserStatus status = UserStatus.ACTIVE;
+    @Column(columnDefinition = "TEXT")
+    private String address;
     
-    @Field("last_login_at")
-    private LocalDateTime lastLoginAt;
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
     
-    @Field("login_attempts")
+    @Column(name = "login_attempts")
     private Integer loginAttempts = 0;
     
-    @Field("lock_until")
+    @Column(name = "lock_until")
     private LocalDateTime lockUntil;
     
-    @Field("password_reset_token")
+    @Column(name = "password_reset_token")
     @JsonIgnore
     private String passwordResetToken;
     
-    @Field("password_reset_expires")
+    @Column(name = "password_reset_expires")
     @JsonIgnore
     private LocalDateTime passwordResetExpires;
     
-    @Field("email_verification_token")
+    @Column(name = "email_verification_token")
     @JsonIgnore
     private String emailVerificationToken;
     
-    @Field("email_verified")
+    @Column(name = "email_verified")
     private Boolean emailVerified = false;
     
-    @Field("two_factor_secret")
+    @Column(name = "two_factor_secret")
     @JsonIgnore
     private String twoFactorSecret;
     
-    @Field("two_factor_enabled")
+    @Column(name = "two_factor_enabled")
     private Boolean twoFactorEnabled = false;
     
-    @CreatedDate
-    @Field("created_at")
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
-    @LastModifiedDate
-    @Field("updated_at")
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-    
-    /**
-     * Get full name from profile
-     */
-    public String getFullName() {
-        if (profile != null) {
-            String firstName = profile.getFirstName() != null ? profile.getFirstName() : "";
-            String lastName = profile.getLastName() != null ? profile.getLastName() : "";
-            return (firstName + " " + lastName).trim();
-        }
-        return "";
+
+    public User() {
+    }
+
+    public User(Long id, String username, String email, String password, UserRole role, Boolean isActive, String avatarUrl, String phone, String address, LocalDateTime lastLogin, Integer loginAttempts, LocalDateTime lockUntil, String passwordResetToken, LocalDateTime passwordResetExpires, String emailVerificationToken, Boolean emailVerified, String twoFactorSecret, Boolean twoFactorEnabled, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.isActive = isActive;
+        this.avatarUrl = avatarUrl;
+        this.phone = phone;
+        this.address = address;
+        this.lastLogin = lastLogin;
+        this.loginAttempts = loginAttempts;
+        this.lockUntil = lockUntil;
+        this.passwordResetToken = passwordResetToken;
+        this.passwordResetExpires = passwordResetExpires;
+        this.emailVerificationToken = emailVerificationToken;
+        this.emailVerified = emailVerified;
+        this.twoFactorSecret = twoFactorSecret;
+        this.twoFactorEnabled = twoFactorEnabled;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
     
-    /**
-     * Check if account is locked
-     */
+    public String getFullName() {
+        return username;
+    }
+    
     public boolean isLocked() {
         return lockUntil != null && lockUntil.isAfter(LocalDateTime.now());
     }
     
-    /**
-     * User roles
-     */
     public enum UserRole {
-        USER, ADMIN, OPERATOR
+        ADMIN, COLLECTOR, RESIDENT, TRASHCAN
     }
-    
-    /**
-     * User status
-     */
-    public enum UserStatus {
-        ACTIVE, INACTIVE, SUSPENDED
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public LocalDateTime getLastLogin() {
+        return lastLogin;
+    }
+
+    public void setLastLogin(LocalDateTime lastLogin) {
+        this.lastLogin = lastLogin;
+    }
+
+    public Integer getLoginAttempts() {
+        return loginAttempts;
+    }
+
+    public void setLoginAttempts(Integer loginAttempts) {
+        this.loginAttempts = loginAttempts;
+    }
+
+    public LocalDateTime getLockUntil() {
+        return lockUntil;
+    }
+
+    public void setLockUntil(LocalDateTime lockUntil) {
+        this.lockUntil = lockUntil;
+    }
+
+    public String getPasswordResetToken() {
+        return passwordResetToken;
+    }
+
+    public void setPasswordResetToken(String passwordResetToken) {
+        this.passwordResetToken = passwordResetToken;
+    }
+
+    public LocalDateTime getPasswordResetExpires() {
+        return passwordResetExpires;
+    }
+
+    public void setPasswordResetExpires(LocalDateTime passwordResetExpires) {
+        this.passwordResetExpires = passwordResetExpires;
+    }
+
+    public String getEmailVerificationToken() {
+        return emailVerificationToken;
+    }
+
+    public void setEmailVerificationToken(String emailVerificationToken) {
+        this.emailVerificationToken = emailVerificationToken;
+    }
+
+    public Boolean getEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(Boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public String getTwoFactorSecret() {
+        return twoFactorSecret;
+    }
+
+    public void setTwoFactorSecret(String twoFactorSecret) {
+        this.twoFactorSecret = twoFactorSecret;
+    }
+
+    public Boolean getTwoFactorEnabled() {
+        return twoFactorEnabled;
+    }
+
+    public void setTwoFactorEnabled(Boolean twoFactorEnabled) {
+        this.twoFactorEnabled = twoFactorEnabled;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

@@ -4,19 +4,20 @@
       <el-header class="layout-header">
         <div class="header-content">
           <div class="logo-section">
-            <img src="@/assets/logo.svg" alt="EcoSorter" class="logo" />
+            <div class="logo">EcoSorter</div>
             <span class="logo-text">收集员端</span>
           </div>
-          
+
           <div class="user-section">
             <el-dropdown @command="handleCommand" trigger="click">
               <div class="user-info">
                 <el-avatar :size="32" :src="userInfo.avatar || defaultAvatar" />
-                <span class="username">{{ userInfo.name }}</span>
+                <span class="username">{{ userInfo.username || '收集员' }}</span>
                 <el-icon class="el-icon--right"><arrow-down /></el-icon>
               </div>
               <template #dropdown>
                 <el-dropdown-menu>
+                  <el-dropdown-item command="profile">个人资料</el-dropdown-item>
                   <el-dropdown-item command="logout">退出登录</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -27,43 +28,52 @@
 
       <el-container class="layout-body">
         <el-aside width="200px" class="layout-aside">
-          <el-menu
-            :default-active="$route.path"
-            class="el-menu-vertical"
-            router
-            background-color="#fff"
-            text-color="#606266"
-            active-text-color="#409EFF"
-          >
+          <el-menu :default-active="$route.path" class="el-menu-vertical" router>
             <el-menu-item index="/collector/dashboard">
-              <el-icon><Monitor /></el-icon>
+              <el-icon>
+                <Monitor />
+              </el-icon>
               <span>工作台</span>
             </el-menu-item>
-            
+
             <el-menu-item index="/collector/tasks">
-              <el-icon><List /></el-icon>
+              <el-icon>
+                <List />
+              </el-icon>
               <span>任务管理</span>
             </el-menu-item>
-            
+
             <el-menu-item index="/collector/collection">
-              <el-icon><Van /></el-icon>
+              <el-icon>
+                <Van />
+              </el-icon>
               <span>清运作业</span>
             </el-menu-item>
-            
+
             <el-menu-item index="/collector/records">
-              <el-icon><Document /></el-icon>
+              <el-icon>
+                <Document />
+              </el-icon>
               <span>工作记录</span>
             </el-menu-item>
-            
+
             <el-menu-item index="/collector/device-status">
-              <el-icon><Warning /></el-icon>
+              <el-icon>
+                <Warning />
+              </el-icon>
               <span>设备状态</span>
             </el-menu-item>
           </el-menu>
         </el-aside>
-        
+
         <el-main class="layout-main">
-          <router-view />
+          <div class="main-content">
+            <router-view v-slot="{ Component }">
+              <transition name="fade-slide" mode="out-in">
+                <component :is="Component" />
+              </transition>
+            </router-view>
+          </div>
         </el-main>
       </el-container>
     </el-container>
@@ -74,13 +84,13 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { 
-  Monitor, 
-  List, 
-  Van, 
-  Document, 
-  Warning, 
-  ArrowDown 
+import {
+  Monitor,
+  List,
+  Van,
+  Document,
+  Warning,
+  ArrowDown
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -92,6 +102,9 @@ const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726
 
 const handleCommand = (command) => {
   switch (command) {
+    case 'profile':
+      router.push('/collector/profile')
+      break
     case 'logout':
       authStore.logout()
       router.push('/login')
@@ -105,7 +118,7 @@ const handleCommand = (command) => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f5f7fa;
+  background: var(--bg-light);
   overflow: hidden;
 }
 
@@ -117,9 +130,6 @@ const handleCommand = (command) => {
 }
 
 .layout-header {
-  background: #fff;
-  border-bottom: 1px solid #e4e7ed;
-  padding: 0;
   height: 60px !important;
   flex-shrink: 0;
 }
@@ -144,14 +154,9 @@ const handleCommand = (command) => {
   gap: 12px;
 }
 
-.logo {
-  height: 32px;
-}
-
 .logo-text {
-  font-size: 16px;
-  font-weight: bold;
-  color: #303133;
+  font-size: 14px;
+  color: var(--text-secondary);
 }
 
 .user-section {
@@ -166,21 +171,19 @@ const handleCommand = (command) => {
   cursor: pointer;
   padding: 6px 12px;
   border-radius: 4px;
-  transition: background-color 0.2s;
 }
 
 .user-info:hover {
-  background-color: #f5f7fa;
+  background-color: var(--bg-light);
 }
 
 .username {
   font-size: 14px;
-  color: #606266;
+  color: var(--text-primary);
 }
 
 .layout-aside {
-  background: #fff;
-  border-right: 1px solid #e4e7ed;
+  background-color: var(--el-menu-bg-color);
   flex-shrink: 0;
   overflow-y: auto;
 }
@@ -191,19 +194,10 @@ const handleCommand = (command) => {
 }
 
 .el-menu-vertical .el-menu-item {
-  height: 48px;
-  line-height: 48px;
+  height: 44px;
+  line-height: 44px;
   margin: 2px 10px;
   border-radius: 4px;
-}
-
-.el-menu-vertical .el-menu-item:hover {
-  background-color: #f5f7fa;
-}
-
-.el-menu-vertical .el-menu-item.is-active {
-  background-color: #ecf5ff;
-  color: #409EFF;
 }
 
 .el-menu-vertical .el-menu-item .el-icon {
@@ -211,9 +205,13 @@ const handleCommand = (command) => {
 }
 
 .layout-main {
-  background-color: #f5f7fa;
-  padding: 20px;
+  padding: 16px;
   overflow-y: auto;
   height: 100%;
+}
+
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 </style>
