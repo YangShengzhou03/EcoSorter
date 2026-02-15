@@ -16,6 +16,19 @@ export const profileApi = {
     })
   },
 
+  uploadAvatar(file) {
+    const formData = new FormData()
+    formData.append('file', file)
+    return request({
+      url: '/api/upload/avatar',
+      method: 'post',
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  },
+
   updateAvatar(avatarUrl) {
     return request({
       url: '/api/profile/avatar',

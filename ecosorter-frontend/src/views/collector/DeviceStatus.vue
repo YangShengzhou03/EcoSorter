@@ -1,32 +1,58 @@
 <template>
-  <div class="device-status">
+  <div class="collector-page">
     <el-card>
       <template #header>
-        <span>设备状态监控</span>
+        <div class="card-header">
+          <span>设备状态</span>
+          <el-button size="small" @click="loadDeviceStatus">刷新</el-button>
+        </div>
       </template>
-      
-      <el-table :data="deviceList" v-loading="loading" style="width: 100%">
-        <el-table-column prop="deviceId" label="设备编号" width="140" />
-        <el-table-column prop="name" label="设备名称" min-width="150" />
-        <el-table-column prop="location" label="设备位置" min-width="200" />
-        <el-table-column prop="capacity" label="当前容量" width="100">
+
+      <div class="filter-bar">
+        <el-select v-model="filterStatus" placeholder="设备状态" @change="loadDeviceStatus" clearable style="width: 120px">
+          <el-option label="全部" value="" />
+          <el-option label="正常" value="正常" />
+          <el-option label="异常" value="异常" />
+          <el-option label="维护中" value="维护中" />
+        </el-select>
+      </div>
+
+      <el-table :data="deviceList" v-loading="loading" border style="width: 100%" empty-text="暂无设备">
+        <el-table-column prop="deviceId" label="设备编号" width="150" />
+        <el-table-column prop="name" label="设备名称" />
+        <el-table-column prop="location" label="位置" />
+        <el-table-column prop="capacityLevel" label="容量" width="150">
           <template #default="{ row }">
-            <el-progress :percentage="row.capacity" :color="getCapacityColor(row.capacity)" />
+            <div class="capacity-wrapper">
+              <el-progress 
+                :percentage="getCapacityPercentage(row)" 
+                :color="getCapacityColor(row)"
+                :stroke-width="8"
+              />
+              <span class="capacity-text">{{ row.capacityLevel }} / {{ row.maxCapacity }}</span>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="设备状态" width="100">
+        <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusTag(row.status)">
-              {{ row.status }}
+            <el-tag :type="getStatusType(row.status)" size="small">
+              {{ getStatusText(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="lastUpdate" label="最后更新" width="160">
-          <template #default="{ row }">
-            {{ formatTime(row.lastUpdate) }}
-          </template>
-        </el-table-column>
       </el-table>
+
+      <div class="pagination" v-if="total > 0">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :total="total"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next"
+          @size-change="loadDeviceStatus"
+          @current-change="loadDeviceStatus"
+        />
+      </div>
     </el-card>
   </div>
 </template>
@@ -34,49 +60,31 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { adminApi } from '@/api/admin'
+import { collectorApi } from '@/api/collector'
+import { getCapacityColor, getCapacityPercentage, getStatusType, getStatusText } from '@/utils/helpers'
+
+defineOptions({
+  name: 'CollectorDeviceStatus'
+})
 
 const loading = ref(false)
 const deviceList = ref([])
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+const filterStatus = ref('')
 
 const loadDeviceStatus = async () => {
   loading.value = true
   try {
-    const response = await adminApi.getDevices()
+    const response = await collectorApi.getDevices()
     deviceList.value = response || []
+    total.value = response.length || 0
   } catch (error) {
-    console.error('加载设备状态失败:', error)
     ElMessage.error('加载设备状态失败')
   } finally {
     loading.value = false
   }
-}
-
-const getStatusTag = (status) => {
-  const statusMap = {
-    '正常': 'success',
-    '异常': 'danger',
-    '维护中': 'warning'
-  }
-  return statusMap[status] || 'info'
-}
-
-const getCapacityColor = (capacity) => {
-  if (capacity >= 90) return '#F56C6C'
-  if (capacity >= 75) return '#E6A23C'
-  if (capacity >= 50) return '#409EFF'
-  return '#67C23A'
-}
-
-const formatTime = (time) => {
-  if (!time) return ''
-  return new Date(time).toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
 }
 
 onMounted(() => {
@@ -85,7 +93,31 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.device-status {
+.collector-page {
   padding: 0;
+}
+
+.filter-bar {
+  margin-bottom: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.capacity-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.capacity-text {
+  font-size: 11px;
+  color: #606266;
+  white-space: nowrap;
+}
+
+.pagination {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
 }
 </style>

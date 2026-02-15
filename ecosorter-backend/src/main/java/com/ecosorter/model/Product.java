@@ -1,53 +1,36 @@
 package com.ecosorter.model;
 
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.ecosorter.enums.ProductStatus;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "products")
+@TableName("products")
 public class Product {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
     
-    @Column(name = "name", nullable = false, length = 200)
     private String name;
     
-    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
     
-    @Column(name = "image_url", length = 500)
     private String imageUrl;
     
-    @Column(name = "images", columnDefinition = "TEXT")
-    private String images;
-    
-    @Column(name = "points", nullable = false, precision = 10, scale = 0)
     private Integer points;
     
-    @Column(name = "stock", nullable = false)
     private Integer stock;
     
-    @Column(name = "max_purchase")
     private Integer maxPurchase = 10;
     
-    @Column(name = "status", nullable = false, length = 20)
-    private String status = "available";
+    private ProductStatus status = ProductStatus.AVAILABLE;
     
-    @Column(name = "category", length = 50)
     private String category;
     
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     public Product() {
@@ -85,14 +68,6 @@ public class Product {
         this.imageUrl = imageUrl;
     }
 
-    public String getImages() {
-        return images;
-    }
-
-    public void setImages(String images) {
-        this.images = images;
-    }
-
     public Integer getPoints() {
         return points;
     }
@@ -117,11 +92,11 @@ public class Product {
         this.maxPurchase = maxPurchase;
     }
 
-    public String getStatus() {
+    public ProductStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(ProductStatus status) {
         this.status = status;
     }
 

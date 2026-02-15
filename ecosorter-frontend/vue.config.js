@@ -1,5 +1,6 @@
 module.exports = {
   transpileDependencies: true,
+  lintOnSave: 'warning',
   devServer: {
     port: 8080,
     proxy: {

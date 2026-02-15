@@ -8,6 +8,7 @@ public class NoticeResponse {
     private String title;
     private String content;
     private String status;
+    private String targetAudience;
     private Long authorId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -42,6 +43,14 @@ public class NoticeResponse {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getTargetAudience() {
+        return targetAudience;
+    }
+
+    public void setTargetAudience(String targetAudience) {
+        this.targetAudience = targetAudience;
     }
 
     public Long getAuthorId() {

@@ -1,5 +1,6 @@
 package com.ecosorter.service;
 
+import com.ecosorter.config.JwtUtil;
 import com.ecosorter.dto.AuthResponse;
 import com.ecosorter.dto.LoginRequest;
 import com.ecosorter.dto.RegisterRequest;
@@ -16,9 +17,11 @@ import java.time.LocalDateTime;
 public class AuthService {
     
     private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
     
-    public AuthService(UserRepository userRepository) {
+    public AuthService(UserRepository userRepository, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
     }
     
     private UserResponse convertToUserResponse(User user) {
@@ -30,7 +33,7 @@ public class AuthService {
         response.setId(user.getId() != null ? user.getId().toString() : null);
         response.setUsername(user.getUsername());
         response.setEmail(user.getEmail());
-        response.setRole(user.getRole());
+        response.setRole(user.getRole() != null ? user.getRole().name() : null);
         response.setIsActive(user.getIsActive());
         response.setLastLogin(user.getLastLogin() != null ? user.getLastLogin().toString() : null);
         response.setCreatedAt(user.getCreatedAt() != null ? user.getCreatedAt().toString() : null);
@@ -39,7 +42,7 @@ public class AuthService {
         UserResponse.UserProfileDto profileDto = new UserResponse.UserProfileDto();
         profileDto.setAvatar(user.getAvatarUrl());
         profileDto.setPhone(user.getPhone());
-        profileDto.setFullName(user.getFullName());
+        profileDto.setFullName(user.getUsername());
         response.setProfile(profileDto);
         
         return response;
@@ -47,26 +50,38 @@ public class AuthService {
     
     public AuthResponse register(RegisterRequest registerRequest) {
         if (userRepository.existsByUsername(registerRequest.getUsername())) {
-            throw new BadRequestException("Username is already taken!");
+            throw new BadRequestException("用户名已存在");
         }
         
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
-            throw new BadRequestException("Email is already in use!");
+            throw new BadRequestException("邮箱已被使用");
         }
         
         User user = new User();
         user.setUsername(registerRequest.getUsername());
         user.setEmail(registerRequest.getEmail());
         user.setPassword(registerRequest.getPassword());
-        user.setRole(User.UserRole.RESIDENT);
+        
+        if (registerRequest.getRole() != null && !registerRequest.getRole().isEmpty()) {
+            try {
+                user.setRole(User.UserRole.valueOf(registerRequest.getRole().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                user.setRole(User.UserRole.RESIDENT);
+            }
+        } else {
+            user.setRole(User.UserRole.RESIDENT);
+        }
+        
         user.setIsActive(true);
         
         User savedUser = userRepository.save(user);
         
+        String token = jwtUtil.generateToken(savedUser.getId(), savedUser.getUsername(), savedUser.getRole().name());
+        
         UserResponse userResponse = convertToUserResponse(savedUser);
         
         AuthResponse authResponse = new AuthResponse();
-        authResponse.setAccessToken("simple-token-" + savedUser.getId());
+        authResponse.setAccessToken(token);
         authResponse.setExpiresIn(86400000L);
         authResponse.setUser(userResponse);
         
@@ -74,20 +89,22 @@ public class AuthService {
     }
     
     public AuthResponse login(LoginRequest loginRequest) {
-        User user = userRepository.findByUsername(loginRequest.getIdentifier())
-                .orElseThrow(() -> new BadRequestException("User not found"));
+        User user = userRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new BadRequestException("用户不存在"));
         
         if (!user.getPassword().equals(loginRequest.getPassword())) {
-            throw new BadRequestException("Invalid password");
+            throw new BadRequestException("密码错误");
         }
         
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
         
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name());
+        
         UserResponse userResponse = convertToUserResponse(user);
         
         AuthResponse authResponse = new AuthResponse();
-        authResponse.setAccessToken("simple-token-" + user.getId());
+        authResponse.setAccessToken(token);
         authResponse.setExpiresIn(86400000L);
         authResponse.setUser(userResponse);
         
@@ -95,16 +112,20 @@ public class AuthService {
     }
     
     public AuthResponse refreshToken(String refreshToken) {
-        String userIdStr = refreshToken.replace("simple-token-", "");
-        Long userId = Long.parseLong(userIdStr);
+        if (!jwtUtil.validateToken(refreshToken)) {
+            throw new BadRequestException("Invalid or expired token");
+        }
         
+        Long userId = jwtUtil.getUserIdFromToken(refreshToken);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        String newToken = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name());
         
         UserResponse userResponse = convertToUserResponse(user);
         
         AuthResponse authResponse = new AuthResponse();
-        authResponse.setAccessToken(refreshToken);
+        authResponse.setAccessToken(newToken);
         authResponse.setExpiresIn(86400000L);
         authResponse.setUser(userResponse);
         
@@ -115,9 +136,11 @@ public class AuthService {
     }
     
     public UserResponse getCurrentUser(String token) {
-        String userIdStr = token.replace("simple-token-", "");
-        Long userId = Long.parseLong(userIdStr);
+        if (!jwtUtil.validateToken(token)) {
+            throw new BadRequestException("Invalid or expired token");
+        }
         
+        Long userId = jwtUtil.getUserIdFromToken(token);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         

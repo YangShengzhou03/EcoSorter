@@ -1,13 +1,14 @@
 package com.ecosorter.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.ecosorter.dto.ComplaintProcessRequest;
 import com.ecosorter.dto.ComplaintResponse;
 import com.ecosorter.dto.ComplaintSubmitRequest;
 import com.ecosorter.service.ComplaintService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,81 +24,67 @@ public class ComplaintController {
     }
     
     @PostMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ComplaintResponse> submitComplaint(
-            @RequestBody ComplaintSubmitRequest request,
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
-        Long userId = getUserIdFromToken(authorization);
-        if (userId == null) {
+            @Valid @RequestBody ComplaintSubmitRequest request,
+            @AuthenticationPrincipal com.ecosorter.model.User user) {
+        if (user == null) {
             return ResponseEntity.status(401).build();
         }
-        ComplaintResponse response = complaintService.submitComplaint(userId, request);
+        ComplaintResponse response = complaintService.submitComplaint(user.getId(), request);
         return ResponseEntity.ok(response);
     }
     
     @GetMapping("/my")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<ComplaintResponse>> getMyComplaints(
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
-        Long userId = getUserIdFromToken(authorization);
-        if (userId == null) {
+            @AuthenticationPrincipal com.ecosorter.model.User user) {
+        if (user == null) {
             return ResponseEntity.status(401).build();
         }
-        List<ComplaintResponse> response = complaintService.getUserComplaints(userId);
+        List<ComplaintResponse> response = complaintService.getUserComplaints(user.getId());
         return ResponseEntity.ok(response);
     }
     
     @GetMapping("/admin")
-    public ResponseEntity<Page<ComplaintResponse>> getAllComplaints(
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<IPage<ComplaintResponse>> getAllComplaints(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(required = false) String status,
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
-        Page<ComplaintResponse> response = complaintService.getAllComplaints(status, pageable);
+            @RequestParam(required = false) String status) {
+        IPage<ComplaintResponse> response = complaintService.getAllComplaints(status, page, pageSize);
         return ResponseEntity.ok(response);
     }
     
     @GetMapping("/admin/pending-count")
-    public ResponseEntity<Long> getPendingCount(
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Long> getPendingCount() {
         long count = complaintService.getPendingCount();
         return ResponseEntity.ok(count);
     }
     
     @PutMapping("/admin/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ComplaintResponse> processComplaint(
             @PathVariable Long id,
-            @RequestBody ComplaintProcessRequest request,
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
-        Long adminId = getUserIdFromToken(authorization);
-        if (adminId == null) {
+            @Valid @RequestBody ComplaintProcessRequest request,
+            @AuthenticationPrincipal com.ecosorter.model.User user) {
+        if (user == null) {
             return ResponseEntity.status(401).build();
         }
-        ComplaintResponse response = complaintService.processComplaint(id, adminId, request);
+        ComplaintResponse response = complaintService.processComplaint(id, user.getId(), request);
         return ResponseEntity.ok(response);
     }
     
     @DeleteMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteComplaint(
             @PathVariable Long id,
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
-        Long userId = getUserIdFromToken(authorization);
-        if (userId == null) {
+            @AuthenticationPrincipal com.ecosorter.model.User user) {
+        if (user == null) {
             return ResponseEntity.status(401).build();
         }
-        complaintService.deleteComplaint(id, userId);
+        complaintService.deleteComplaint(id, user.getId());
         return ResponseEntity.ok().build();
-    }
-    
-    private Long getUserIdFromToken(String authorization) {
-        if (authorization != null && authorization.startsWith("Bearer ")) {
-            String token = authorization.substring(7);
-            String userIdStr = token.replace("simple-token-", "");
-            try {
-                return Long.parseLong(userIdStr);
-            } catch (NumberFormatException e) {
-                return null;
-            }
-        }
-        return null;
     }
 }

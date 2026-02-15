@@ -1,5 +1,5 @@
 <template>
-  <div class="admin-page">
+  <div class="resident-page">
     <el-card>
       <template #header>
         <div class="card-header">
@@ -15,6 +15,7 @@
         <el-table-column prop="totalPoints" label="消耗积分" width="120" />
         <el-table-column prop="contactName" label="联系人" width="120" />
         <el-table-column prop="contactPhone" label="联系电话" width="130" />
+        <el-table-column prop="trackingNumber" label="快递单号" width="150" />
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)">{{ getStatusText(row.status) }}</el-tag>
@@ -65,8 +66,8 @@ const loadOrders = async () => {
       page: currentPage.value,
       pageSize: pageSize.value
     })
-    orders.value = response.content || []
-    total.value = response.totalElements || 0
+    orders.value = response.records || []
+    total.value = response.total || 0
   } catch (error) {
     ElMessage.error('加载订单列表失败')
   } finally {
@@ -80,7 +81,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.admin-page {
+.resident-page {
   padding: 0;
 }
 

@@ -7,28 +7,38 @@ const routes = [
   },
   { 
     path: "/init", 
+    name: "DeviceInit",
     component: () => import("./views/DeviceInit.vue"),
     meta: { title: "设备初始化" }
   },
   { 
     path: "/work", 
+    name: "WorkStatus",
     component: () => import("./views/WorkStatus.vue"),
     meta: { title: "工作状态" }
   },
   { 
     path: "/login", 
+    name: "UserLogin",
     component: () => import("./views/UserLogin.vue"),
     meta: { title: "用户登录" }
   },
   { 
     path: "/recognize", 
+    name: "GarbageRecognize",
     component: () => import("./views/GarbageRecognize.vue"),
     meta: { title: "垃圾识别" }
   },
-  { path: "/:pathMatch(.*)*", redirect: "/" },
+  { 
+    path: "/:pathMatch(.*)*", 
+    redirect: "/" 
+  }
 ];
 
-const router = createRouter({ history: createWebHistory(), routes });
+const router = createRouter({ 
+  history: createWebHistory(), 
+  routes 
+});
 
 router.beforeEach((to, from, next) => {
   const isInitialized = localStorage.getItem('deviceInitialized')
@@ -43,12 +53,17 @@ router.beforeEach((to, from, next) => {
 })
 
 router.afterEach((to) => {
-  document.title = to.meta?.title || "易控智能垃圾桶";
-  window.scrollTo(0, 0);
-});
+  const title = to.meta?.title || "易控智能垃圾桶"
+  document.title = title
+  window.scrollTo(0, 0)
+})
 
 router.onError((error) => {
-  console.error("页面加载失败，请刷新重试" + error.message);
-});
+  console.error("页面加载失败:", error.message)
+  const isInitialized = localStorage.getItem('deviceInitialized')
+  if (!isInitialized) {
+    window.location.href = '/init'
+  }
+})
 
-export default router;
+export default router

@@ -49,10 +49,10 @@ public class UserStatisticsService {
     }
     
     private UserStatistics createDefaultStatistics(Long userId) {
-        User user = userRepository.findById(userId)
+        userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
         UserStatistics statistics = new UserStatistics();
-        statistics.setUser(user);
+        statistics.setUserId(userId);
         statistics.setTotalClassifications(0);
         statistics.setCorrectClassifications(0);
         statistics.setTotalWasteWeight(java.math.BigDecimal.ZERO);

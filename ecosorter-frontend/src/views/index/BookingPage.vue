@@ -1,10 +1,8 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <div class="header-content">
-        <h1 class="page-title">回收预约</h1>
-        <p class="page-subtitle">Booking Service</p>
-      </div>
+      <h1 class="page-title">回收预约</h1>
+      <p class="page-subtitle">Booking Service</p>
     </div>
 
     <div class="page-content">
@@ -247,7 +245,7 @@ const loadBookings = async () => {
   loadingBookings.value = true
   try {
     const res = await bookingApi.getList()
-    bookings.value = res.data || []
+    bookings.value = res.records || []
   } catch (error) {
     ElMessage.error('加载预约记录失败')
   } finally {
@@ -329,11 +327,6 @@ onMounted(() => {
   padding: 40px 32px 30px;
   text-align: center;
   color: white;
-}
-
-.header-content {
-  max-width: 1000px;
-  margin: 0 auto;
 }
 
 .page-title {
@@ -445,7 +438,7 @@ onMounted(() => {
 }
 
 .info-list li::before {
-  content: '✓';
+  content: '•';
   position: absolute;
   left: 0;
   color: #67c23a;

@@ -1,44 +1,47 @@
 <template>
-  <div class="admin-categories">
-    <div class="table-section">
-      <div class="table-header">
-        <h2>垃圾分类管理</h2>
-        <el-button type="primary" @click="showCreateDialog">添加分类</el-button>
-      </div>
+  <div class="admin-page">
+    <el-card>
+      <template #header>
+        <div class="card-header">
+          <span>垃圾分类管理</span>
+          <el-button type="primary" @click="showCreateDialog">添加分类</el-button>
+        </div>
+      </template>
       
-      <el-table :data="categories" style="width: 100%" border v-loading="loading">
-        <el-table-column prop="name" label="分类名称" width="120" />
-        <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="disposalMethod" label="处理方式" width="120" />
-        <el-table-column prop="color" label="颜色" width="100">
+      <el-table :data="categories" style="width: 100%" border v-loading="loading" empty-text="暂无分类">
+        <el-table-column prop="name" label="分类名称" />
+        <el-table-column prop="description" label="描述" show-overflow-tooltip />
+        <el-table-column prop="disposalMethod" label="处理方式" />
+        <el-table-column prop="color" label="颜色">
           <template #default="{ row }">
             <div class="color-preview" :style="{ background: row.color }"></div>
           </template>
         </el-table-column>
-        <el-table-column prop="environmentalImpact" label="环境影响" width="100" />
-        <el-table-column prop="recyclingRate" label="回收率" width="100" />
-        <el-table-column prop="hazardous" label="危险品" width="100">
+        <el-table-column prop="environmentalImpact" label="环境影响" />
+        <el-table-column prop="recyclingRate" label="回收率" />
+        <el-table-column prop="hazardous" label="危险品">
           <template #default="{ row }">
             <el-tag :type="row.hazardous ? 'danger' : 'success'">
               {{ row.hazardous ? '是' : '否' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="active" label="状态" width="100">
+        <el-table-column prop="active" label="状态">
           <template #default="{ row }">
             <el-tag :type="row.active ? 'success' : 'info'">
               {{ row.active ? '启用' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200">
+        <el-table-column label="操作" width="180">
           <template #default="{ row }">
             <el-button size="small" @click="editCategory(row)">编辑</el-button>
             <el-button size="small" type="danger" @click="deleteCategory(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
-    </div>
+
+    </el-card>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑分类' : '添加分类'" width="600px">
       <el-form :model="categoryForm" :rules="rules" ref="formRef" label-width="120px">
@@ -87,7 +90,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { adminApi } from '@/api/admin'
+import { classificationApi } from '@/api/classification'
+
+defineOptions({
+  name: 'AdminCategories'
+})
 
 const categories = ref([])
 const loading = ref(false)
@@ -137,10 +144,9 @@ const rules = {
 const loadCategories = async () => {
   loading.value = true
   try {
-    const response = await adminApi.getCategories()
+    const response = await classificationApi.getCategories()
     categories.value = response || []
   } catch (error) {
-    console.error('加载分类数据失败:', error)
     ElMessage.error('加载分类数据失败')
   } finally {
     loading.value = false
@@ -196,17 +202,16 @@ const submitForm = async () => {
     }
     
     if (isEdit.value) {
-      await adminApi.updateCategory(currentCategoryId.value, formData)
+      await classificationApi.updateCategory(currentCategoryId.value, formData)
       ElMessage.success('更新分类成功')
     } else {
-      await adminApi.createCategory(formData)
+      await classificationApi.createCategory(formData)
       ElMessage.success('添加分类成功')
     }
     
     dialogVisible.value = false
     loadCategories()
   } catch (error) {
-    console.error('提交失败:', error)
     ElMessage.error(error.response?.data?.message || '操作失败')
   } finally {
     submitting.value = false
@@ -221,14 +226,11 @@ const deleteCategory = async (row) => {
       type: 'warning'
     })
     
-    await adminApi.deleteCategory(row.id)
+    await classificationApi.deleteCategory(row.id)
     ElMessage.success('删除成功')
     loadCategories()
   } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除失败:', error)
-      ElMessage.error('删除失败')
-    }
+    ElMessage.error('删除失败')
   }
 }
 
@@ -238,34 +240,14 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.admin-categories {
+.admin-page {
   padding: 0;
-}
-
-.table-section {
-  background: var(--bg-white);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 16px;
-}
-
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.table-header h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
 }
 
 .color-preview {
   width: 40px;
   height: 20px;
-  border-radius: 4px;
+  border-radius: 0;
   border: 1px solid #ddd;
 }
 </style>

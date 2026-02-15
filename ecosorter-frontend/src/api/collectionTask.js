@@ -1,20 +1,6 @@
 import request from '@/utils/request'
 
 export const collectionTaskApi = {
-  getNavigationRoute(collectorId) {
-    return request({
-      url: `/api/collection-tasks/navigation/${collectorId}`,
-      method: 'get'
-    })
-  },
-
-  getTasksByCollector(collectorId) {
-    return request({
-      url: `/api/collection-tasks/collector/${collectorId}`,
-      method: 'get'
-    })
-  },
-
   getTasksByStatus(status) {
     return request({
       url: `/api/collection-tasks/status/${status}`,
@@ -22,16 +8,24 @@ export const collectionTaskApi = {
     })
   },
 
-  startTask(taskId) {
+  reassignTask(taskId, newCollectorId) {
     return request({
-      url: `/api/collection-tasks/${taskId}/start`,
-      method: 'post'
+      url: `/api/collection-tasks/${taskId}/reassign`,
+      method: 'post',
+      data: { newCollectorId }
     })
   },
 
-  completeTask(taskId, data) {
+  getPendingExceptions() {
     return request({
-      url: `/api/collection-tasks/${taskId}/complete`,
+      url: '/api/collection-tasks/exceptions/pending',
+      method: 'get'
+    })
+  },
+
+  reviewException(exceptionId, data) {
+    return request({
+      url: `/api/collection-tasks/exceptions/${exceptionId}/review`,
       method: 'post',
       data
     })

@@ -36,6 +36,7 @@
 <script setup>
 import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
 import { useAuthStore } from "@/stores/auth";
 import { User, Lock } from '@element-plus/icons-vue';
 
@@ -67,13 +68,12 @@ const handleLogin = async () => {
             const roleRedirects = {
                 RESIDENT: "/resident/dashboard",
                 COLLECTOR: "/collector/dashboard",
-                ADMIN: "/admin/dashboard",
-                TRASHCAN: "/resident/dashboard",
+                ADMIN: "/admin/dashboard"
             };
             router.push(roleRedirects[result.role] || "/resident/dashboard");
         }
     } catch (error) {
-        console.error('Login error:', error);
+        ElMessage.error(error.message || "登录失败");
     }
 };
 </script>

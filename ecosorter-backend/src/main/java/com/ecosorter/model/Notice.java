@@ -1,38 +1,30 @@
 package com.ecosorter.model;
 
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.ecosorter.enums.NoticeStatus;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "notices")
+@TableName("notices")
 public class Notice {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
     
-    @Column(name = "title", nullable = false, length = 200)
     private String title;
     
-    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
     
-    @Column(name = "status", nullable = false, length = 20)
-    private String status = "draft";
+    private NoticeStatus status = NoticeStatus.DRAFT;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id")
-    private User author;
+    private String targetAudience = "all";
     
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
+    private Long authorId;
+    
     private LocalDateTime createdAt;
     
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     public Notice() {
@@ -62,20 +54,28 @@ public class Notice {
         this.content = content;
     }
 
-    public String getStatus() {
+    public NoticeStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(NoticeStatus status) {
         this.status = status;
     }
 
-    public User getAuthor() {
-        return author;
+    public String getTargetAudience() {
+        return targetAudience;
     }
 
-    public void setAuthor(User author) {
-        this.author = author;
+    public void setTargetAudience(String targetAudience) {
+        this.targetAudience = targetAudience;
+    }
+
+    public Long getAuthorId() {
+        return authorId;
+    }
+
+    public void setAuthorId(Long authorId) {
+        this.authorId = authorId;
     }
 
     public LocalDateTime getCreatedAt() {

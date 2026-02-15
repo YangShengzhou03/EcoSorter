@@ -1,5 +1,5 @@
 <template>
-  <div class="admin-page">
+  <div class="collector-page">
     <el-card v-loading="loading">
       <template #header>
         <div class="card-header">
@@ -157,7 +157,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.admin-page {
+.collector-page {
   padding: 0;
 }
 

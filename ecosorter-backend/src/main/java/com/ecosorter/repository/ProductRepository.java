@@ -1,20 +1,22 @@
 package com.ecosorter.repository;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ecosorter.model.Product;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.apache.ibatis.annotations.Mapper;
 
-import java.util.List;
-
-@Repository
-public interface ProductRepository extends JpaRepository<Product, Long> {
-    List<Product> findByStatus(String status);
-    List<Product> findByCategory(String category);
-    List<Product> findByStatusAndCategory(String status, String category);
+@Mapper
+public interface ProductRepository extends BaseMapper<Product> {
     
-    Page<Product> findByStatus(String status, Pageable pageable);
-    Page<Product> findByCategory(String category, Pageable pageable);
-    Page<Product> findByStatusAndCategory(String status, String category, Pageable pageable);
+    default Product save(Product product) {
+        if (product.getId() == null) {
+            insert(product);
+        } else {
+            updateById(product);
+        }
+        return product;
+    }
+    
+    default void deleteById(Long id) {
+        BaseMapper.super.deleteById(id);
+    }
 }

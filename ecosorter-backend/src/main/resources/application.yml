@@ -72,13 +72,6 @@ aliyun:
     bucket-name: ${OSS_BUCKET_NAME:your_bucket_name}
     base-url: ${OSS_BASE_URL:https://your_bucket_name.oss-cn-hangzhou.aliyuncs.com}
 
-baidu:
-  api:
-    key: ${BAIDU_API_KEY:your_baidu_api_key}
-    secret: ${BAIDU_SECRET_KEY:your_baidu_secret_key}
-    garbage:
-      url: https://aip.baidubce.com/rest/2.0/image-classify/v1/garbage
-
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true

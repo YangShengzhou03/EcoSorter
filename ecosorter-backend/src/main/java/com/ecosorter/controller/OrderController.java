@@ -1,9 +1,10 @@
 package com.ecosorter.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.ecosorter.dto.OrderResponse;
 import com.ecosorter.model.Order;
 import com.ecosorter.service.OrderService;
-import org.springframework.data.domain.Page;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,7 +21,8 @@ public class OrderController {
     }
     
     @GetMapping
-    public ResponseEntity<Page<OrderResponse>> getUserOrders(
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<IPage<OrderResponse>> getUserOrders(
             @AuthenticationPrincipal com.ecosorter.model.User user,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize,
@@ -33,7 +35,7 @@ public class OrderController {
     
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<OrderResponse>> getAllOrders(
+    public ResponseEntity<IPage<OrderResponse>> getAllOrders(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(required = false) String status) {
@@ -41,14 +43,16 @@ public class OrderController {
     }
     
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<OrderResponse> getOrderById(@PathVariable Long id) {
         return ResponseEntity.ok(orderService.getOrderById(id));
     }
     
     @PostMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<OrderResponse> createOrder(
             @AuthenticationPrincipal com.ecosorter.model.User user,
-            @RequestBody Order order) {
+            @Valid @RequestBody Order order) {
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
@@ -59,7 +63,15 @@ public class OrderController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<OrderResponse> updateOrderStatus(
             @PathVariable Long id,
-            @RequestBody String status) {
+            @RequestParam String status) {
         return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
+    }
+    
+    @PutMapping("/{id}/tracking-number")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<OrderResponse> updateTrackingNumber(
+            @PathVariable Long id,
+            @RequestParam String trackingNumber) {
+        return ResponseEntity.ok(orderService.updateTrackingNumber(id, trackingNumber));
     }
 }

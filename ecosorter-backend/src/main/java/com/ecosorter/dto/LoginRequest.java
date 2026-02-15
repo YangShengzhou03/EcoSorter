@@ -1,12 +1,13 @@
 package com.ecosorter.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 public class LoginRequest {
     
-    @NotBlank(message = "Username or email is required")
-    private String identifier; // Can be username or email
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
+    private String email;
     
     @NotBlank(message = "Password is required")
     private String password;
@@ -17,12 +18,12 @@ public class LoginRequest {
     public LoginRequest() {
     }
 
-    public String getIdentifier() {
-        return identifier;
+    public String getEmail() {
+        return email;
     }
 
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPassword() {

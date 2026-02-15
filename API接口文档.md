@@ -107,9 +107,7 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 
 **响应**:
 ```json
-{
-  "message": "Logged out successfully"
-}
+"Logged out successfully"
 ```
 
 ### 1.5 获取当前用户信息
@@ -289,12 +287,14 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 [
   {
     "id": "string",
-    "name": "string",
+    "deviceId": "string",
     "location": "string",
     "status": "string",
-    "capacity": "integer",
-    "currentLevel": "integer",
-    "lastMaintenance": "string"
+    "capacityLevel": "integer",
+    "maxCapacity": "integer",
+    "threshold": "integer",
+    "statusText": "string",
+    "lastUpdate": "string"
   }
 ]
 ```
@@ -324,7 +324,14 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 
 **响应**: 204 No Content
 
-### 3.13 获取报告列表
+### 3.13 重新生成设备认证令牌
+**接口**: `POST /api/admin/devices/{deviceId}/regenerate-token`
+
+**权限**: ADMIN
+
+**响应**: DeviceListResponse
+
+### 3.14 获取报告列表
 **接口**: `GET /api/admin/reports`
 
 **权限**: ADMIN
@@ -485,6 +492,16 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 
 **查询参数**:
 - `status`: 订单状态
+
+**响应**: OrderResponse
+
+### 5.6 更新物流单号
+**接口**: `PUT /api/orders/{id}/tracking-number`
+
+**权限**: ADMIN
+
+**查询参数**:
+- `trackingNumber`: 物流单号
 
 **响应**: OrderResponse
 
@@ -657,6 +674,31 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 ]
 ```
 
+### 8.3 创建垃圾类别
+**接口**: `POST /api/classification/categories`
+
+**权限**: ADMIN
+
+**请求参数**: WasteCategoryRequest
+
+**响应**: WasteCategoryResponse
+
+### 8.4 更新垃圾类别
+**接口**: `PUT /api/classification/categories/{categoryId}`
+
+**权限**: ADMIN
+
+**请求参数**: WasteCategoryRequest
+
+**响应**: WasteCategoryResponse
+
+### 8.5 删除垃圾类别
+**接口**: `DELETE /api/classification/categories/{categoryId}`
+
+**权限**: ADMIN
+
+**响应**: 204 No Content
+
 ---
 
 ## 9. 收集员模块 (Collector)
@@ -697,23 +739,47 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 ]
 ```
 
-### 9.3 获取收集记录
-**接口**: `GET /api/collector/collection-records`
+### 9.3 获取任务详情
+**接口**: `GET /api/collector/tasks/{taskId}`
 
 **权限**: COLLECTOR
 
-**响应**:
+**响应**: CollectorTaskResponse
+
+### 9.4 开始任务
+**接口**: `POST /api/collector/tasks/{taskId}/start`
+
+**权限**: COLLECTOR
+
+**响应**: CollectorTaskResponse
+
+### 9.5 完成任务
+**接口**: `POST /api/collector/tasks/{taskId}/complete`
+
+**权限**: COLLECTOR
+
+**响应**: CollectorTaskResponse
+
+### 9.6 报告异常
+**接口**: `POST /api/collector/tasks/{taskId}/exception`
+
+**权限**: COLLECTOR
+
+**请求参数**:
 ```json
-[
-  {
-    "id": "string",
-    "taskId": "string",
-    "trashcanId": "string",
-    "collectedWeight": "float",
-    "collectedAt": "string"
-  }
-]
+{
+  "description": "string"
+}
 ```
+
+**响应**: 204 No Content
+
+### 9.7 获取设备列表
+**接口**: `GET /api/collector/devices`
+
+**权限**: COLLECTOR
+
+**响应**: DeviceListResponse数组
 
 ---
 
@@ -724,7 +790,7 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 
 **权限**: ADMIN
 
-**响应**: CollectorTaskResponse数组
+**响应**: CollectionTaskResponse数组
 
 ### 10.2 生成任务
 **接口**: `POST /api/collection-tasks/generate`
@@ -900,19 +966,12 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 
 **响应**: NoticeResponse数组
 
-### 12.3 获取未读通知数量
-**接口**: `GET /api/notices/unread/count`
-
-**权限**: 需要登录
-
-**响应**: `integer`
-
-### 12.4 获取通知详情
+### 12.3 获取通知详情
 **接口**: `GET /api/notices/{id}`
 
 **响应**: NoticeResponse
 
-### 12.5 创建通知
+### 12.4 创建通知
 **接口**: `POST /api/notices`
 
 **权限**: ADMIN
@@ -930,33 +989,19 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 
 **响应**: NoticeResponse
 
-### 12.6 更新通知
+### 12.5 更新通知
 **接口**: `PUT /api/notices/{id}`
 
 **权限**: ADMIN
 
-**请求参数**: 同12.5
+**请求参数**: 同12.4
 
 **响应**: NoticeResponse
 
-### 12.7 删除通知
+### 12.6 删除通知
 **接口**: `DELETE /api/notices/{id}`
 
 **权限**: ADMIN
-
-**响应**: 204 No Content
-
-### 12.8 标记为已读
-**接口**: `POST /api/notices/{id}/read`
-
-**权限**: 需要登录
-
-**响应**: 204 No Content
-
-### 12.9 全部标记为已读
-**接口**: `POST /api/notices/read-all`
-
-**权限**: 需要登录
 
 **响应**: 204 No Content
 
@@ -1110,15 +1155,59 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 }
 ```
 
-### 15.2 上传图片
-**接口**: `POST /api/upload/image`
+---
 
-**请求类型**: `multipart/form-data`
+## 16. 垃圾桶设备模块 (Trashcan)
+
+### 16.1 获取设备信息
+**接口**: `GET /api/trashcan/me`
+
+**权限**: 需要设备认证令牌
+
+**响应**:
+```json
+{
+  "id": "string",
+  "deviceId": "string",
+  "location": "string",
+  "capacityLevel": "integer",
+  "maxCapacity": "integer",
+  "threshold": "integer",
+  "status": "string",
+  "statusText": "string",
+  "lastUpdate": "string"
+}
+```
+
+### 16.2 更新设备状态
+**接口**: `PUT /api/trashcan/status`
+
+**权限**: 需要设备认证令牌
 
 **请求参数**:
-- `file`: 文件对象
+```json
+{
+  "capacityLevel": "integer"
+}
+```
 
-**响应**: 同15.1
+**响应**: DeviceListResponse
+
+### 16.3 提交分类记录
+**接口**: `POST /api/trashcan/classification`
+
+**权限**: 需要设备认证令牌
+
+**请求参数**:
+```json
+{
+  "imageUrl": "string",
+  "categoryId": "integer",
+  "confidence": "float"
+}
+```
+
+**响应**: 204 No Content
 
 ---
 
@@ -1157,252 +1246,27 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 
 6. **文件上传缺少验证** [UploadController.java:20](file:///d:/Code/web/eco-sorter/ecosorter-backend/src/main/java/com/ecosorter/controller/UploadController.java#L20)
    - 问题：只检查文件是否为空，没有文件类型、大小限制
-   - 影响：可能上传恶意文件或超大文件导致服务器问题
-   - 建议：添加文件类型白名单、大小限制、病毒扫描等
+   - 影响：可能上传恶意文件或过大文件
+   - 建议：添加文件类型白名单和大小限制
 
-7. **更新用户接口字段不完整** [AdminController.java:43](file:///d:/Code/web/eco-sorter/ecosorter-backend/src/main/java/com/ecosorter/controller/AdminController.java#L43)
-   - 问题：`updateUser` 方法只使用 `UpdateUserRequest` 中的 `role` 和 `isActive` 字段
-   - 影响：API语义不清晰，容易让开发者误解
-   - 建议：创建专门的 DTO 或明确文档说明
+7. **垃圾桶认证令牌安全性** [TrashcanController.java:28](file:///d:/Code/web/eco-sorter/ecosorter-backend/src/main/java/com/ecosorter/controller/TrashcanController.java#L28)
+   - 问题：直接从请求头获取令牌，没有验证令牌格式和有效期
+   - 影响：可能被绕过认证
+   - 建议：使用JWT或其他安全令牌机制
 
 ### 🟢 轻微问题
 
-8. **RefreshToken传递方式不安全** [AuthController.java:33](file:///d:/Code/web/eco-sorter/ecosorter-backend/src/main/java/com/ecosorter/controller/AuthController.java#L33)
-   - 问题：使用 `@RequestParam` 传递 `refreshToken`
-   - 影响：可能被记录在日志中
-   - 建议：使用 `@RequestBody` 或在请求头中传递
+8. **缺少未读通知数量接口**
+   - 问题：文档中提到 `GET /api/notices/unread/count` 接口，但实际代码中不存在
+   - 影响：前端无法获取未读通知数量
+   - 建议：实现该接口或从文档中移除
 
-9. **前端缺少部分接口调用**
-   - 问题：前端 `admin.js` 中调用了 `getLogs()` 接口，但后端没有实现
-   - 问题：后端有 `getWasteCategories()` 接口，但前端没有调用
-   - 影响：功能不完整
-   - 建议：补充缺失的接口实现或调用
+9. **缺少通知已读标记接口**
+   - 问题：文档中提到 `POST /api/notices/{id}/read` 和 `POST /api/notices/read-all` 接口，但实际代码中不存在
+   - 影响：无法标记通知为已读
+   - 建议：实现该接口或从文档中移除
 
-10. **时间格式不统一**
-    - 问题：部分接口使用字符串表示时间，没有统一格式
-    - 影响：解析困难，容易出错
-    - 建议：统一使用 ISO 8601 格式
-
-11. **缺少统一的异常处理**
-    - 问题：部分接口返回自定义错误格式，部分返回 Spring 默认格式
-    - 影响：前端处理不一致
-    - 建议：使用 `GlobalExceptionHandler` 统一处理异常
-
-12. **缺少API版本控制**
-    - 问题：所有接口都在 `/api` 下，没有版本号
-    - 影响：后续升级困难
-    - 建议：使用 `/api/v1` 等版本号
-
-13. **缺少请求限流**
-    - 问题：没有看到限流配置
-    - 影响：可能被恶意攻击
-    - 建议：添加限流中间件
-
-14. **缺少请求日志**
-    - 问题：虽然有 `LoggingInterceptor`，但可能不够完善
-    - 影响：问题排查困难
-    - 建议：完善请求日志记录
-
-15. **缺少接口文档注解**
-    - 问题：没有使用 Swagger/OpenAPI 注解
-    - 影响：文档维护困难
-    - 建议：添加 Swagger 注解，自动生成文档
-
----
-
-## 权限说明
-
-### 角色类型
-- **ADMIN**: 管理员，拥有所有权限
-- **COLLECTOR**: 收集员，负责垃圾收集任务
-- **RESIDENT**: 居民，普通用户
-
-### 权限标记
-- `@PreAuthorize("isAuthenticated()")`: 需要登录
-- `@PreAuthorize("hasRole('ADMIN')")`: 仅管理员
-- `@PreAuthorize("hasRole('COLLECTOR')")`: 仅收集员
-
----
-
-## 数据字典
-
-### 预约类型 (BookingType)
-- `REGULAR`: 常规预约
-- `BULK`: 大件垃圾
-- `HAZARDOUS`: 有害垃圾
-- `RECYCLABLE`: 可回收物
-
-### 预约状态 (BookingStatus)
-- `PENDING`: 待处理
-- `CONFIRMED`: 已确认
-- `IN_PROGRESS`: 进行中
-- `COMPLETED`: 已完成
-- `CANCELLED`: 已取消
-
-### 订单状态 (OrderStatus)
-- `PENDING`: 待处理
-- `CONFIRMED`: 已确认
-- `PROCESSING`: 处理中
-- `COMPLETED`: 已完成
-- `CANCELLED`: 已取消
-
-### 投诉类型 (ComplaintType)
-- `CLASSIFICATION_ERROR`: 分类错误
-- `SERVICE_QUALITY`: 服务质量
-- `DEVICE_MALFUNCTION`: 设备故障
-- `OTHER`: 其他
-
-### 投诉状态 (ComplaintStatus)
-- `PENDING`: 待处理
-- `PROCESSING`: 处理中
-- `RESOLVED`: 已解决
-- `CLOSED`: 已关闭
-
-### 积分类型 (PointType)
-- `EARN`: 获得
-- `REDEEM`: 消费
-- `ADJUST`: 调整
-
-### 任务优先级 (TaskPriority)
-- `LOW`: 低
-- `MEDIUM`: 中
-- `HIGH`: 高
-- `URGENT`: 紧急
-
-### 任务状态 (TaskStatus)
-- `PENDING`: 待处理
-- `ASSIGNED`: 已分配
-- `IN_PROGRESS`: 进行中
-- `COMPLETED`: 已完成
-- `CANCELLED`: 已取消
-
-### 垃圾桶状态 (TrashcanStatus)
-- `ONLINE`: 在线
-- `OFFLINE`: 离线
-- `MAINTENANCE`: 维护中
-
-### 通知状态 (NoticeStatus)
-- `DRAFT`: 草稿
-- `PUBLISHED`: 已发布
-- `ARCHIVED`: 已归档
-
-### 商品状态 (ProductStatus)
-- `AVAILABLE`: 可用
-- `OUT_OF_STOCK`: 缺货
-- `DISCONTINUED`: 已下架
-
----
-
-## 使用示例
-
-### 示例1：用户注册并登录
-```javascript
-// 1. 注册
-const registerResponse = await fetch('http://localhost:8081/api/auth/register', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    username: 'testuser',
-    email: 'test@example.com',
-    password: 'password123',
-    phone: '13800138000'
-  })
-})
-
-const { token } = await registerResponse.json()
-
-// 2. 使用token访问受保护接口
-const profileResponse = await fetch('http://localhost:8081/api/profile', {
-  headers: { 'Authorization': `Bearer ${token}` }
-})
-```
-
-### 示例2：创建预约
-```javascript
-const bookingResponse = await fetch('http://localhost:8081/api/bookings', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  },
-  body: JSON.stringify({
-    type: 'REGULAR',
-    estimatedWeight: 10,
-    appointmentDate: '2024-01-15',
-    timeSlot: '09:00-10:00',
-    contactName: '张三',
-    contactPhone: '13800138000',
-    address: '北京市朝阳区xxx街道xxx号'
-  })
-})
-```
-
-### 示例3：管理员创建商品
-```javascript
-const productResponse = await fetch('http://localhost:8081/api/products', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${adminToken}`
-  },
-  body: JSON.stringify({
-    name: '环保购物袋',
-    description: '可重复使用的环保购物袋',
-    category: '日用品',
-    points: 100,
-    stock: 100,
-    image: 'http://example.com/bag.jpg',
-    status: 'AVAILABLE'
-  })
-})
-```
-
----
-
-## 附录
-
-### A. 前端API调用示例
-
-前端项目位于 `ecosorter-frontend` 目录，API调用代码位于 `src/api/` 目录下。
-
-主要API模块：
-- `auth.js`: 认证相关
-- `user.js`: 用户相关
-- `admin.js`: 管理员相关
-- `booking.js`: 预约相关
-- `order.js`: 订单相关
-- `point.js`: 积分相关
-- `product.js`: 商品相关
-- `classification.js`: 分类相关
-- `collector.js`: 收集员相关
-- `complaint.js`: 投诉相关
-- `notice.js`: 通知相关
-- `banner.js`: 轮播图相关
-- `profile.js`: 个人资料相关
-- `collectionTask.js`: 收集任务相关
-
-### B. 后端项目结构
-
-后端项目位于 `ecosorter-backend` 目录，采用标准的 Spring Boot 分层架构：
-
-```
-src/main/java/com/ecosorter/
-├── config/          # 配置类
-├── controller/      # 控制器层
-├── dto/            # 数据传输对象
-├── enums/          # 枚举类
-├── exception/      # 异常处理
-├── model/          # 实体模型
-├── repository/     # 数据访问层
-└── service/        # 业务逻辑层
-```
-
-### C. 数据库初始化
-
-数据库初始化脚本位于项目根目录的 `data.sql` 文件。
-
----
-
-**文档版本**: 1.0  
-**最后更新**: 2024-02-14  
-**维护者**: EcoSorter Team
+10. **缺少图片上传接口**
+    - 问题：文档中提到 `POST /api/upload/image` 接口，但实际代码中只有 `POST /api/upload/avatar`
+    - 影响：无法上传通用图片
+    - 建议：实现该接口或从文档中移除

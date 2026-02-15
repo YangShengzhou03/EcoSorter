@@ -1,44 +1,66 @@
 <template>
-  <div class="admin-devices">
-    <div class="table-section">
-      <div class="table-header">
-        <h2>设备管理</h2>
-        <el-button type="primary" @click="showCreateDialog">添加设备</el-button>
-      </div>
+  <div class="admin-page">
+    <el-card>
+      <template #header>
+        <div class="card-header">
+          <span>设备管理</span>
+          <el-button type="primary" @click="showCreateDialog">添加设备</el-button>
+        </div>
+      </template>
       
-      <el-table :data="devices" style="width: 100%" border v-loading="loading">
-        <el-table-column prop="deviceId" label="设备ID" width="120" />
-        <el-table-column prop="name" label="设备名称" width="150" />
+      <el-table :data="devices" style="width: 100%" border v-loading="loading" empty-text="暂无设备">
+        <el-table-column prop="deviceId" label="设备ID" />
         <el-table-column prop="location" label="位置" />
-        <el-table-column label="容量" width="200">
+        <el-table-column label="容量">
           <template #default="{ row }">
             <el-progress 
               :percentage="getCapacityPercentage(row)" 
-              :color="getCapacityColor(row)"
+              :color="getCapacityColorByRow(row)"
               :status="getCapacityStatus(row)"
             />
-            <span class="capacity-text">{{ row.capacity }} / {{ row.maxCapacity }}</span>
+            <span class="capacity-text">{{ row.capacityLevel }} / {{ row.maxCapacity }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="threshold" label="阈值(%)" width="100" />
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="threshold" label="阈值(%)" />
+        <el-table-column prop="status" label="状态">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)">{{ getStatusText(row.status) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="lastUpdate" label="最后更新" width="180">
+        <el-table-column prop="lastUpdate" label="最后更新">
           <template #default="{ row }">
             {{ formatTime(row.lastUpdate) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200">
+        <el-table-column prop="authToken" label="认证令牌" width="200">
+          <template #default="{ row }">
+            <el-input 
+              v-model="row.authToken" 
+              readonly 
+              size="small" 
+              :show-password="true"
+              style="width: 100%"
+            >
+              <template #append>
+                <el-button 
+                  @click="copyToken(row.authToken)" 
+                  size="small"
+                  icon="CopyDocument"
+                />
+              </template>
+            </el-input>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="280">
           <template #default="{ row }">
             <el-button size="small" @click="editDevice(row)">编辑</el-button>
+            <el-button size="small" type="warning" @click="regenerateToken(row)">重新生成令牌</el-button>
             <el-button size="small" type="danger" @click="deleteDevice(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
-    </div>
+
+    </el-card>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑设备' : '添加设备'" width="500px">
       <el-form :model="deviceForm" :rules="rules" ref="formRef" label-width="100px">
@@ -47,6 +69,12 @@
         </el-form-item>
         <el-form-item label="位置" prop="location">
           <el-input v-model="deviceForm.location" placeholder="请输入设备位置" />
+        </el-form-item>
+        <el-form-item label="纬度" prop="latitude">
+          <el-input-number v-model="deviceForm.latitude" :precision="8" :min="-90" :max="90" placeholder="请输入纬度" />
+        </el-form-item>
+        <el-form-item label="经度" prop="longitude">
+          <el-input-number v-model="deviceForm.longitude" :precision="8" :min="-180" :max="180" placeholder="请输入经度" />
         </el-form-item>
         <el-form-item label="最大容量" prop="maxCapacity">
           <el-input-number v-model="deviceForm.maxCapacity" :min="1" :max="1000" />
@@ -75,6 +103,11 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { adminApi } from '@/api/admin'
+import { formatTime, getCapacityColorByRow, getCapacityPercentage, getCapacityStatus, getStatusType, getStatusText } from '@/utils/helpers'
+
+defineOptions({
+  name: 'AdminDevices'
+})
 
 const devices = ref([])
 const loading = ref(false)
@@ -87,6 +120,8 @@ const currentDeviceId = ref(null)
 const deviceForm = ref({
   deviceId: '',
   location: '',
+  latitude: null,
+  longitude: null,
   maxCapacity: 100,
   threshold: 80,
   status: 'online'
@@ -116,7 +151,6 @@ const loadDevices = async () => {
     const response = await adminApi.getDevices()
     devices.value = response || []
   } catch (error) {
-    console.error('加载设备数据失败:', error)
     ElMessage.error('加载设备数据失败')
   } finally {
     loading.value = false
@@ -129,6 +163,8 @@ const showCreateDialog = () => {
   deviceForm.value = {
     deviceId: '',
     location: '',
+    latitude: null,
+    longitude: null,
     maxCapacity: 100,
     threshold: 80,
     status: 'online'
@@ -142,6 +178,8 @@ const editDevice = (row) => {
   deviceForm.value = {
     deviceId: row.deviceId,
     location: row.location,
+    latitude: row.latitude,
+    longitude: row.longitude,
     maxCapacity: row.maxCapacity,
     threshold: row.threshold,
     status: row.status
@@ -165,7 +203,6 @@ const submitForm = async () => {
     dialogVisible.value = false
     loadDevices()
   } catch (error) {
-    console.error('提交失败:', error)
     ElMessage.error(error.response?.data?.message || '操作失败')
   } finally {
     submitting.value = false
@@ -185,60 +222,36 @@ const deleteDevice = async (row) => {
     loadDevices()
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('删除失败:', error)
       ElMessage.error('删除失败')
     }
   }
 }
 
-const getCapacityPercentage = (row) => {
-  if (!row.maxCapacity || row.maxCapacity === 0) return 0
-  return Math.round((row.capacity / row.maxCapacity) * 100)
-}
-
-const getCapacityColor = (row) => {
-  const percentage = getCapacityPercentage(row)
-  if (percentage >= 90) return '#f56c6c'
-  if (percentage >= row.threshold) return '#e6a23c'
-  return '#67c23a'
-}
-
-const getCapacityStatus = (row) => {
-  const percentage = getCapacityPercentage(row)
-  if (percentage >= 90) return 'exception'
-  if (percentage >= row.threshold) return 'warning'
-  return 'success'
-}
-
-const getStatusType = (status) => {
-  const statusMap = {
-    'online': 'success',
-    'offline': 'info',
-    'error': 'danger',
-    'maintenance': 'warning'
+const copyToken = async (token) => {
+  try {
+    await navigator.clipboard.writeText(token)
+    ElMessage.success('令牌已复制到剪贴板')
+  } catch (error) {
+    ElMessage.error('复制失败')
   }
-  return statusMap[status] || 'info'
 }
 
-const getStatusText = (status) => {
-  const statusMap = {
-    'online': '在线',
-    'offline': '离线',
-    'error': '错误',
-    'maintenance': '维护中'
+const regenerateToken = async (row) => {
+  try {
+    await ElMessageBox.confirm('确定要重新生成该设备的认证令牌吗？旧令牌将立即失效。', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await adminApi.regenerateAuthToken(row.id)
+    ElMessage.success('令牌重新生成成功')
+    loadDevices()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('重新生成令牌失败')
+    }
   }
-  return statusMap[status] || status
-}
-
-const formatTime = (time) => {
-  if (!time) return ''
-  return new Date(time).toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
 }
 
 onMounted(() => {
@@ -247,28 +260,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.admin-devices {
+.admin-page {
   padding: 0;
-}
-
-.table-section {
-  background: var(--bg-white);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 16px;
-}
-
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.table-header h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
 }
 
 .capacity-text {

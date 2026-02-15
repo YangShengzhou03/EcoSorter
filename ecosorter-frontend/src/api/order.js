@@ -36,7 +36,15 @@ export const orderApi = {
     return request({
       url: `/api/orders/${id}/status`,
       method: 'put',
-      data: status
+      params: { status }
+    })
+  },
+
+  updateTrackingNumber(id, trackingNumber) {
+    return request({
+      url: `/api/orders/${id}/tracking-number`,
+      method: 'put',
+      params: { trackingNumber }
     })
   }
 }

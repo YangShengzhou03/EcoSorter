@@ -3,16 +3,17 @@ package com.ecosorter.dto;
 import java.time.LocalDateTime;
 
 public class ReportResponse {
-    
     private Long id;
-    private LocalDateTime time;
     private String type;
+    private String typeText;
+    private String title;
+    private String description;
+    private String status;
+    private String statusText;
+    private String userName;
     private Double weight;
-    private String user;
-    private String userId;
-
-    public ReportResponse() {
-    }
+    private LocalDateTime createdAt;
+    private LocalDateTime processedAt;
 
     public Long getId() {
         return id;
@@ -20,14 +21,6 @@ public class ReportResponse {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public LocalDateTime getTime() {
-        return time;
-    }
-
-    public void setTime(LocalDateTime time) {
-        this.time = time;
     }
 
     public String getType() {
@@ -38,6 +31,54 @@ public class ReportResponse {
         this.type = type;
     }
 
+    public String getTypeText() {
+        return typeText;
+    }
+
+    public void setTypeText(String typeText) {
+        this.typeText = typeText;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getStatusText() {
+        return statusText;
+    }
+
+    public void setStatusText(String statusText) {
+        this.statusText = statusText;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
     public Double getWeight() {
         return weight;
     }
@@ -46,19 +87,19 @@ public class ReportResponse {
         this.weight = weight;
     }
 
-    public String getUser() {
-        return user;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setUser(String user) {
-        this.user = user;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public String getUserId() {
-        return userId;
+    public LocalDateTime getProcessedAt() {
+        return processedAt;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setProcessedAt(LocalDateTime processedAt) {
+        this.processedAt = processedAt;
     }
 }

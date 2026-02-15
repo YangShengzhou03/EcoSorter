@@ -1,43 +1,29 @@
 package com.ecosorter.model;
 
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "banners")
+@TableName("banners")
 public class Banner {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
     
-    @Column(name = "title", nullable = false, length = 200)
     private String title;
     
-    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
     
-    @Column(name = "background", nullable = false, length = 500)
     private String background;
     
-    @Column(name = "sort_order", nullable = false)
     private Integer sortOrder = 0;
     
-    @Column(name = "target", nullable = false, length = 20)
     private String target = "user";
     
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
-    
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     public Banner() {
@@ -89,14 +75,6 @@ public class Banner {
 
     public void setTarget(String target) {
         this.target = target;
-    }
-
-    public Boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
     }
 
     public LocalDateTime getCreatedAt() {

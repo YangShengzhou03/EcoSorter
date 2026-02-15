@@ -1,10 +1,8 @@
 <template>
   <div class="contact-page">
     <div class="page-header">
-      <div class="header-content">
-        <h1 class="page-title">联系我们</h1>
-        <p class="page-subtitle">Contact Us</p>
-      </div>
+      <h1 class="page-title">联系我们</h1>
+      <p class="page-subtitle">Contact Us</p>
     </div>
 
     <div class="page-content">
@@ -26,8 +24,7 @@
           </div>
           <div class="contact-item">
             <div class="contact-label">公司地址</div>
-            <div class="contact-value">江西省南昌市高新区XX路XX号</div>
-            <div class="contact-time">邮编：330000</div>
+            <div class="contact-value">江西科技师范大学红角洲校区18栋520室</div>
           </div>
         </div>
       </div>
@@ -96,10 +93,6 @@ const activeNames = ref(['1'])
   padding: 32px 32px 24px;
   text-align: center;
   color: white;
-}
-
-.header-content {
-  margin: 0 auto;
 }
 
 .page-title {

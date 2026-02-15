@@ -3,7 +3,9 @@ package com.ecosorter.controller;
 import com.ecosorter.dto.BannerRequest;
 import com.ecosorter.dto.BannerResponse;
 import com.ecosorter.service.BannerService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,16 +32,19 @@ public class BannerController {
     }
     
     @PostMapping
-    public ResponseEntity<BannerResponse> createBanner(@RequestBody BannerRequest request) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BannerResponse> createBanner(@Valid @RequestBody BannerRequest request) {
         return ResponseEntity.ok(bannerService.createBanner(request));
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<BannerResponse> updateBanner(@PathVariable Long id, @RequestBody BannerRequest request) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BannerResponse> updateBanner(@PathVariable Long id, @Valid @RequestBody BannerRequest request) {
         return ResponseEntity.ok(bannerService.updateBanner(id, request));
     }
     
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteBanner(@PathVariable Long id) {
         bannerService.deleteBanner(id);
         return ResponseEntity.ok().build();

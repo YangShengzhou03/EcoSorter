@@ -1,13 +1,24 @@
 package com.ecosorter.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public class BannerRequest {
     
+    @NotBlank(message = "标题不能为空")
+    @Size(min = 2, max = 100, message = "标题长度必须在2-100个字符之间")
     private String title;
+    
+    @Size(max = 500, message = "描述不能超过500个字符")
     private String description;
+    
+    @Size(max = 500, message = "背景图片URL不能超过500个字符")
     private String background;
+    
     private Integer sortOrder;
+    
+    @Size(max = 20, message = "目标不能超过20个字符")
     private String target;
-    private Boolean isActive;
 
     public BannerRequest() {
     }
@@ -50,13 +61,5 @@ public class BannerRequest {
 
     public void setTarget(String target) {
         this.target = target;
-    }
-
-    public Boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
     }
 }

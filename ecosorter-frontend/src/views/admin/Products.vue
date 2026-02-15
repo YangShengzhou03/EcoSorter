@@ -1,47 +1,49 @@
 <template>
-  <div class="products-page">
-    <div class="page-header">
-      <h2>商品管理</h2>
-      <el-button type="primary" @click="openCreateDialog">
-        <el-icon><Plus /></el-icon>
-        添加商品
-      </el-button>
-    </div>
+  <div class="admin-page">
+    <el-card>
+      <template #header>
+        <div class="card-header">
+          <span>商品管理</span>
+          <el-button type="primary" @click="openCreateDialog">
+            添加商品
+          </el-button>
+        </div>
+      </template>
 
-    <div class="filter-bar">
-      <el-select v-model="filterCategory" placeholder="选择分类" @change="loadProducts" clearable style="width: 150px">
-        <el-option label="全部" value="" />
-        <el-option label="生活用品" value="生活用品" />
-        <el-option label="电子产品" value="电子产品" />
-        <el-option label="食品饮料" value="食品饮料" />
-        <el-option label="学习用品" value="学习用品" />
-      </el-select>
-      <el-select v-model="filterStatus" placeholder="商品状态" @change="loadProducts" clearable style="width: 150px">
-        <el-option label="全部" value="" />
-        <el-option label="上架" value="available" />
-        <el-option label="下架" value="unavailable" />
-      </el-select>
-    </div>
+      <div class="filter-bar">
+        <el-select v-model="filterCategory" placeholder="选择分类" @change="loadProducts" clearable style="width: 150px">
+          <el-option label="全部" value="" />
+          <el-option label="生活用品" value="生活用品" />
+          <el-option label="电子产品" value="电子产品" />
+          <el-option label="食品饮料" value="食品饮料" />
+          <el-option label="学习用品" value="学习用品" />
+        </el-select>
+        <el-select v-model="filterStatus" placeholder="商品状态" @change="loadProducts" clearable style="width: 150px">
+          <el-option label="全部" value="" />
+          <el-option label="上架" value="available" />
+          <el-option label="下架" value="unavailable" />
+        </el-select>
+      </div>
 
-    <div class="products-list">
-      <el-table :data="products" v-loading="loading">
-        <el-table-column prop="name" label="商品名称" min-width="150" />
-        <el-table-column prop="category" label="分类" width="100" />
-        <el-table-column prop="points" label="积分" width="100" />
-        <el-table-column prop="stock" label="库存" width="100" />
-        <el-table-column prop="status" label="状态" width="100">
+      <el-table :data="products" v-loading="loading" border empty-text="暂无商品">
+        <el-table-column prop="name" label="商品名称" />
+        <el-table-column prop="category" label="分类" />
+        <el-table-column prop="points" label="积分" />
+        <el-table-column prop="stock" label="库存" />
+        <el-table-column prop="maxPurchase" label="限购" />
+        <el-table-column prop="status" label="状态">
           <template #default="{ row }">
             <el-tag :type="row.status === 'available' ? 'success' : 'info'">
               {{ row.status === 'available' ? '上架' : '下架' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="180">
+        <el-table-column prop="createdAt" label="创建时间">
           <template #default="{ row }">
             {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="150">
           <template #default="{ row }">
             <el-button link type="primary" @click="openEditDialog(row)">编辑</el-button>
             <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
@@ -60,7 +62,7 @@
           @current-change="loadProducts"
         />
       </div>
-    </div>
+    </el-card>
 
     <el-dialog
       v-model="dialogVisible"
@@ -103,6 +105,10 @@
           <el-input-number v-model="form.stock" :min="0" :max="999999" />
         </el-form-item>
         
+        <el-form-item label="限购数量" prop="maxPurchase">
+          <el-input-number v-model="form.maxPurchase" :min="0" :max="999999" />
+        </el-form-item>
+        
         <el-form-item label="商品状态" prop="status">
           <el-radio-group v-model="form.status">
             <el-radio label="available">上架</el-radio>
@@ -123,9 +129,12 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { Plus } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { productApi } from '@/api/product'
+
+defineOptions({
+  name: 'AdminProducts'
+})
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -147,6 +156,7 @@ const form = reactive({
   imageUrl: '',
   points: 0,
   stock: 0,
+  maxPurchase: 10,
   status: 'available',
   category: ''
 })
@@ -167,6 +177,9 @@ const rules = {
   stock: [
     { required: true, message: '请输入库存数量', trigger: 'blur' }
   ],
+  maxPurchase: [
+    { required: true, message: '请输入限购数量', trigger: 'blur' }
+  ],
   status: [
     { required: true, message: '请选择商品状态', trigger: 'change' }
   ]
@@ -181,10 +194,9 @@ const loadProducts = async () => {
       category: filterCategory.value,
       status: filterStatus.value
     })
-    products.value = response.content || []
-    total.value = response.totalElements || 0
+    products.value = response.records || []
+    total.value = response.total || 0
   } catch (error) {
-    console.error('加载商品列表失败:', error)
     ElMessage.error('加载商品列表失败')
   } finally {
     loading.value = false
@@ -204,6 +216,7 @@ const openEditDialog = (row) => {
   form.imageUrl = row.imageUrl
   form.points = row.points
   form.stock = row.stock
+  form.maxPurchase = row.maxPurchase || 10
   form.status = row.status
   form.category = row.category
   dialogVisible.value = true
@@ -226,7 +239,6 @@ const submitForm = async () => {
     loadProducts()
   } catch (error) {
     if (error !== false) {
-      console.error('提交失败:', error)
       ElMessage.error('提交失败')
     }
   } finally {
@@ -245,7 +257,6 @@ const handleDelete = (row) => {
       ElMessage.success('删除成功')
       loadProducts()
     } catch (error) {
-      console.error('删除失败:', error)
       ElMessage.error('删除失败')
     }
   }).catch(() => {})
@@ -259,6 +270,7 @@ const resetForm = () => {
   form.imageUrl = ''
   form.points = 0
   form.stock = 0
+  form.maxPurchase = 10
   form.status = 'available'
   form.category = ''
 }
@@ -280,40 +292,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.products-page {
-  padding: 20px;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.page-header h2 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.filter-bar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.products-list {
-  background: var(--bg-white);
-  border-radius: 8px;
-  padding: 16px;
-  border: 1px solid var(--border-color);
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
+.admin-page {
+  padding: 0;
 }
 </style>

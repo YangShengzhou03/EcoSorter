@@ -1,46 +1,53 @@
 <template>
-  <div class="work-container">
-    <div class="work-screen">
-      <div class="work-header">
-        <h2 class="work-title">易控智能垃圾桶</h2>
-        <div class="work-time">{{ currentTime }}</div>
-      </div>
-
-      <div class="work-content">
-        <el-carousel height="400" arrow="always" indicator-position="outside" class="banner-carousel">
-          <el-carousel-item v-for="(banner, index) in banners" :key="index">
-            <div class="banner-item" :style="{ background: banner.background }">
-              <h3 class="banner-title">{{ banner.title }}</h3>
-              <p class="banner-desc">{{ banner.description }}</p>
-            </div>
-          </el-carousel-item>
-        </el-carousel>
-
-        <div class="device-info">
-          <el-descriptions title="设备信息" :column="2" border>
-            <el-descriptions-item label="设备名称">{{ deviceInfo.deviceName }}</el-descriptions-item>
-            <el-descriptions-item label="设备位置">{{ deviceInfo.location }}</el-descriptions-item>
-            <el-descriptions-item label="垃圾桶类型">{{ deviceInfo.binType }}</el-descriptions-item>
-            <el-descriptions-item label="设备状态">
-              <el-tag type="success">在线</el-tag>
-            </el-descriptions-item>
-          </el-descriptions>
+  <div class="work-page">
+    <div class="left-panel">
+      <div class="brand-section">
+        <div class="logo-wrapper">
+          <el-icon :size="40" class="logo-icon"><Delete /></el-icon>
+        </div>
+        <div class="brand-info">
+          <h1 class="brand-title">易控智能垃圾桶</h1>
+          <p class="brand-subtitle">{{ currentTime }}</p>
         </div>
       </div>
+      
+      <div class="device-info">
+        <el-descriptions :column="1" border size="small">
+          <el-descriptions-item label="设备名称">{{ deviceInfo.deviceName }}</el-descriptions-item>
+          <el-descriptions-item label="设备位置">{{ deviceInfo.location }}</el-descriptions-item>
+          <el-descriptions-item label="垃圾桶类型">
+            <el-tag :type="binTypeTag" size="small">{{ binTypeLabel }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="设备状态">
+            <el-tag type="success" size="small">在线</el-tag>
+          </el-descriptions-item>
+        </el-descriptions>
+      </div>
+    </div>
 
-      <div class="work-footer">
-        <el-button type="primary" size="large" @click="goToLogin" class="action-btn">
-          点击屏幕开始使用
-        </el-button>
+    <div class="right-panel">
+      <el-carousel height="100%" :interval="8000" arrow="never" indicator-position="none">
+        <el-carousel-item v-for="(banner, index) in banners" :key="index">
+          <div class="banner-content" :style="{ background: banner.background }">
+            <h2 class="banner-title">{{ banner.title }}</h2>
+            <p class="banner-desc">{{ banner.description }}</p>
+          </div>
+        </el-carousel-item>
+      </el-carousel>
+      
+      <div class="start-overlay" @click="goToLogin">
+        <div class="start-content">
+          <el-icon class="touch-icon"><Pointer /></el-icon>
+          <span class="start-text">点击屏幕开始使用</span>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import { trashcanApi } from '@/api/trashcan'
 
 defineOptions({
@@ -55,14 +62,31 @@ let timeInterval = null
 const deviceInfo = ref({
   deviceName: '易控智能垃圾桶-001',
   location: 'A区-1号楼大厅',
-  binType: '可回收物'
+  binType: 'recyclable'
 })
 
-const banners = ref([])
+const banners = ref([
+  { title: '智能垃圾分类', description: '让垃圾分类更简单，让环境更美好', background: '#409eff' },
+  { title: '保护环境', description: '从我做起，从垃圾分类做起', background: '#67c23a' },
+  { title: '绿色生活', description: '共建美好家园，共享绿色未来', background: '#e6a23c' }
+])
+
+const binTypeMap = {
+  recyclable: { label: '可回收物', tag: 'success' },
+  hazardous: { label: '有害垃圾', tag: 'danger' },
+  kitchen: { label: '厨余垃圾', tag: 'warning' },
+  other: { label: '其他垃圾', tag: 'info' }
+}
+
+const binTypeLabel = computed(() => binTypeMap[deviceInfo.value.binType]?.label || deviceInfo.value.binType)
+const binTypeTag = computed(() => binTypeMap[deviceInfo.value.binType]?.tag || 'info')
 
 const updateTime = () => {
   const now = new Date()
-  currentTime.value = now.toLocaleTimeString('zh-CN', {
+  currentTime.value = now.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit'
@@ -76,8 +100,8 @@ const goToLogin = () => {
 const loadBanners = async () => {
   try {
     const response = await trashcanApi.getBanners()
-    if (response && response.data) {
-      banners.value = response.data
+    if (response && response.length > 0) {
+      banners.value = response
     }
   } catch (error) {
     console.error('加载轮播图失败:', error)
@@ -91,7 +115,7 @@ const loadDeviceInfo = async () => {
       deviceInfo.value = {
         deviceName: response.deviceId || deviceInfo.value.deviceName,
         location: response.location || deviceInfo.value.location,
-        binType: response.statusText || deviceInfo.value.binType
+        binType: response.binType || deviceInfo.value.binType
       }
     }
   } catch (error) {
@@ -118,102 +142,203 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.work-container {
-  min-height: 100vh;
-  background: #f5f7fa;
+.work-page {
+  width: 100vw;
+  height: 100vh;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
+  background: #f5f5f5;
 }
 
-.work-screen {
-  width: 100%;
-  max-width: 800px;
-  background: white;
-  padding: 30px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+.left-panel {
+  width: 320px;
+  background: #1a1a2e;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
 }
 
-.work-header {
+.brand-section {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  gap: 16px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid #2a2a3e;
+  margin-bottom: 20px;
 }
 
-.work-title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #303133;
-  margin: 0;
+.logo-wrapper {
+  width: 56px;
+  height: 56px;
+  background: #409eff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.work-time {
+.logo-icon {
+  color: white;
+}
+
+.brand-info {
+  flex: 1;
+}
+
+.brand-title {
   font-size: 18px;
-  color: #606266;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 4px;
+}
+
+.brand-subtitle {
+  font-size: 13px;
+  color: #909399;
+  margin: 0;
   font-family: monospace;
 }
 
-.work-content {
-  margin-bottom: 30px;
+.device-info {
+  flex: 1;
 }
 
-.banner-carousel {
-  margin-bottom: 30px;
+.device-info :deep(.el-descriptions) {
+  background: transparent;
 }
 
-.banner-item {
+.device-info :deep(.el-descriptions__label) {
+  color: #909399;
+  background: #1a1a2e;
+}
+
+.device-info :deep(.el-descriptions__content) {
+  color: white;
+  background: #1a1a2e;
+}
+
+.device-info :deep(.el-descriptions__cell) {
+  border-color: #2a2a3e;
+}
+
+.right-panel {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.banner-content {
+  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 40px;
   color: white;
   text-align: center;
+  padding: 40px;
 }
 
 .banner-title {
-  font-size: 28px;
-  font-weight: bold;
-  margin: 0 0 15px 0;
+  font-size: 42px;
+  font-weight: 600;
+  margin: 0 0 16px;
 }
 
 .banner-desc {
-  font-size: 16px;
+  font-size: 20px;
   margin: 0;
   opacity: 0.9;
 }
 
-.device-info {
-  margin-top: 20px;
+.start-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.3s;
 }
 
-.work-footer {
-  text-align: center;
+.start-overlay:hover {
+  opacity: 1;
 }
 
-.action-btn {
-  width: 100%;
-  height: 50px;
+.start-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: white;
+}
+
+.touch-icon {
+  font-size: 48px;
+}
+
+.start-text {
   font-size: 18px;
-  font-weight: bold;
+  font-weight: 500;
 }
 
-@media (max-width: 768px) {
-  .work-screen {
+@media (max-width: 1024px) {
+  .left-panel {
+    width: 280px;
     padding: 20px;
   }
   
-  .work-title {
-    font-size: 20px;
+  .banner-title {
+    font-size: 32px;
   }
   
-  .work-time {
+  .banner-desc {
     font-size: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .work-page {
+    flex-direction: column;
+  }
+  
+  .left-panel {
+    width: 100%;
+    padding: 16px;
+  }
+  
+  .brand-section {
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .logo-wrapper {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .brand-title {
+    font-size: 16px;
+  }
+  
+  .device-info {
+    display: none;
+  }
+  
+  .right-panel {
+    flex: 1;
+  }
+  
+  .banner-title {
+    font-size: 24px;
+  }
+  
+  .banner-desc {
+    font-size: 14px;
   }
 }
 </style>

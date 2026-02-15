@@ -1,38 +1,29 @@
 package com.ecosorter.model;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.ecosorter.enums.PointType;
+
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "point_records")
+@TableName("point_records")
 public class PointRecord {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
     
-    @Column(name = "user_id", nullable = false)
     private Long userId;
     
-    @Column(name = "points", nullable = false)
     private Integer points;
     
-    @Column(name = "type", nullable = false)
-    private String type;
+    private PointType type;
     
-    @Column(name = "reference_id")
     private Long referenceId;
     
-    @Column(name = "description")
     private String description;
     
-    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
-    
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
     
     public Long getId() {
         return id;
@@ -58,11 +49,11 @@ public class PointRecord {
         this.points = points;
     }
     
-    public String getType() {
+    public PointType getType() {
         return type;
     }
     
-    public void setType(String type) {
+    public void setType(PointType type) {
         this.type = type;
     }
     

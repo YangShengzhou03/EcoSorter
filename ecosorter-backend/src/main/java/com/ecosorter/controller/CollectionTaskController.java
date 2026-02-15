@@ -1,8 +1,14 @@
 package com.ecosorter.controller;
 
+import com.ecosorter.config.JwtUtil;
 import com.ecosorter.dto.CollectionTaskResponse;
+import com.ecosorter.dto.TaskExceptionRequest;
+import com.ecosorter.dto.TaskExceptionResponse;
 import com.ecosorter.service.CollectionTaskService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,93 +23,81 @@ public class CollectionTaskController {
         this.collectionTaskService = collectionTaskService;
     }
     
-    @GetMapping("/collector/{collectorId}")
-    public ResponseEntity<List<CollectionTaskResponse>> getTasksByCollector(
-            @PathVariable Long collectorId) {
-        List<CollectionTaskResponse> tasks = collectionTaskService.getTasks(collectorId);
-        return ResponseEntity.ok(tasks);
-    }
-    
-    @GetMapping("/navigation/{collectorId}")
-    public ResponseEntity<List<CollectionTaskResponse>> getNavigationRoute(
-            @PathVariable Long collectorId) {
-        List<CollectionTaskResponse> route = collectionTaskService.getNavigationRoute(collectorId);
-        return ResponseEntity.ok(route);
-    }
-    
     @GetMapping("/status/{status}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CollectionTaskResponse>> getTasksByStatus(
             @PathVariable String status) {
         List<CollectionTaskResponse> tasks = collectionTaskService.getTasksByStatus(status);
         return ResponseEntity.ok(tasks);
     }
     
-    @PostMapping("/{taskId}/start")
-    public ResponseEntity<CollectionTaskResponse> startTask(
-            @PathVariable String taskId,
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
-        Long collectorId = getUserIdFromToken(authorization);
-        if (collectorId == null) {
-            return ResponseEntity.status(401).build();
-        }
-        CollectionTaskResponse task = collectionTaskService.startTask(taskId, collectorId);
-        return ResponseEntity.ok(task);
-    }
-    
-    @PostMapping("/{taskId}/complete")
-    public ResponseEntity<CollectionTaskResponse> completeTask(
-            @PathVariable String taskId,
-            @RequestBody CompleteTaskRequest request,
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
-        Long collectorId = getUserIdFromToken(authorization);
-        if (collectorId == null) {
-            return ResponseEntity.status(401).build();
-        }
-        java.math.BigDecimal actualWeight = request.getActualWeight() != null 
-            ? java.math.BigDecimal.valueOf(request.getActualWeight()) 
-            : null;
-        CollectionTaskResponse task = collectionTaskService.completeTask(
-            taskId, collectorId, actualWeight, request.getNotes());
-        return ResponseEntity.ok(task);
-    }
-    
     @PostMapping("/generate")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> generateTasks() {
         collectionTaskService.generateTasksForFullTrashcans();
         return ResponseEntity.ok().build();
     }
     
-    private Long getUserIdFromToken(String authorization) {
-        if (authorization != null && authorization.startsWith("Bearer ")) {
-            String token = authorization.substring(7);
-            String userIdStr = token.replace("simple-token-", "");
-            try {
-                return Long.parseLong(userIdStr);
-            } catch (NumberFormatException e) {
-                return null;
-            }
-        }
-        return null;
+    @PostMapping("/{taskId}/reassign")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CollectionTaskResponse> reassignTask(
+            @PathVariable String taskId,
+            @Valid @RequestBody ReassignTaskRequest request,
+            @AuthenticationPrincipal com.ecosorter.model.User user) {
+        Long adminId = user.getId();
+        CollectionTaskResponse task = collectionTaskService.reassignTask(taskId, request.getNewCollectorId(), adminId);
+        return ResponseEntity.ok(task);
     }
     
-    public static class CompleteTaskRequest {
-        private Double actualWeight;
-        private String notes;
+    @GetMapping("/exceptions/pending")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<TaskExceptionResponse>> getPendingExceptions() {
+        List<TaskExceptionResponse> exceptions = collectionTaskService.getPendingExceptions();
+        return ResponseEntity.ok(exceptions);
+    }
+    
+    @PostMapping("/exceptions/{exceptionId}/review")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<TaskExceptionResponse> reviewException(
+            @PathVariable Long exceptionId,
+            @Valid @RequestBody ReviewExceptionRequest request,
+            @AuthenticationPrincipal com.ecosorter.model.User user) {
+        Long reviewerId = user.getId();
+        TaskExceptionResponse exception = collectionTaskService.reviewException(
+            exceptionId, request.getStatus(), request.getReviewNotes(), reviewerId);
+        return ResponseEntity.ok(exception);
+    }
+    
+    public static class ReassignTaskRequest {
+        private Long newCollectorId;
 
-        public Double getActualWeight() {
-            return actualWeight;
+        public Long getNewCollectorId() {
+            return newCollectorId;
         }
 
-        public void setActualWeight(Double actualWeight) {
-            this.actualWeight = actualWeight;
+        public void setNewCollectorId(Long newCollectorId) {
+            this.newCollectorId = newCollectorId;
+        }
+    }
+    
+    public static class ReviewExceptionRequest {
+        private String status;
+        private String reviewNotes;
+
+        public String getStatus() {
+            return status;
         }
 
-        public String getNotes() {
-            return notes;
+        public void setStatus(String status) {
+            this.status = status;
         }
 
-        public void setNotes(String notes) {
-            this.notes = notes;
+        public String getReviewNotes() {
+            return reviewNotes;
+        }
+
+        public void setReviewNotes(String reviewNotes) {
+            this.reviewNotes = reviewNotes;
         }
     }
 }

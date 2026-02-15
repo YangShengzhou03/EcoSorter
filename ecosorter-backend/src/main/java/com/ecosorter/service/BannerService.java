@@ -21,9 +21,9 @@ public class BannerService {
     public List<BannerResponse> getActiveBanners(String target) {
         List<Banner> banners;
         if (target != null && !target.trim().isEmpty()) {
-            banners = bannerRepository.findByIsActiveAndTargetOrderBySortOrderAsc(true, target);
+            banners = bannerRepository.findByTargetOrderBySortOrderAsc(target);
         } else {
-            banners = bannerRepository.findByIsActiveOrderBySortOrderAsc(true);
+            banners = bannerRepository.findAllByOrderBySortOrderAsc();
         }
         return banners.stream()
                 .map(this::convertToResponse)
@@ -31,8 +31,10 @@ public class BannerService {
     }
     
     public BannerResponse getBannerById(Long id) {
-        Banner banner = bannerRepository.findById(id)
-                .orElseThrow(() -> new com.ecosorter.exception.ResourceNotFoundException("Banner not found"));
+        Banner banner = bannerRepository.selectById(id);
+        if (banner == null) {
+            throw new com.ecosorter.exception.ResourceNotFoundException("Banner not found");
+        }
         return convertToResponse(banner);
     }
     
@@ -43,28 +45,30 @@ public class BannerService {
         banner.setBackground(request.getBackground());
         banner.setSortOrder(request.getSortOrder());
         banner.setTarget(request.getTarget() != null ? request.getTarget() : "user");
-        banner.setIsActive(request.getIsActive());
         
         Banner savedBanner = bannerRepository.save(banner);
         return convertToResponse(savedBanner);
     }
     
     public BannerResponse updateBanner(Long id, BannerRequest request) {
-        Banner existingBanner = bannerRepository.findById(id)
-                .orElseThrow(() -> new com.ecosorter.exception.ResourceNotFoundException("Banner not found"));
+        Banner existingBanner = bannerRepository.selectById(id);
+        if (existingBanner == null) {
+            throw new com.ecosorter.exception.ResourceNotFoundException("Banner not found");
+        }
         
         existingBanner.setTitle(request.getTitle());
         existingBanner.setDescription(request.getDescription());
         existingBanner.setBackground(request.getBackground());
         existingBanner.setSortOrder(request.getSortOrder());
-        existingBanner.setIsActive(request.getIsActive());
+        existingBanner.setTarget(request.getTarget() != null ? request.getTarget() : "user");
         
         Banner updatedBanner = bannerRepository.save(existingBanner);
         return convertToResponse(updatedBanner);
     }
     
     public void deleteBanner(Long id) {
-        if (!bannerRepository.existsById(id)) {
+        Banner banner = bannerRepository.selectById(id);
+        if (banner == null) {
             throw new com.ecosorter.exception.ResourceNotFoundException("Banner not found");
         }
         bannerRepository.deleteById(id);
@@ -77,7 +81,7 @@ public class BannerService {
         response.setDescription(banner.getDescription());
         response.setBackground(banner.getBackground());
         response.setSortOrder(banner.getSortOrder());
-        response.setIsActive(banner.getIsActive());
+        response.setTarget(banner.getTarget());
         return response;
     }
 }

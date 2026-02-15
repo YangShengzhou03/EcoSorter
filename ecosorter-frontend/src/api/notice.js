@@ -16,13 +16,6 @@ export const noticeApi = {
     })
   },
 
-  getUnreadCount() {
-    return request({
-      url: '/api/notices/unread/count',
-      method: 'get'
-    })
-  },
-
   getById(id) {
     return request({
       url: `/api/notices/${id}`,

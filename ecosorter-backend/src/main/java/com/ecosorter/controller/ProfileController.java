@@ -3,12 +3,11 @@ package com.ecosorter.controller;
 import com.ecosorter.dto.ChangePasswordRequest;
 import com.ecosorter.dto.ProfileResponse;
 import com.ecosorter.model.User;
-import com.ecosorter.model.UserProfile;
 import com.ecosorter.repository.UserRepository;
 import com.ecosorter.service.ProfileService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,16 +15,15 @@ import org.springframework.web.bind.annotation.*;
 public class ProfileController {
     
     private final ProfileService profileService;
-    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     
-    public ProfileController(ProfileService profileService, PasswordEncoder passwordEncoder, UserRepository userRepository) {
+    public ProfileController(ProfileService profileService, UserRepository userRepository) {
         this.profileService = profileService;
-        this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
     }
     
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ProfileResponse> getProfile(@AuthenticationPrincipal User user) {
         if (user == null) {
             return ResponseEntity.status(401).build();
@@ -34,9 +32,10 @@ public class ProfileController {
     }
     
     @PutMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ProfileResponse> updateProfile(
             @AuthenticationPrincipal User user,
-            @RequestBody UserProfile profileData) {
+            @RequestBody User profileData) {
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
@@ -44,6 +43,7 @@ public class ProfileController {
     }
     
     @PutMapping("/avatar")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ProfileResponse> updateAvatar(
             @AuthenticationPrincipal User user,
             @RequestBody java.util.Map<String, String> request) {
@@ -58,17 +58,18 @@ public class ProfileController {
     }
     
     @PostMapping("/change-password")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> changePassword(
             @AuthenticationPrincipal User user,
             @RequestBody ChangePasswordRequest request) {
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
-        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+        if (!user.getPassword().equals(request.getOldPassword())) {
             return ResponseEntity.badRequest().build();
         }
         
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setPassword(request.getNewPassword());
         userRepository.save(user);
         return ResponseEntity.ok().build();
     }

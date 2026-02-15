@@ -4,6 +4,7 @@ public class UserListResponse {
     
     private Long id;
     private String username;
+    private String email;
     private String role;
     private String status;
     private Long points;
@@ -25,6 +26,14 @@ public class UserListResponse {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getRole() {

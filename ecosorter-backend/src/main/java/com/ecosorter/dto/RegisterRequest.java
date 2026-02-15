@@ -28,6 +28,10 @@ public class RegisterRequest {
     
     @Pattern(regexp = "^[\\+]?[\\d\\s\\-\\(\\)]+$", message = "Please provide a valid phone number")
     private String phone;
+    
+    private String role;
+    
+    private String location;
 
     public RegisterRequest() {
     }
@@ -78,5 +82,21 @@ public class RegisterRequest {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+    
+    public String getRole() {
+        return role;
+    }
+    
+    public void setRole(String role) {
+        this.role = role;
+    }
+    
+    public String getLocation() {
+        return location;
+    }
+    
+    public void setLocation(String location) {
+        this.location = location;
     }
 }

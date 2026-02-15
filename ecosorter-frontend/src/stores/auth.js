@@ -1,40 +1,66 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { authApi } from '@/api/auth'
 
+const USER_STORAGE_KEY = 'userInfo'
+const TOKEN_STORAGE_KEY = 'token'
+
+const normalizeUserData = (user) => ({
+  id: user.id,
+  username: user.username,
+  email: user.email,
+  role: user.role || 'RESIDENT',
+  name: user.username,
+  avatar: user.profile?.avatar || null
+})
+
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref(localStorage.getItem('token') || '')
-  const userInfo = ref(JSON.parse(localStorage.getItem('userInfo') || '{}'))
+  const token = ref(localStorage.getItem(TOKEN_STORAGE_KEY) || '')
+  const userInfo = ref(JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || '{}'))
   const isLoading = ref(false)
 
-  const isAuthenticated = () => !!token.value
+  const isAuthenticated = computed(() => !!token.value)
+  const userRole = computed(() => userInfo.value.role || 'RESIDENT')
+  const userName = computed(() => userInfo.value.name || userInfo.value.username || '')
+  const userAvatar = computed(() => userInfo.value.avatar || '')
+
+  const setAuthData = (authData) => {
+    const userData = normalizeUserData(authData.user)
+    
+    token.value = authData.accessToken
+    userInfo.value = userData
+    
+    localStorage.setItem(TOKEN_STORAGE_KEY, authData.accessToken)
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData))
+  }
+
+  const clearAuthData = () => {
+    token.value = ''
+    userInfo.value = {}
+    localStorage.removeItem(TOKEN_STORAGE_KEY)
+    localStorage.removeItem(USER_STORAGE_KEY)
+  }
+
+  const handleAuthSuccess = (response, action) => {
+    setAuthData(response)
+    ElMessage.success(`${action}成功`)
+    return { success: true, role: userInfo.value.role }
+  }
+
+  const handleAuthError = (error, action) => {
+    const message = error.response?.data?.message || `${action}失败`
+    ElMessage.error(message)
+    throw error
+  }
 
   const login = async (credentials) => {
     isLoading.value = true
     try {
       const response = await authApi.login(credentials)
-      
-      const userData = {
-        id: response.user.id,
-        username: response.user.username,
-        email: response.user.email,
-        role: response.user.role.toLowerCase(),
-        name: response.user.username,
-        avatar: response.user.profile?.avatar || null
-      }
-      
-      token.value = response.accessToken
-      userInfo.value = userData
-      
-      localStorage.setItem('token', response.accessToken)
-      localStorage.setItem('userInfo', JSON.stringify(userData))
-      
-      ElMessage.success('登录成功')
-      return { success: true, role: userData.role }
+      return handleAuthSuccess(response, '登录')
     } catch (error) {
-      ElMessage.error(error.response?.data?.message || '登录失败')
-      throw error
+      return handleAuthError(error, '登录')
     } finally {
       isLoading.value = false
     }
@@ -44,27 +70,9 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     try {
       const response = await authApi.register(data)
-      
-      const userData = {
-        id: response.user.id,
-        username: response.user.username,
-        email: response.user.email,
-        role: response.user.role.toLowerCase(),
-        name: response.user.username,
-        avatar: response.user.profile?.avatar || null
-      }
-      
-      token.value = response.accessToken
-      userInfo.value = userData
-      
-      localStorage.setItem('token', response.accessToken)
-      localStorage.setItem('userInfo', JSON.stringify(userData))
-      
-      ElMessage.success('注册成功')
-      return { success: true, role: userData.role }
+      return handleAuthSuccess(response, '注册')
     } catch (error) {
-      ElMessage.error(error.response?.data?.message || '注册失败')
-      throw error
+      return handleAuthError(error, '注册')
     } finally {
       isLoading.value = false
     }
@@ -73,13 +81,8 @@ export const useAuthStore = defineStore('auth', () => {
   const logout = async () => {
     try {
       await authApi.logout()
-    } catch (error) {
-      console.error('Logout error:', error)
     } finally {
-      token.value = ''
-      userInfo.value = {}
-      localStorage.removeItem('token')
-      localStorage.removeItem('userInfo')
+      clearAuthData()
       ElMessage.success('登出成功')
     }
   }
@@ -87,16 +90,9 @@ export const useAuthStore = defineStore('auth', () => {
   const getCurrentUser = async () => {
     try {
       const response = await authApi.getCurrentUser()
-      const userData = {
-        id: response.id,
-        username: response.username,
-        email: response.email,
-        role: response.role.toLowerCase(),
-        name: response.username,
-        avatar: response.profile?.avatar || null
-      }
+      const userData = normalizeUserData(response)
       userInfo.value = userData
-      localStorage.setItem('userInfo', JSON.stringify(userData))
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData))
       return userData
     } catch (error) {
       ElMessage.error('获取用户信息失败')
@@ -106,7 +102,18 @@ export const useAuthStore = defineStore('auth', () => {
 
   const updateUserInfo = (updates) => {
     userInfo.value = { ...userInfo.value, ...updates }
-    localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userInfo.value))
+  }
+
+  const refreshToken = async () => {
+    try {
+      const response = await authApi.refreshToken(token.value)
+      setAuthData(response)
+      return response.accessToken
+    } catch (error) {
+      clearAuthData()
+      throw error
+    }
   }
 
   return {
@@ -114,10 +121,14 @@ export const useAuthStore = defineStore('auth', () => {
     userInfo,
     isLoading,
     isAuthenticated,
+    userRole,
+    userName,
+    userAvatar,
     login,
     register,
     logout,
     getCurrentUser,
-    updateUserInfo
+    updateUserInfo,
+    refreshToken
   }
 })

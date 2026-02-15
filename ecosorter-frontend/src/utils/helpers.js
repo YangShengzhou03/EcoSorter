@@ -60,8 +60,7 @@ export const getRoleName = (role) => {
   const roleMap = {
     admin: '管理员',
     resident: '居民',
-    collector: '收集员',
-    trashcan: '垃圾桶'
+    collector: '收集员'
   }
   return roleMap[role] || role
 }
@@ -70,8 +69,7 @@ export const getRoleColor = (role) => {
   const colorMap = {
     admin: '#f56c6c',
     resident: '#409eff',
-    collector: '#67c23a',
-    trashcan: '#e6a23c'
+    collector: '#67c23a'
   }
   return colorMap[role] || '#909399'
 }

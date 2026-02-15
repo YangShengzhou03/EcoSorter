@@ -1,5 +1,5 @@
 <template>
-  <div class="admin-page">
+  <div class="resident-page">
     <el-card>
       <template #header>
         <div class="card-header">
@@ -146,7 +146,7 @@ const loadRecords = async () => {
   loadingRecords.value = true
   try {
     const response = await classificationApi.getClassificationHistory({ page: 1, pageSize: 100 })
-    records.value = response.content || []
+    records.value = response.records || []
   } catch (error) {
     ElMessage.error('加载记录失败')
   } finally {
@@ -232,7 +232,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.admin-page {
+.resident-page {
   padding: 0;
 }
 

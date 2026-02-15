@@ -8,7 +8,6 @@ public class BannerResponse {
     private String background;
     private Integer sortOrder;
     private String target;
-    private Boolean isActive;
 
     public Long getId() {
         return id;
@@ -56,13 +55,5 @@ public class BannerResponse {
 
     public void setTarget(String target) {
         this.target = target;
-    }
-
-    public Boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
     }
 }

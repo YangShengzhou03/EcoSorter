@@ -3,11 +3,15 @@ package com.ecosorter.dto;
 public class CollectorTaskResponse {
     
     private String taskId;
+    private String deviceId;
     private String location;
     private String garbageType;
     private Double estimatedWeight;
     private String priority;
     private String status;
+    private String createdAt;
+    private String completedAt;
+    private String collectorName;
 
     public CollectorTaskResponse() {
     }
@@ -18,6 +22,14 @@ public class CollectorTaskResponse {
 
     public void setTaskId(String taskId) {
         this.taskId = taskId;
+    }
+
+    public String getDeviceId() {
+        return deviceId;
+    }
+
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     public String getLocation() {
@@ -58,5 +70,29 @@ public class CollectorTaskResponse {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(String completedAt) {
+        this.completedAt = completedAt;
+    }
+
+    public String getCollectorName() {
+        return collectorName;
+    }
+
+    public void setCollectorName(String collectorName) {
+        this.collectorName = collectorName;
     }
 }

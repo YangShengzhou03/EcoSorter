@@ -1,10 +1,8 @@
 <template>
   <div class="category-page">
     <div class="page-header">
-      <div class="header-content">
-        <h1 class="page-title">有害垃圾</h1>
-        <p class="page-subtitle">Hazardous Waste</p>
-      </div>
+      <h1 class="page-title">有害垃圾</h1>
+      <p class="page-subtitle">Hazardous Waste</p>
     </div>
 
     <div class="page-content">
@@ -93,11 +91,6 @@ onMounted(() => {
   padding: 40px 32px 30px;
   text-align: center;
   color: white;
-}
-
-.header-content {
-  width: 100%;
-  margin: 0 auto;
 }
 
 .page-title {

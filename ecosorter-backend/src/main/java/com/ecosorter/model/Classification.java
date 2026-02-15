@@ -1,64 +1,43 @@
 package com.ecosorter.model;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Max;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-@Entity
-@Table(name = "classifications")
+@TableName("classifications")
 public class Classification {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
     
-    @NotBlank(message = "User ID is required")
-    @Column(nullable = false)
+    @NotNull(message = "User ID is required")
     private Long userId;
     
-    @Column(name = "trashcan_id")
     private Long trashcanId;
     
-    @Column(name = "waste_category_id")
     private Long wasteCategoryId;
     
-    @Column(name = "image_url")
     private String imageUrl;
     
-    @Column(name = "confidence_score")
     private Double confidenceScore;
     
-    @Column(name = "ai_suggestion")
     private String aiSuggestion;
     
-    @Column(name = "user_feedback")
     private String userFeedback;
     
-    @Column(name = "corrected_category_id")
     private Long correctedCategoryId;
     
-    @Column
     private String notes;
     
-    @Column
     private String ipAddress;
     
-    @Column
     private String userAgent;
     
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     public Classification() {

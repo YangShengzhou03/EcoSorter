@@ -1,48 +1,52 @@
 package com.ecosorter.repository;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ecosorter.model.User;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+@Mapper
+public interface UserRepository extends BaseMapper<User> {
     
+    @Select("SELECT * FROM users WHERE username = #{username}")
     Optional<User> findByUsername(String username);
     
+    @Select("SELECT * FROM users WHERE email = #{email}")
     Optional<User> findByEmail(String email);
     
-    Optional<User> findByUsernameOrEmail(String username, String email);
-    
+    @Select("SELECT COUNT(*) > 0 FROM users WHERE username = #{username}")
     boolean existsByUsername(String username);
     
+    @Select("SELECT COUNT(*) > 0 FROM users WHERE email = #{email}")
     boolean existsByEmail(String email);
     
-    List<User> findByRole(User.UserRole role);
-
-    List<User> findByIsActive(Boolean isActive);
-
-    List<User> findByLastLoginAfter(LocalDateTime date);
+    @Select("SELECT * FROM users WHERE role = #{role}")
+    List<User> findByRole(String role);
     
-    List<User> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+    @Select("SELECT * FROM users")
+    List<User> findAll();
     
-    @Query("SELECT u FROM User u WHERE u.lockUntil > :now")
-    List<User> findLockedUsers(@Param("now") LocalDateTime now);
+    default Optional<User> findById(Long id) {
+        return Optional.ofNullable(selectById(id));
+    }
     
-    @Query("SELECT u FROM User u WHERE u.emailVerified = false")
-    List<User> findUnverifiedUsers();
+    default User save(User user) {
+        if (user.getId() == null) {
+            insert(user);
+        } else {
+            updateById(user);
+        }
+        return user;
+    }
     
-    @Query("SELECT u FROM User u")
-    List<User> findAllWithoutSensitiveData();
-
-    long countByIsActive(Boolean isActive);
-
-    long countByRole(User.UserRole role);
+    default void delete(User user) {
+        deleteById(user.getId());
+    }
     
-    long countByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+    default long count() {
+        return selectCount(null);
+    }
 }

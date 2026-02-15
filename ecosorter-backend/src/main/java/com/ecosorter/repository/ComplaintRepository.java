@@ -1,30 +1,31 @@
 package com.ecosorter.repository;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ecosorter.model.Complaint;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
-@Repository
-public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
+@Mapper
+public interface ComplaintRepository extends BaseMapper<Complaint> {
     
-    @Query("SELECT c FROM Complaint c WHERE c.user.id = :userId ORDER BY c.createdAt DESC")
-    List<Complaint> findByUserId(@Param("userId") Long userId);
+    @Select("SELECT * FROM complaints WHERE user_id = #{userId}")
+    List<Complaint> findByUserId(Long userId);
     
-    @Query("SELECT c FROM Complaint c WHERE c.status = :status ORDER BY c.createdAt DESC")
-    Page<Complaint> findByStatus(@Param("status") String status, Pageable pageable);
+    @Select("SELECT * FROM complaints")
+    List<Complaint> findAll();
     
-    @Query("SELECT c FROM Complaint c WHERE (:status IS NULL OR c.status = :status) ORDER BY c.createdAt DESC")
-    Page<Complaint> findAllWithStatus(@Param("status") String status, Pageable pageable);
+    default Complaint save(Complaint complaint) {
+        if (complaint.getId() == null) {
+            insert(complaint);
+        } else {
+            updateById(complaint);
+        }
+        return complaint;
+    }
     
-    @Query("SELECT c FROM Complaint c WHERE c.admin.id = :adminId ORDER BY c.createdAt DESC")
-    Page<Complaint> findByAdminId(@Param("adminId") Long adminId, Pageable pageable);
-    
-    @Query("SELECT COUNT(c) FROM Complaint c WHERE c.status = :status")
-    long countByStatus(@Param("status") String status);
+    default void deleteById(Long id) {
+        BaseMapper.super.deleteById(id);
+    }
 }

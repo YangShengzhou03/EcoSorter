@@ -1,52 +1,37 @@
 package com.ecosorter.model;
 
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.ecosorter.enums.ComplaintStatus;
+import com.ecosorter.enums.ComplaintType;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "complaints")
+@TableName("complaints")
 public class Complaint {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private Long userId;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "classification_id", nullable = false)
-    private Classification classification;
+    private Long classificationId;
     
-    @Column(name = "type", nullable = false, length = 50)
-    private String type;
+    private ComplaintType type;
     
-    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
     
-    @Column(name = "status", nullable = false, length = 20)
-    private String status = "pending";
+    private ComplaintStatus status = ComplaintStatus.PENDING;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "admin_id")
-    private User admin;
+    private Long adminId;
     
-    @Column(name = "admin_response", columnDefinition = "TEXT")
     private String adminResponse;
     
-    @Column(name = "processed_at")
     private LocalDateTime processedAt;
     
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     public Complaint() {
@@ -60,27 +45,27 @@ public class Complaint {
         this.id = id;
     }
 
-    public User getUser() {
-        return user;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
-    public Classification getClassification() {
-        return classification;
+    public Long getClassificationId() {
+        return classificationId;
     }
 
-    public void setClassification(Classification classification) {
-        this.classification = classification;
+    public void setClassificationId(Long classificationId) {
+        this.classificationId = classificationId;
     }
 
-    public String getType() {
+    public ComplaintType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(ComplaintType type) {
         this.type = type;
     }
 
@@ -92,20 +77,20 @@ public class Complaint {
         this.description = description;
     }
 
-    public String getStatus() {
+    public ComplaintStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(ComplaintStatus status) {
         this.status = status;
     }
 
-    public User getAdmin() {
-        return admin;
+    public Long getAdminId() {
+        return adminId;
     }
 
-    public void setAdmin(User admin) {
-        this.admin = admin;
+    public void setAdminId(Long adminId) {
+        this.adminId = adminId;
     }
 
     public String getAdminResponse() {

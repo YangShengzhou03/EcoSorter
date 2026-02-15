@@ -1,7 +1,7 @@
 <template>
   <div class="notice-detail-page">
     <el-breadcrumb separator="/" class="breadcrumb">
-      <el-breadcrumb-item to="/resident/notifications">通知列表</el-breadcrumb-item>
+      <el-breadcrumb-item to="/collector/notifications">通知列表</el-breadcrumb-item>
       <el-breadcrumb-item>通知详情</el-breadcrumb-item>
     </el-breadcrumb>
 
@@ -33,7 +33,7 @@ import { noticeApi } from '@/api/notice'
 import { formatTime } from '@/utils/helpers'
 
 defineOptions({
-  name: 'ResidentNotificationDetail'
+  name: 'CollectorNotificationDetail'
 })
 
 const route = useRoute()

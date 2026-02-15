@@ -1,13 +1,11 @@
 package com.ecosorter.dto;
 
-import com.ecosorter.model.User;
-
 public class UserResponse {
     
     private String id;
     private String username;
     private String email;
-    private User.UserRole role;
+    private String role;
     private UserProfileDto profile;
     private Boolean isActive;
     private String lastLogin;
@@ -41,11 +39,11 @@ public class UserResponse {
         this.email = email;
     }
 
-    public User.UserRole getRole() {
+    public String getRole() {
         return role;
     }
 
-    public void setRole(User.UserRole role) {
+    public void setRole(String role) {
         this.role = role;
     }
 

@@ -1,80 +1,85 @@
 <template>
-  <div class="recognize-container">
-    <div class="recognize-screen">
-      <div class="recognize-header">
-        <el-button @click="goBack" class="back-btn">返回</el-button>
-        <h2 class="recognize-title">垃圾识别</h2>
-        <div class="placeholder"></div>
+  <div class="recognize-page">
+    <div class="left-panel">
+      <div class="panel-header">
+        <el-button @click="goBack" text class="back-btn">
+          <el-icon><ArrowLeft /></el-icon>
+          返回
+        </el-button>
+        <h2 class="panel-title">垃圾识别</h2>
       </div>
 
-      <div class="recognize-content">
-        <div class="camera-section">
-          <div class="camera-container">
-            <video ref="videoRef" class="camera-video" autoplay playsinline></video>
-            <canvas ref="canvasRef" class="camera-canvas" style="display: none;"></canvas>
-            <div v-if="!cameraActive" class="camera-placeholder">
-              <el-icon :size="64" class="placeholder-icon"><VideoCamera /></el-icon>
-              <p class="placeholder-text">点击下方按钮启动摄像头</p>
-            </div>
+      <div class="camera-section">
+        <div class="camera-container">
+          <video ref="videoRef" class="camera-video" autoplay playsinline></video>
+          <canvas ref="canvasRef" class="camera-canvas" style="display: none;"></canvas>
+          <div v-if="!cameraActive" class="camera-placeholder">
+            <el-icon :size="64" class="placeholder-icon"><VideoCamera /></el-icon>
+            <p class="placeholder-text">点击下方按钮启动摄像头</p>
           </div>
-          
-          <div class="camera-controls">
-            <el-button
-              type="primary"
-              size="large"
-              @click="startCamera"
-              v-if="!cameraActive"
-              class="control-btn"
-            >
-              启动摄像头
-            </el-button>
-            <el-button
-              type="success"
-              size="large"
-              @click="captureImage"
-              v-if="cameraActive"
-              class="control-btn"
-            >
-              拍照识别
-            </el-button>
-            <el-button
-              size="large"
-              @click="stopCamera"
-              v-if="cameraActive"
-              class="control-btn"
-            >
-              关闭摄像头
-            </el-button>
-          </div>
+        </div>
+        
+        <div class="camera-controls">
+          <el-button
+            v-if="!cameraActive"
+            type="primary"
+            size="large"
+            @click="startCamera"
+          >
+            启动摄像头
+          </el-button>
+          <el-button
+            v-if="cameraActive"
+            type="success"
+            size="large"
+            @click="captureImage"
+          >
+            拍照识别
+          </el-button>
+          <el-button
+            v-if="cameraActive"
+            size="large"
+            @click="stopCamera"
+          >
+            关闭
+          </el-button>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <div v-if="recognizeResult" class="result-section">
+        <div class="result-header">
+          <el-tag :type="resultType" size="large" effect="dark">{{ recognizeResult.category }}</el-tag>
+          <el-button type="primary" @click="resetRecognition">重新识别</el-button>
         </div>
 
-        <div class="result-section" v-if="recognizeResult">
-          <el-card class="result-card">
-            <template #header>
-              <div class="result-header">
-                <span class="result-title">识别结果</span>
-                <el-tag :type="resultType">{{ recognizeResult.category }}</el-tag>
-              </div>
-            </template>
-            
-            <div class="result-content">
-              <div class="result-image">
-                <img :src="capturedImage" alt="识别图片" class="captured-img" />
-              </div>
-              
-              <el-descriptions :column="1" border class="result-details">
-                <el-descriptions-item label="识别物品">{{ recognizeResult.item }}</el-descriptions-item>
-                <el-descriptions-item label="分类类型">{{ recognizeResult.category }}</el-descriptions-item>
-                <el-descriptions-item label="置信度">{{ recognizeResult.confidence }}%</el-descriptions-item>
-                <el-descriptions-item label="投放建议">{{ recognizeResult.advice }}</el-descriptions-item>
-              </el-descriptions>
-              
-              <div class="result-actions">
-                <el-button type="primary" @click="resetRecognition">重新识别</el-button>
-              </div>
-            </div>
-          </el-card>
+        <div class="result-image">
+          <el-image :src="capturedImage" fit="contain" class="captured-img" />
         </div>
+
+        <el-descriptions :column="1" border class="result-details">
+          <el-descriptions-item label="识别物品">
+            <span class="result-item">{{ recognizeResult.item }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="置信度">
+            <el-progress :percentage="recognizeResult.confidence" :stroke-width="12" :color="progressColor" />
+          </el-descriptions-item>
+          <el-descriptions-item label="投放建议">
+            {{ recognizeResult.advice }}
+          </el-descriptions-item>
+        </el-descriptions>
+
+        <div class="category-guide">
+          <h4 class="guide-title">分类指南</h4>
+          <p class="guide-text">{{ categoryGuide }}</p>
+        </div>
+      </div>
+
+      <div v-else class="empty-section">
+        <el-icon :size="80" color="#c0c4cc"><Camera /></el-icon>
+        <p class="empty-text">请启动摄像头进行垃圾识别</p>
+        <p class="empty-tip">将垃圾物品对准摄像头，点击拍照即可识别</p>
       </div>
     </div>
   </div>
@@ -84,7 +89,7 @@
 import { ref, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { VideoCamera } from '@element-plus/icons-vue'
+import { VideoCamera, ArrowLeft, Camera } from '@element-plus/icons-vue'
 import { trashcanApi } from '@/api/trashcan'
 
 defineOptions({
@@ -101,6 +106,18 @@ const recognizeResult = ref(null)
 const uploadedImageUrl = ref('')
 
 let stream = null
+
+const categoryGuides = {
+  '可回收物': '请保持物品清洁干燥，投放到蓝色垃圾桶。包括：废纸、塑料瓶、金属罐、玻璃瓶等。',
+  '有害垃圾': '请轻放并密封包装，投放到红色垃圾桶。包括：废电池、废灯管、过期药品等。',
+  '厨余垃圾': '请沥干水分后投放，投放到绿色垃圾桶。包括：剩饭剩菜、果皮、菜叶等。',
+  '其他垃圾': '投放到灰色垃圾桶。包括：卫生纸、陶瓷碎片、烟头等。'
+}
+
+const categoryGuide = computed(() => {
+  if (!recognizeResult.value) return ''
+  return categoryGuides[recognizeResult.value.category] || '请正确分类投放垃圾。'
+})
 
 const goBack = () => {
   stopCamera()
@@ -238,6 +255,17 @@ const resultType = computed(() => {
   return typeMap[recognizeResult.value.category] || ''
 })
 
+const progressColor = computed(() => {
+  if (!recognizeResult.value) return '#409eff'
+  const colorMap = {
+    '可回收物': '#67c23a',
+    '有害垃圾': '#f56c6c',
+    '厨余垃圾': '#e6a23c',
+    '其他垃圾': '#909399'
+  }
+  return colorMap[recognizeResult.value.category] || '#409eff'
+})
+
 const resetRecognition = () => {
   recognizeResult.value = null
   capturedImage.value = ''
@@ -250,62 +278,50 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.recognize-container {
-  min-height: 100vh;
-  background: #f5f7fa;
+.recognize-page {
+  width: 100vw;
+  height: 100vh;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
+  background: #f5f5f5;
 }
 
-.recognize-screen {
-  width: 100%;
-  max-width: 900px;
-  background: white;
-  padding: 30px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-}
-
-.recognize-header {
+.left-panel {
+  width: 50%;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #ebeef5;
+  flex-direction: column;
+  padding: 24px;
 }
 
-.recognize-title {
-  font-size: 24px;
-  font-weight: bold;
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  color: #606266;
+}
+
+.panel-title {
+  font-size: 20px;
+  font-weight: 600;
   color: #303133;
   margin: 0;
 }
 
-.placeholder {
-  width: 80px;
-}
-
-.recognize-content {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-}
-
 .camera-section {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 .camera-container {
-  width: 100%;
-  height: 480px;
+  flex: 1;
   background: #000;
-  border-radius: 4px;
-  overflow: hidden;
   position: relative;
+  overflow: hidden;
 }
 
 .camera-video {
@@ -328,38 +344,43 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #f5f7fa;
+  background: #f5f5f5;
 }
 
 .placeholder-icon {
-  color: #909399;
-  margin-bottom: 20px;
+  color: #c0c4cc;
+  margin-bottom: 16px;
 }
 
 .placeholder-text {
-  font-size: 16px;
-  color: #606266;
+  font-size: 14px;
+  color: #909399;
   margin: 0;
 }
 
 .camera-controls {
   display: flex;
-  gap: 15px;
+  gap: 12px;
   justify-content: center;
 }
 
-.control-btn {
-  min-width: 160px;
-  height: 48px;
-  font-size: 16px;
+.camera-controls .el-button {
+  min-width: 120px;
+}
+
+.right-panel {
+  flex: 1;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
 }
 
 .result-section {
-  margin-top: 20px;
-}
-
-.result-card {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .result-header {
@@ -368,56 +389,104 @@ onUnmounted(() => {
   align-items: center;
 }
 
-.result-title {
-  font-size: 18px;
-  font-weight: bold;
-  color: #303133;
-}
-
-.result-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
 .result-image {
-  text-align: center;
-  padding: 20px;
-  background: #f5f7fa;
-  border-radius: 4px;
+  height: 200px;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .captured-img {
   max-width: 100%;
-  max-height: 300px;
-  border-radius: 4px;
+  max-height: 100%;
 }
 
 .result-details {
-  margin-top: 20px;
+  flex-shrink: 0;
 }
 
-.result-actions {
+.result-item {
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.category-guide {
+  background: #f5f7fa;
+  padding: 16px;
+  border-left: 3px solid #409eff;
+}
+
+.guide-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  margin: 0 0 8px;
+}
+
+.guide-text {
+  font-size: 13px;
+  color: #606266;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.empty-section {
+  flex: 1;
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding-top: 20px;
+  gap: 16px;
 }
 
-@media (max-width: 768px) {
-  .recognize-screen {
+.empty-text {
+  font-size: 16px;
+  color: #606266;
+  margin: 0;
+}
+
+.empty-tip {
+  font-size: 14px;
+  color: #909399;
+  margin: 0;
+}
+
+@media (max-width: 1024px) {
+  .left-panel {
+    width: 45%;
     padding: 20px;
   }
   
-  .camera-container {
-    height: 360px;
+  .right-panel {
+    padding: 20px;
   }
   
-  .camera-controls {
+  .result-image {
+    height: 160px;
+  }
+}
+
+@media (max-width: 768px) {
+  .recognize-page {
     flex-direction: column;
   }
   
-  .control-btn {
+  .left-panel {
     width: 100%;
+    height: 50vh;
+    padding: 16px;
+  }
+  
+  .right-panel {
+    flex: 1;
+    padding: 16px;
+  }
+  
+  .result-image {
+    height: 120px;
   }
 }
 </style>

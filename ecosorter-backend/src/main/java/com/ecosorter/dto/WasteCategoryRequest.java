@@ -1,15 +1,25 @@
 package com.ecosorter.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 public class WasteCategoryRequest {
     
+    @NotBlank(message = "分类名称不能为空")
+    @Size(min = 2, max = 50, message = "分类名称长度必须在2-50个字符之间")
     private String name;
     
+    @Size(max = 500, message = "描述不能超过500个字符")
     private String description;
     
+    @Size(max = 200, message = "处理方法不能超过200个字符")
     private String disposalMethod;
     
+    @Size(max = 20, message = "颜色不能超过20个字符")
     private String color;
     
+    @Size(max = 100, message = "图标不能超过100个字符")
     private String icon;
     
     private Integer environmentalImpact;
@@ -18,12 +28,14 @@ public class WasteCategoryRequest {
     
     private String[] commonItems;
     
+    @Size(max = 500, message = "处理说明不能超过500个字符")
     private String disposalInstructions;
     
     private Boolean specialHandling;
     
     private Boolean hazardous;
     
+    @NotNull(message = "状态不能为空")
     private Boolean active;
 
     public WasteCategoryRequest() {

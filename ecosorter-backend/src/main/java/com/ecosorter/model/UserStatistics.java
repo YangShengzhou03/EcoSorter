@@ -1,57 +1,40 @@
 package com.ecosorter.model;
 
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "user_statistics")
+@TableName("user_statistics")
 public class UserStatistics {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", unique = true, nullable = false)
-    private User user;
+    private Long userId;
     
-    @Column(name = "total_classifications")
     private Integer totalClassifications = 0;
     
-    @Column(name = "correct_classifications")
     private Integer correctClassifications = 0;
     
-    @Column(name = "total_waste_weight", precision = 10, scale = 2)
     private BigDecimal totalWasteWeight = BigDecimal.ZERO;
     
-    @Column(name = "carbon_saved", precision = 10, scale = 2)
     private BigDecimal carbonSaved = BigDecimal.ZERO;
     
-    @Column(name = "total_points")
     private Integer totalPoints = 0;
 
-    @Column(name = "streak_days")
     private Integer streakDays = 0;
 
-    @Column(name = "longest_streak")
     private Integer longestStreak = 0;
 
-    @Column(name = "weekly_goal")
     private Integer weeklyGoal = 50;
 
-    @Column(name = "monthly_goal")
     private Integer monthlyGoal = 200;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     public UserStatistics() {
@@ -65,12 +48,12 @@ public class UserStatistics {
         this.id = id;
     }
 
-    public User getUser() {
-        return user;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public Integer getTotalClassifications() {

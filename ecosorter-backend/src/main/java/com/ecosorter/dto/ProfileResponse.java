@@ -1,22 +1,14 @@
 package com.ecosorter.dto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class ProfileResponse {
     
     private Long id;
+    private String username;
+    private String email;
     private String avatar;
     private String fullName;
-    private String bio;
-    private LocalDate birthDate;
-    private String gender;
-    private String occupation;
-    private String company;
-    private String website;
-    private String location;
-    private String timezone;
-    private String language;
     private String phone;
     private String address;
     private LocalDateTime createdAt;
@@ -33,6 +25,22 @@ public class ProfileResponse {
         this.id = id;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public String getAvatar() {
         return avatar;
     }
@@ -47,78 +55,6 @@ public class ProfileResponse {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
-    }
-
-    public String getBio() {
-        return bio;
-    }
-
-    public void setBio(String bio) {
-        this.bio = bio;
-    }
-
-    public LocalDate getBirthDate() {
-        return birthDate;
-    }
-
-    public void setBirthDate(LocalDate birthDate) {
-        this.birthDate = birthDate;
-    }
-
-    public String getGender() {
-        return gender;
-    }
-
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
-
-    public String getOccupation() {
-        return occupation;
-    }
-
-    public void setOccupation(String occupation) {
-        this.occupation = occupation;
-    }
-
-    public String getCompany() {
-        return company;
-    }
-
-    public void setCompany(String company) {
-        this.company = company;
-    }
-
-    public String getWebsite() {
-        return website;
-    }
-
-    public void setWebsite(String website) {
-        this.website = website;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public String getTimezone() {
-        return timezone;
-    }
-
-    public void setTimezone(String timezone) {
-        this.timezone = timezone;
-    }
-
-    public String getLanguage() {
-        return language;
-    }
-
-    public void setLanguage(String language) {
-        this.language = language;
     }
 
     public String getPhone() {

@@ -1,43 +1,39 @@
 <template>
-  <div class="admin-banners">
-    <div class="table-section">
-      <div class="table-header">
-        <h2>轮播图管理</h2>
-        <el-button type="primary" @click="showCreateDialog">添加轮播图</el-button>
-      </div>
+  <div class="admin-page">
+    <el-card>
+      <template #header>
+        <div class="card-header">
+          <span>轮播图管理</span>
+          <el-button type="primary" @click="showCreateDialog">添加轮播图</el-button>
+        </div>
+      </template>
       
-      <el-table :data="banners" style="width: 100%" border v-loading="loading">
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="title" label="标题" width="150" />
-        <el-table-column prop="description" label="描述" />
-        <el-table-column prop="background" label="背景色" width="120">
+      <el-table :data="banners" style="width: 100%" border v-loading="loading" empty-text="暂无轮播图">
+        <el-table-column prop="id" label="ID"/>
+        <el-table-column prop="title" label="标题"/>
+        <el-table-column prop="description" label="描述" show-overflow-tooltip />
+        <el-table-column prop="background" label="背景色">
           <template #default="{ row }">
             <div class="color-preview" :style="{ background: row.background }"></div>
           </template>
         </el-table-column>
-        <el-table-column prop="sortOrder" label="排序" width="80" />
-        <el-table-column prop="isActive" label="状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="row.isActive ? 'success' : 'info'">
-              {{ row.isActive ? '启用' : '禁用' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="target" label="目标端" width="100">
+        <el-table-column prop="sortOrder" label="排序"/>
+        <el-table-column prop="target" label="目标端">
           <template #default="{ row }">
             <el-tag :type="row.target === 'user' ? 'primary' : 'warning'">
               {{ row.target === 'user' ? '用户端' : '垃圾桶端' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200">
+        <el-table-column label="操作" width="180">
           <template #default="{ row }">
             <el-button size="small" @click="editBanner(row)">编辑</el-button>
             <el-button size="small" type="danger" @click="deleteBanner(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
-    </div>
+
+    </el-card>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑轮播图' : '添加轮播图'" width="500px">
       <el-form :model="bannerForm" :rules="rules" ref="formRef" label-width="100px">
@@ -59,9 +55,6 @@
             <el-option label="垃圾桶端" value="bin" />
           </el-select>
         </el-form-item>
-        <el-form-item label="状态" prop="isActive">
-          <el-switch v-model="bannerForm.isActive" active-text="启用" inactive-text="禁用" />
-        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -74,7 +67,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { adminApi } from '@/api/admin'
+import { bannerApi } from '@/api/banner'
+
+defineOptions({
+  name: 'AdminBanners'
+})
 
 const banners = ref([])
 const loading = ref(false)
@@ -89,8 +86,7 @@ const bannerForm = ref({
   description: '',
   background: '#2c3e50',
   sortOrder: 0,
-  target: 'user',
-  isActive: true
+  target: 'user'
 })
 
 const rules = {
@@ -116,10 +112,9 @@ const rules = {
 const loadBanners = async () => {
   loading.value = true
   try {
-    const response = await adminApi.getBanners()
+    const response = await bannerApi.getList()
     banners.value = response || []
   } catch (error) {
-    console.error('加载轮播图数据失败:', error)
     ElMessage.error('加载轮播图数据失败')
   } finally {
     loading.value = false
@@ -134,8 +129,7 @@ const showCreateDialog = () => {
     description: '',
     background: '#2c3e50',
     sortOrder: 0,
-    target: 'user',
-    isActive: true
+    target: 'user'
   }
   dialogVisible.value = true
 }
@@ -148,8 +142,7 @@ const editBanner = (row) => {
     description: row.description,
     background: row.background,
     sortOrder: row.sortOrder,
-    target: row.target,
-    isActive: row.isActive
+    target: row.target
   }
   dialogVisible.value = true
 }
@@ -160,17 +153,16 @@ const submitForm = async () => {
     submitting.value = true
     
     if (isEdit.value) {
-      await adminApi.updateBanner(currentBannerId.value, bannerForm.value)
+      await bannerApi.update(currentBannerId.value, bannerForm.value)
       ElMessage.success('更新轮播图成功')
     } else {
-      await adminApi.createBanner(bannerForm.value)
+      await bannerApi.create(bannerForm.value)
       ElMessage.success('添加轮播图成功')
     }
     
     dialogVisible.value = false
     loadBanners()
   } catch (error) {
-    console.error('提交失败:', error)
     ElMessage.error(error.response?.data?.message || '操作失败')
   } finally {
     submitting.value = false
@@ -185,12 +177,11 @@ const deleteBanner = async (row) => {
       type: 'warning'
     })
     
-    await adminApi.deleteBanner(row.id)
+    await bannerApi.delete(row.id)
     ElMessage.success('删除成功')
     loadBanners()
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('删除失败:', error)
       ElMessage.error('删除失败')
     }
   }
@@ -202,34 +193,14 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.admin-banners {
+.admin-page {
   padding: 0;
-}
-
-.table-section {
-  background: var(--bg-white);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 16px;
-}
-
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.table-header h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
 }
 
 .color-preview {
   width: 40px;
   height: 20px;
-  border-radius: 4px;
+  border-radius: 0;
   border: 1px solid #ddd;
 }
 </style>

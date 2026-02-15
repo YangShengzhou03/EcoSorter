@@ -1,15 +1,34 @@
 package com.ecosorter.repository;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ecosorter.model.Banner;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
-@Repository
-public interface BannerRepository extends JpaRepository<Banner, Long> {
+@Mapper
+public interface BannerRepository extends BaseMapper<Banner> {
     
-    List<Banner> findByIsActiveOrderBySortOrderAsc(Boolean isActive);
+    @Select("SELECT * FROM banners WHERE target = #{target} ORDER BY sort_order ASC")
+    List<Banner> findByTargetOrderBySortOrderAsc(String target);
     
-    List<Banner> findByIsActiveAndTargetOrderBySortOrderAsc(Boolean isActive, String target);
+    @Select("SELECT * FROM banners ORDER BY sort_order ASC")
+    List<Banner> findAllByOrderBySortOrderAsc();
+    
+    @Select("SELECT * FROM banners")
+    List<Banner> findAll();
+    
+    default Banner save(Banner banner) {
+        if (banner.getId() == null) {
+            insert(banner);
+        } else {
+            updateById(banner);
+        }
+        return banner;
+    }
+    
+    default void deleteById(Long id) {
+        BaseMapper.super.deleteById(id);
+    }
 }

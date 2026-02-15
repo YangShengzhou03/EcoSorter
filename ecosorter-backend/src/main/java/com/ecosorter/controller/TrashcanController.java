@@ -3,46 +3,51 @@ package com.ecosorter.controller;
 import com.ecosorter.dto.DeviceListResponse;
 import com.ecosorter.model.Classification;
 import com.ecosorter.model.TrashcanData;
-import com.ecosorter.model.User;
 import com.ecosorter.repository.ClassificationRepository;
 import com.ecosorter.repository.TrashcanDataRepository;
-import com.ecosorter.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/trashcan")
-@PreAuthorize("hasRole('TRASHCAN')")
 public class TrashcanController {
     
     private final TrashcanDataRepository trashcanDataRepository;
-    private final UserRepository userRepository;
     private final ClassificationRepository classificationRepository;
     
     public TrashcanController(TrashcanDataRepository trashcanDataRepository, 
-                            UserRepository userRepository,
                             ClassificationRepository classificationRepository) {
         this.trashcanDataRepository = trashcanDataRepository;
-        this.userRepository = userRepository;
         this.classificationRepository = classificationRepository;
     }
     
-    @GetMapping("/me")
-    public ResponseEntity<DeviceListResponse> getTrashcanInfo(
-            @AuthenticationPrincipal User user) {
-        if (user == null) {
-            return ResponseEntity.status(401).build();
+    private TrashcanData authenticateTrashcan(HttpServletRequest request) {
+        String authToken = request.getHeader("Authorization");
+        if (authToken == null || !authToken.startsWith("Bearer ")) {
+            return null;
+        }
+        authToken = authToken.substring(7);
+        
+        TrashcanData trashcan = trashcanDataRepository.findByAuthToken(authToken);
+        if (trashcan == null) {
+            return null;
         }
         
-        TrashcanData trashcan = trashcanDataRepository.findByDeviceId(user.getUsername());
+        trashcan.setLastActive(LocalDateTime.now());
+        trashcanDataRepository.updateById(trashcan);
+        
+        return trashcan;
+    }
+    
+    @GetMapping("/me")
+    public ResponseEntity<DeviceListResponse> getTrashcanInfo(HttpServletRequest request) {
+        TrashcanData trashcan = authenticateTrashcan(request);
         if (trashcan == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(401).build();
         }
         
         return ResponseEntity.ok(convertToDeviceListResponse(trashcan));
@@ -50,50 +55,41 @@ public class TrashcanController {
     
     @PutMapping("/status")
     public ResponseEntity<DeviceListResponse> updateStatus(
-            @AuthenticationPrincipal User user,
-            @Valid @RequestBody DeviceListResponse request) {
-        if (user == null) {
+            HttpServletRequest request,
+            @Valid @RequestBody DeviceListResponse req) {
+        TrashcanData trashcan = authenticateTrashcan(request);
+        if (trashcan == null) {
             return ResponseEntity.status(401).build();
         }
         
-        TrashcanData trashcan = trashcanDataRepository.findByDeviceId(user.getUsername());
-        if (trashcan == null) {
-            return ResponseEntity.notFound().build();
-        }
-        
-        if (request.getCapacityLevel() != null) {
-            trashcan.setCapacityLevel(request.getCapacityLevel());
+        if (req.getCapacityLevel() != null) {
+            trashcan.setCapacityLevel(req.getCapacityLevel());
         }
         
         trashcan.setUpdatedAt(LocalDateTime.now());
-        trashcanDataRepository.save(trashcan);
+        trashcanDataRepository.updateById(trashcan);
         
         return ResponseEntity.ok(convertToDeviceListResponse(trashcan));
     }
     
     @PostMapping("/classification")
     public ResponseEntity<Void> submitClassification(
-            @AuthenticationPrincipal User user,
-            @RequestBody ClassificationRequest request,
-            HttpServletRequest httpRequest) {
-        if (user == null) {
+            HttpServletRequest request,
+            @RequestBody ClassificationRequest req) {
+        TrashcanData trashcan = authenticateTrashcan(request);
+        if (trashcan == null) {
             return ResponseEntity.status(401).build();
         }
         
-        TrashcanData trashcan = trashcanDataRepository.findByDeviceId(user.getUsername());
-        if (trashcan == null) {
-            return ResponseEntity.notFound().build();
-        }
-        
         Classification classification = new Classification();
-        classification.setUserId(user.getId());
+        classification.setUserId(null);
         classification.setTrashcanId(trashcan.getId());
-        classification.setWasteCategoryId(request.getCategoryId());
-        classification.setImageUrl(request.getImageUrl());
-        classification.setConfidenceScore(request.getConfidence());
+        classification.setWasteCategoryId(req.getCategoryId());
+        classification.setImageUrl(req.getImageUrl());
+        classification.setConfidenceScore(req.getConfidence());
         classification.setAiSuggestion("AI识别结果");
-        classification.setIpAddress(httpRequest.getRemoteAddr());
-        classification.setUserAgent(httpRequest.getHeader("User-Agent"));
+        classification.setIpAddress(request.getRemoteAddr());
+        classification.setUserAgent(request.getHeader("User-Agent"));
         classification.setCreatedAt(LocalDateTime.now());
         classification.setUpdatedAt(LocalDateTime.now());
         

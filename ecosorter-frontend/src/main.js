@@ -7,4 +7,6 @@ import "./styles/global.css";
 import App from "./App.vue";
 import router from "./router.js";
 
-createApp(App).use(createPinia()).use(router).use(ElementPlus).mount("#app");
+const app = createApp(App);
+
+app.use(createPinia()).use(router).use(ElementPlus).mount("#app");

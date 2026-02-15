@@ -1,152 +1,177 @@
 <template>
   <div class="collector-dashboard">
-    <el-row :gutter="20">
+    <el-row :gutter="20" class="stats-row">
       <el-col :span="6">
         <el-card class="stat-card">
-          <div class="stat-content">
-            <div class="stat-icon">
-              <el-icon style="font-size: 32px; color: #409EFF;"><List /></el-icon>
+          <div class="stat-number">{{ stats.todayTasks }}</div>
+          <div class="stat-label">今日任务</div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card class="stat-card">
+          <div class="stat-number">{{ stats.completedTasks }}</div>
+          <div class="stat-label">已完成</div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card class="stat-card">
+          <div class="stat-number">{{ stats.inProgressTasks }}</div>
+          <div class="stat-label">进行中</div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card class="stat-card">
+          <div class="stat-number">{{ stats.abnormalDevices }}</div>
+          <div class="stat-label">异常设备</div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-card class="quick-access-card">
+      <template #header>
+        <div class="card-header">
+          <span>常用功能</span>
+        </div>
+      </template>
+      <div class="quick-access-grid">
+        <div class="quick-access-item" @click="navigateTo('/collector/tasks')">
+          <div class="quick-icon task-icon">
+            <el-icon><List /></el-icon>
+          </div>
+          <div class="quick-info">
+            <div class="quick-title">收集任务</div>
+            <div class="quick-desc">查看收集任务</div>
+          </div>
+        </div>
+        <div class="quick-access-item" @click="navigateTo('/collector/device-status')">
+          <div class="quick-icon device-icon">
+            <el-icon><Monitor /></el-icon>
+          </div>
+          <div class="quick-info">
+            <div class="quick-title">设备状态</div>
+            <div class="quick-desc">查看设备状态</div>
+          </div>
+        </div>
+        <div class="quick-access-item" @click="navigateTo('/collector/notifications')">
+          <div class="quick-icon notification-icon">
+            <el-icon><Bell /></el-icon>
+          </div>
+          <div class="quick-info">
+            <div class="quick-title">通知消息</div>
+            <div class="quick-desc">查看通知</div>
+          </div>
+        </div>
+        <div class="quick-access-item" @click="navigateTo('/collector/profile')">
+          <div class="quick-icon profile-icon">
+            <el-icon><User /></el-icon>
+          </div>
+          <div class="quick-info">
+            <div class="quick-title">个人信息</div>
+            <div class="quick-desc">管理个人资料</div>
+          </div>
+        </div>
+      </div>
+    </el-card>
+
+    <el-row :gutter="20" class="device-row">
+      <el-col :span="12">
+        <el-card>
+          <template #header>
+            <div class="card-header">
+              <span>今日任务</span>
+              <el-button size="small" @click="refreshTasks">刷新</el-button>
             </div>
-            <div class="stat-info">
-              <div class="stat-title">今日任务</div>
-              <div class="stat-value">{{ todayTasks }}</div>
+          </template>
+          <div class="task-list">
+            <div v-if="stats.todayTasks === 0" class="no-tasks">
+              今日暂无任务
+            </div>
+            <div v-else class="task-summary">
+              <p>今日有 {{ stats.todayTasks }} 个任务</p>
+              <el-button type="primary" link @click="navigateTo('/collector/tasks')">
+                查看详情
+              </el-button>
             </div>
           </div>
         </el-card>
       </el-col>
-      
-      <el-col :span="6">
-        <el-card class="stat-card">
-          <div class="stat-content">
-            <div class="stat-icon">
-              <el-icon style="font-size: 32px; color: #67C23A;"><CircleCheck /></el-icon>
+      <el-col :span="12">
+        <el-card>
+          <template #header>
+            <div class="card-header">
+              <span>设备状态概览</span>
+              <el-button size="small" @click="refreshTasks">刷新</el-button>
             </div>
-            <div class="stat-info">
-              <div class="stat-title">已完成</div>
-              <div class="stat-value">{{ completedTasks }}</div>
+          </template>
+          <div class="device-status-overview">
+            <div class="status-item">
+              <span class="status-label">异常设备</span>
+              <span class="status-value">{{ stats.abnormalDevices }}</span>
             </div>
-          </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :span="6">
-        <el-card class="stat-card">
-          <div class="stat-content">
-            <div class="stat-icon">
-              <el-icon style="font-size: 32px; color: #E6A23C;"><Clock /></el-icon>
+            <div class="status-item">
+              <span class="status-label">进行中任务</span>
+              <span class="status-value">{{ stats.inProgressTasks }}</span>
             </div>
-            <div class="stat-info">
-              <div class="stat-title">进行中</div>
-              <div class="stat-value">{{ inProgressTasks }}</div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :span="6">
-        <el-card class="stat-card">
-          <div class="stat-content">
-            <div class="stat-icon">
-              <el-icon style="font-size: 32px; color: #F56C6C;"><Warning /></el-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-title">异常设备</div>
-              <div class="stat-value">{{ abnormalDevices }}</div>
+            <div class="status-item">
+              <span class="status-label">已完成任务</span>
+              <span class="status-value">{{ stats.completedTasks }}</span>
             </div>
           </div>
         </el-card>
       </el-col>
     </el-row>
-
-    <el-card class="task-card" style="margin-top: 20px;">
-      <template #header>
-        <span>待处理任务</span>
-      </template>
-      
-      <el-table :data="taskList" style="width: 100%">
-        <el-table-column prop="taskId" label="任务编号" width="120" />
-        <el-table-column prop="location" label="收集点位置" />
-        <el-table-column prop="garbageType" label="垃圾类型" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getGarbageTypeTag(row.garbageType)">
-              {{ row.garbageType }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="estimatedWeight" label="预估重量" width="100" />
-        <el-table-column prop="priority" label="优先级" width="80">
-          <template #default="{ row }">
-            <el-tag :type="getPriorityTag(row.priority)">
-              {{ row.priority }}
-            </el-tag>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { 
-  List, 
-  CircleCheck, 
-  Clock, 
-  Warning
-} from '@element-plus/icons-vue'
+import { reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { collectorApi } from '@/api/collector'
+import {
+  List,
+  Monitor,
+  User,
+  Bell
+} from '@element-plus/icons-vue'
 
-const todayTasks = ref(0)
-const completedTasks = ref(0)
-const inProgressTasks = ref(0)
-const abnormalDevices = ref(0)
+defineOptions({
+  name: 'CollectorDashboard'
+})
 
-const taskList = ref([])
+const router = useRouter()
+
+const stats = reactive({
+  todayTasks: 0,
+  completedTasks: 0,
+  inProgressTasks: 0,
+  abnormalDevices: 0
+})
+
+const navigateTo = (path) => {
+  router.push(path)
+}
 
 const loadDashboard = async () => {
   try {
-    const dashboardResponse = await collectorApi.getDashboard()
-    todayTasks.value = dashboardResponse.todayTasks || 0
-    completedTasks.value = dashboardResponse.completedTasks || 0
-    inProgressTasks.value = dashboardResponse.inProgressTasks || 0
-    abnormalDevices.value = dashboardResponse.abnormalDevices || 0
+    const response = await collectorApi.getDashboard()
+    stats.todayTasks = response.todayTasks || 0
+    stats.completedTasks = response.completedTasks || 0
+    stats.inProgressTasks = response.inProgressTasks || 0
+    stats.abnormalDevices = response.abnormalDevices || 0
   } catch (error) {
-    console.error('加载仪表板数据失败:', error)
+    ElMessage.error('加载仪表板数据失败')
   }
 }
 
-const loadTasks = async () => {
-  try {
-    const tasksResponse = await collectorApi.getTasks()
-    taskList.value = tasksResponse || []
-  } catch (error) {
-    console.error('加载任务数据失败:', error)
-  }
+const refreshTasks = () => {
+  loadDashboard()
+  ElMessage.success('任务已刷新')
 }
 
 onMounted(() => {
   loadDashboard()
-  loadTasks()
 })
-
-const getGarbageTypeTag = (type) => {
-  const typeMap = {
-    '可回收物': 'success',
-    '厨余垃圾': 'warning',
-    '有害垃圾': 'danger',
-    '其他垃圾': 'info'
-  }
-  return typeMap[type] || 'info'
-}
-
-const getPriorityTag = (priority) => {
-  const priorityMap = {
-    '高': 'danger',
-    '中': 'warning',
-    '低': 'info'
-  }
-  return priorityMap[priority] || 'info'
-}
 </script>
 
 <style scoped>
@@ -154,33 +179,173 @@ const getPriorityTag = (priority) => {
   padding: 0;
 }
 
-.stat-content {
+.stats-row {
+  margin-bottom: 12px;
+}
+
+.stat-card {
+  text-align: center;
+  padding: 16px;
+  border: none;
+}
+
+.stat-number {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-bottom: 6px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.device-row {
+  margin-bottom: 12px;
+}
+
+.device-status-overview {
+  padding: 12px;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.status-item:last-child {
+  border-bottom: none;
+}
+
+.status-label {
+  font-size: 13px;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.status-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.task-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.task-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.task-item:last-child {
+  border-bottom: none;
+}
+
+.task-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.task-location {
+  font-size: 14px;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.task-meta {
+  display: flex;
+  gap: 8px;
+}
+
+.no-tasks {
+  text-align: center;
+  padding: 40px;
+  color: #94a3b8;
+}
+
+.quick-access-card {
+  margin-bottom: 12px;
+}
+
+.quick-access-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.quick-access-item {
   display: flex;
   align-items: center;
-  height: 50px;
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-radius: 8px;
 }
 
-.stat-icon {
-  margin-right: 15px;
+.quick-access-item:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }
 
-.stat-icon .el-icon {
-  font-size: 24px !important;
+.quick-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 8px;
 }
 
-.stat-info {
+.quick-icon .el-icon {
+  font-size: 20px;
+}
+
+.task-icon {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.device-icon {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.profile-icon {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.notification-icon {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.quick-info {
   flex: 1;
 }
 
-.stat-title {
+.quick-title {
   font-size: 13px;
-  color: #909399;
-  margin-bottom: 5px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 3px;
 }
 
-.stat-value {
-  font-size: 20px;
-  font-weight: bold;
-  color: var(--text-primary);
+.quick-desc {
+  font-size: 11px;
+  color: #64748b;
 }
 </style>

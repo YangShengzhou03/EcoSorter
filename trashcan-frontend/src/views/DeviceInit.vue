@@ -1,72 +1,129 @@
 <template>
-  <div class="init-container">
-    <div class="init-screen">
-      <div class="logo-section">
-        <h1 class="logo-title">易控智能垃圾桶</h1>
-        <p class="logo-subtitle">初始化配置</p>
+  <div class="init-page">
+    <div class="left-panel">
+      <div class="brand-section">
+        <h1 class="brand-title">智能垃圾分类系统</h1>
+        <p class="brand-subtitle">Smart Waste Sorting System</p>
       </div>
+      
+      <div class="features-section">
+        <div class="feature-item">
+          <el-icon class="feature-icon"><Cpu /></el-icon>
+          <span class="feature-title">AI智能识别</span>
+          <span class="feature-desc">深度学习算法精准分类</span>
+        </div>
+        <div class="feature-item">
+          <el-icon class="feature-icon"><DataAnalysis /></el-icon>
+          <span class="feature-title">数据分析</span>
+          <span class="feature-desc">实时统计投放数据</span>
+        </div>
+        <div class="feature-item">
+          <el-icon class="feature-icon"><Cloudy /></el-icon>
+          <span class="feature-title">云端管理</span>
+          <span class="feature-desc">远程监控设备状态</span>
+        </div>
+      </div>
+    </div>
 
-      <el-form :model="formData" label-width="100px" class="init-form">
-        <el-form-item label="设备名称">
-          <el-input
-            v-model="formData.deviceName"
-            placeholder="请输入设备名称"
-            clearable
-          />
-        </el-form-item>
+    <div class="right-panel">
+      <h2 class="form-title">垃圾桶设备激活</h2>
+      <p class="form-subtitle">请填写设备信息完成激活配置</p>
+      
+      <el-form ref="formRef" :model="formData" :rules="formRules" label-position="top" class="init-form" @submit.prevent="handleInit">
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="设备名称" prop="deviceName">
+              <el-input
+                v-model="formData.deviceName"
+                placeholder="如：A区-01号"
+                size="large"
+                clearable
+              >
+              </el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="设备位置" prop="location">
+              <el-input
+                v-model="formData.location"
+                placeholder="如：科技园A栋一楼"
+                size="large"
+                clearable
+              >
+              </el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
 
-        <el-form-item label="设备位置">
-          <el-input
-            v-model="formData.location"
-            placeholder="请输入设备位置"
-            clearable
-          />
-        </el-form-item>
-
-        <el-form-item label="垃圾桶类型">
-          <el-radio-group v-model="formData.binType" class="bin-type-group">
-            <el-radio-button label="recyclable">可回收物</el-radio-button>
-            <el-radio-button label="hazardous">有害垃圾</el-radio-button>
-            <el-radio-button label="kitchen">厨余垃圾</el-radio-button>
-            <el-radio-button label="other">其他垃圾</el-radio-button>
-          </el-radio-group>
-        </el-form-item>
-
-        <el-form-item label="管理员密码">
-          <el-input
-            v-model="formData.adminPassword"
-            type="password"
-            placeholder="请设置管理员密码"
-            show-password
-          />
-        </el-form-item>
-
-        <el-form-item label="确认密码">
-          <el-input
-            v-model="formData.confirmPassword"
-            type="password"
-            placeholder="请再次输入密码"
-            show-password
-          />
-        </el-form-item>
-
-        <el-form-item>
-          <el-button
-            type="primary"
-            @click="handleInit"
-            :loading="loading"
-            class="submit-btn"
+        <el-form-item label="垃圾桶类型" prop="binType">
+          <el-select
+            v-model="formData.binType"
+            placeholder="请选择垃圾桶类型"
+            size="large"
+            style="width: 100%"
           >
-            激活设备
-          </el-button>
+            <el-option
+              v-for="type in binTypes"
+              :key="type.value"
+              :label="type.label"
+              :value="type.value"
+            >
+              <el-tag :type="type.tagType" size="small" effect="plain">{{ type.label }}</el-tag>
+            </el-option>
+          </el-select>
         </el-form-item>
+
+        <el-divider></el-divider>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="管理员密码" prop="adminPassword">
+              <el-input
+                v-model="formData.adminPassword"
+                type="password"
+                placeholder="6-20位密码"
+                size="large"
+                show-password
+              >
+                <template #prefix>
+                  <el-icon><Lock /></el-icon>
+                </template>
+              </el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="确认密码" prop="confirmPassword">
+              <el-input
+                v-model="formData.confirmPassword"
+                type="password"
+                placeholder="再次输入密码"
+                size="large"
+                show-password
+              >
+                <template #prefix>
+                  <el-icon><Lock /></el-icon>
+                </template>
+              </el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-button
+          type="primary"
+          @click="handleInit"
+          :loading="loading"
+          size="large"
+          class="submit-btn"
+        >
+          激活设备
+        </el-button>
       </el-form>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { trashcanApi } from '@/api/trashcan'
@@ -76,10 +133,17 @@ defineOptions({
 })
 
 const router = useRouter()
-
+const formRef = ref(null)
 const loading = ref(false)
 
-const formData = ref({
+const binTypes = [
+  { label: '可回收物', value: 'recyclable', tagType: 'success' },
+  { label: '有害垃圾', value: 'hazardous', tagType: 'danger' },
+  { label: '厨余垃圾', value: 'kitchen', tagType: 'warning' },
+  { label: '其他垃圾', value: 'other', tagType: 'info' }
+]
+
+const formData = reactive({
   deviceName: '',
   location: '',
   binType: '',
@@ -87,47 +151,59 @@ const formData = ref({
   confirmPassword: ''
 })
 
+const validatePass = (rule, value, callback) => {
+  if (value === '') {
+    callback(new Error('请再次输入密码'))
+  } else if (value !== formData.adminPassword) {
+    callback(new Error('两次输入的密码不一致'))
+  } else {
+    callback()
+  }
+}
+
+const formRules = reactive({
+  deviceName: [
+    { required: true, message: '请输入设备名称', trigger: 'blur' },
+    { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
+  ],
+  location: [
+    { required: true, message: '请输入设备位置', trigger: 'blur' }
+  ],
+  binType: [
+    { required: true, message: '请选择垃圾桶类型', trigger: 'change' }
+  ],
+  adminPassword: [
+    { required: true, message: '请设置管理员密码', trigger: 'blur' },
+    { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { required: true, validator: validatePass, trigger: 'blur' }
+  ]
+})
+
 const handleInit = async () => {
-  if (!formData.value.deviceName) {
-    ElMessage.warning('请输入设备名称')
-    return
-  }
-  if (!formData.value.location) {
-    ElMessage.warning('请输入设备位置')
-    return
-  }
-  if (!formData.value.binType) {
-    ElMessage.warning('请选择垃圾桶类型')
-    return
-  }
-  if (!formData.value.adminPassword) {
-    ElMessage.warning('请设置管理员密码')
-    return
-  }
-  if (formData.value.adminPassword !== formData.value.confirmPassword) {
-    ElMessage.error('两次输入的密码不一致')
-    return
-  }
+  const valid = await formRef.value.validate().catch(() => false)
+  if (!valid) return
 
   loading.value = true
   try {
     const registerData = {
-      username: formData.value.deviceName,
-      email: `${formData.value.deviceName}@trashcan.com`,
-      password: formData.value.adminPassword,
-      role: 'TRASHCAN'
+      username: formData.deviceName,
+      email: `${formData.deviceName}@trashcan.com`,
+      password: formData.adminPassword,
+      role: 'TRASHCAN',
+      location: formData.location
     }
     
     const response = await trashcanApi.register(registerData)
     
-    if (response.token) {
-      localStorage.setItem('token', response.token)
+    if (response.accessToken) {
+      localStorage.setItem('token', response.accessToken)
       localStorage.setItem('deviceInitialized', 'true')
       localStorage.setItem('deviceInfo', JSON.stringify({
-        deviceName: formData.value.deviceName,
-        location: formData.value.location,
-        binType: formData.value.binType,
-        adminPassword: formData.value.adminPassword
+        deviceName: formData.deviceName,
+        location: formData.location,
+        binType: formData.binType
       }))
       
       ElMessage.success('设备激活成功')
@@ -147,63 +223,174 @@ const handleInit = async () => {
 </script>
 
 <style scoped>
-.init-container {
-  min-height: 100vh;
-  background: #f5f7fa;
+.init-page {
+  width: 100vw;
+  height: 100vh;
   display: flex;
+  background: #f5f5f5;
+}
+
+.left-panel {
+  width: 40%;
+  background: #1a1a2e;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-}
-
-.init-screen {
-  width: 100%;
-  max-width: 600px;
-  background: white;
   padding: 40px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
 
-.logo-section {
+.brand-section {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 60px;
 }
 
-.logo-title {
+.logo-wrapper {
+  width: 72px;
+  height: 72px;
+  background: #409eff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.logo-icon {
+  color: white;
+}
+
+.brand-title {
   font-size: 28px;
-  font-weight: bold;
-  color: #303133;
-  margin: 0 0 10px 0;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 8px;
 }
 
-.logo-subtitle {
+.brand-subtitle {
   font-size: 14px;
   color: #909399;
   margin: 0;
+  letter-spacing: 1px;
+}
+
+.features-section {
+  width: 100%;
+  max-width: 280px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid #2a2a3e;
+}
+
+.feature-item:last-child {
+  border-bottom: none;
+}
+
+.feature-icon {
+  font-size: 28px;
+  color: #409eff;
+  flex-shrink: 0;
+}
+
+.feature-title {
+  font-size: 15px;
+  color: white;
+  font-weight: 500;
+  display: block;
+}
+
+.feature-desc {
+  font-size: 12px;
+  color: #909399;
+  display: block;
+}
+
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px;
+}
+
+.form-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #303133;
+  margin: 0 0 8px;
+}
+
+.form-subtitle {
+  font-size: 14px;
+  color: #909399;
+  margin: 0 0 32px;
 }
 
 .init-form {
-  margin-top: 30px;
+  width: 100%;
+  max-width: 480px;
 }
 
-.bin-type-group {
-  width: 100%;
+.init-form :deep(.el-form-item__label) {
+  font-weight: 500;
+  color: #303133;
+}
+
+.init-form :deep(.el-form-item) {
+  margin-bottom: 22px;
 }
 
 .submit-btn {
   width: 100%;
-  height: 44px;
+  height: 48px;
   font-size: 16px;
-  font-weight: bold;
+  margin-top: 16px;
 }
 
-@media (max-width: 640px) {
-  .init-screen {
+@media (max-width: 1024px) {
+  .left-panel {
+    width: 35%;
+    padding: 30px;
+  }
+  
+  .brand-title {
+    font-size: 24px;
+  }
+  
+  .right-panel {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .init-page {
+    flex-direction: column;
+  }
+  
+  .left-panel {
+    width: 100%;
     padding: 30px 20px;
   }
   
-  .logo-title {
-    font-size: 24px;
+  .brand-section {
+    margin-bottom: 24px;
+  }
+  
+  .features-section {
+    display: none;
+  }
+  
+  .right-panel {
+    flex: 1;
+    padding: 20px;
+  }
+  
+  .init-form {
+    max-width: 100%;
   }
 }
 </style>

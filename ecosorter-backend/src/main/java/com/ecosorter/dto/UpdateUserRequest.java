@@ -1,8 +1,12 @@
 package com.ecosorter.dto;
 
+import jakarta.validation.constraints.Pattern;
+
 public class UpdateUserRequest {
     
+    @Pattern(regexp = "^(RESIDENT|COLLECTOR|ADMIN)$", message = "角色必须是RESIDENT、COLLECTOR或ADMIN")
     private String role;
+    
     private Boolean isActive;
 
     public UpdateUserRequest() {

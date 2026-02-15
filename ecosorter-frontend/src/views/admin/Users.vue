@@ -1,26 +1,29 @@
 <template>
-  <div class="admin-users">
-    <div class="table-section">
-      <div class="table-header">
-        <h2>用户管理</h2>
-        <el-button type="primary" @click="showCreateDialog">添加用户</el-button>
-      </div>
+  <div class="admin-page">
+    <el-card>
+      <template #header>
+        <div class="card-header">
+          <span>用户管理</span>
+          <el-button type="primary" @click="showCreateDialog">添加用户</el-button>
+        </div>
+      </template>
       
-      <el-table :data="users" style="width: 100%" border v-loading="loading">
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="username" label="用户名" width="120" />
-        <el-table-column prop="role" label="角色" width="100">
+      <el-table :data="users" style="width: 100%" border v-loading="loading" empty-text="暂无用户">
+        <el-table-column prop="id" label="ID"/>
+        <el-table-column prop="username" label="用户名"/>
+        <el-table-column prop="email" label="邮箱"/>
+        <el-table-column prop="role" label="角色">
           <template #default="{ row }">
             <el-tag :type="getRoleType(row.role)">{{ getRoleText(row.role) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="80">
+        <el-table-column prop="status" label="状态">
           <template #default="{ row }">
             <el-tag :type="row.status === '正常' ? 'success' : 'danger'">{{ row.status }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="points" label="积分" width="100" />
-        <el-table-column label="操作" width="250">
+        <el-table-column prop="points" label="积分" />
+        <el-table-column label="操作" width="280">
           <template #default="{ row }">
             <el-button size="small" @click="editUser(row)">编辑</el-button>
             <el-button size="small" type="warning" @click="adjustPoints(row)">调整积分</el-button>
@@ -28,7 +31,8 @@
           </template>
         </el-table-column>
       </el-table>
-    </div>
+
+    </el-card>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑用户' : '添加用户'" width="500px">
       <el-form :model="userForm" :rules="rules" ref="formRef" label-width="80px">
@@ -44,9 +48,8 @@
         <el-form-item label="角色" prop="role">
           <el-select v-model="userForm.role" placeholder="请选择角色">
             <el-option label="居民" value="RESIDENT" />
-            <el-option label="回收员" value="COLLECTOR" />
+            <el-option label="收集员" value="COLLECTOR" />
             <el-option label="管理员" value="ADMIN" />
-            <el-option label="垃圾桶" value="TRASHCAN" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态" prop="status">
@@ -59,12 +62,12 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="pointsDialogVisible" title="调整积分" width="500px">
+    <el-dialog v-model="pointsDialogVisible" title="调整积分">
       <div class="points-info">
         <span>用户：</span>
         <strong>{{ currentUserName }}</strong>
       </div>
-      <el-form :model="pointsForm" :rules="pointsRules" ref="pointsFormRef" label-width="80px">
+      <el-form :model="pointsForm" :rules="pointsRules" ref="pointsFormRef">
         <el-form-item label="积分变动" prop="points">
           <el-input-number 
             v-model="pointsForm.points" 
@@ -89,6 +92,10 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { adminApi } from '@/api/admin'
+
+defineOptions({
+  name: 'AdminUsers'
+})
 
 const users = ref([])
 const loading = ref(false)
@@ -148,7 +155,6 @@ const loadUsers = async () => {
     const response = await adminApi.getUsers()
     users.value = response || []
   } catch (error) {
-    console.error('加载用户数据失败:', error)
     ElMessage.error('加载用户数据失败')
   } finally {
     loading.value = false
@@ -188,7 +194,6 @@ const submitPointsAdjustment = async () => {
     pointsDialogVisible.value = false
     loadUsers()
   } catch (error) {
-    console.error('调整积分失败:', error)
     ElMessage.error(error.response?.data?.message || '调整积分失败')
   } finally {
     submitting.value = false
@@ -231,7 +236,6 @@ const submitForm = async () => {
     dialogVisible.value = false
     loadUsers()
   } catch (error) {
-    console.error('提交失败:', error)
     ElMessage.error(error.response?.data?.message || '操作失败')
   } finally {
     submitting.value = false
@@ -251,7 +255,6 @@ const deleteUser = async (row) => {
     loadUsers()
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('删除失败:', error)
       ElMessage.error('删除失败')
     }
   }
@@ -261,8 +264,7 @@ const getRoleType = (role) => {
   const typeMap = {
     'ADMIN': 'danger',
     'COLLECTOR': 'warning',
-    'RESIDENT': 'success',
-    'TRASHCAN': 'info'
+    'RESIDENT': 'success'
   }
   return typeMap[role] || 'info'
 }
@@ -270,9 +272,8 @@ const getRoleType = (role) => {
 const getRoleText = (role) => {
   const textMap = {
     'ADMIN': '管理员',
-    'COLLECTOR': '回收员',
-    'RESIDENT': '居民',
-    'TRASHCAN': '垃圾桶'
+    'COLLECTOR': '收集员',
+    'RESIDENT': '居民'
   }
   return textMap[role] || role
 }
@@ -283,34 +284,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.admin-users {
+.admin-page {
   padding: 0;
-}
-
-.table-section {
-  background: var(--bg-white);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 16px;
-}
-
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.table-header h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
 }
 
 .points-info {
   padding: 12px;
   background: #f5f7fa;
-  border-radius: 4px;
   margin-bottom: 16px;
   font-size: 14px;
 }

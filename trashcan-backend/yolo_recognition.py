@@ -5,11 +5,11 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 import uvicorn
 import pymysql
+import random
 from datetime import datetime
 import os
 import shutil
 from pathlib import Path
-import random
 
 app = FastAPI(title="YOLO26 Garbage Recognition API", version="1.0.0")
 
@@ -66,15 +66,6 @@ GARBAGE_ITEMS = [
 def get_db_connection():
     return pymysql.connect(**DATABASE_CONFIG)
 
-def get_category_mapping():
-    category_map = {
-        '可回收物': 1,
-        '有害垃圾': 2,
-        '厨余垃圾': 3,
-        '其他垃圾': 4
-    }
-    return category_map
-
 def get_advice(category: str) -> str:
     advice_map = {
         '可回收物': '请投放到可回收物垃圾桶',
@@ -94,45 +85,6 @@ def get_category_id(category_name: str) -> Optional[int]:
         conn.close()
         return result['id'] if result else None
     except Exception as e:
-        print(f"Error getting category ID: {e}")
-        return None
-
-def save_classification(user_id: int, trashcan_id: Optional[int], waste_category_id: Optional[int], 
-                       image_url: str, confidence_score: float, ai_suggestion: str,
-                       ip_address: Optional[str] = None, user_agent: Optional[str] = None) -> bool:
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        sql = """
-        INSERT INTO classifications 
-        (user_id, trashcan_id, waste_category_id, image_url, confidence_score, ai_suggestion, 
-         ip_address, user_agent, created_at, updated_at)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """
-        
-        now = datetime.now()
-        cursor.execute(sql, (
-            user_id, trashcan_id, waste_category_id, image_url, confidence_score, ai_suggestion,
-            ip_address, user_agent, now, now
-        ))
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return True
-    except Exception as e:
-        print(f"Error saving classification: {e}")
-        return False
-
-def get_user_id_from_token(token: str) -> Optional[int]:
-    try:
-        import jwt
-        secret = JWT_SECRET
-        decoded = jwt.decode(token, secret, algorithms=["HS256"])
-        return decoded.get('userId')
-    except Exception as e:
-        print(f"Error decoding token: {e}")
         return None
 
 def yolo26_recognize(image_url: str) -> Dict[str, Any]:
@@ -174,57 +126,6 @@ async def recognize_garbage(image_url: str, authorization: Optional[str] = None)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/api/recognition/classification")
-async def submit_classification(
-    image_url: str,
-    category_id: Optional[int] = None,
-    confidence: float = 0.85,
-    authorization: Optional[str] = None,
-    ip_address: Optional[str] = None,
-    user_agent: Optional[str] = None
-):
-    try:
-        user_id = None
-        trashcan_id = None
-        
-        if authorization and authorization.startswith("Bearer "):
-            token = authorization[7:]
-            user_id = get_user_id_from_token(token)
-            
-            if user_id:
-                conn = get_db_connection()
-                cursor = conn.cursor(pymysql.cursors.DictCursor)
-                cursor.execute("SELECT id FROM trashcan_data WHERE device_id = %s", (str(user_id),))
-                result = cursor.fetchone()
-                cursor.close()
-                conn.close()
-                if result:
-                    trashcan_id = result['id']
-        
-        if not category_id:
-            recognition_result = yolo26_recognize(image_url)
-            category_id = get_category_id(recognition_result["category"])
-        
-        ai_suggestion = f"YOLO26识别结果 - 示例模式"
-        
-        success = save_classification(
-            user_id=user_id if user_id else 1,
-            trashcan_id=trashcan_id,
-            waste_category_id=category_id,
-            image_url=image_url,
-            confidence_score=confidence,
-            ai_suggestion=ai_suggestion,
-            ip_address=ip_address,
-            user_agent=user_agent
-        )
-        
-        if success:
-            return {"success": True, "message": "分类记录保存成功"}
-        else:
-            raise HTTPException(status_code=500, detail="保存分类记录失败")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 @app.post("/api/upload")
 async def upload_image(file: UploadFile = File(...)):
     try:
@@ -249,23 +150,3 @@ async def health_check():
         "service": "YOLO26 Recognition",
         "mode": "示例模式"
     }
-
-@app.get("/api/test/recognize")
-async def test_recognize():
-    test_url = "http://example.com/test.jpg"
-    recognition_result = yolo26_recognize(test_url)
-    
-    return {
-        "test_image": test_url,
-        "recognition_result": recognition_result,
-        "message": "YOLO26识别测试成功"
-    }
-
-if __name__ == "__main__":
-    print("=" * 50)
-    print("YOLO26 垃圾识别服务 - 示例模式")
-    print("=" * 50)
-    print("这是一个示例实现，使用随机模拟识别结果")
-    print("实际使用时需要集成真正的YOLO26模型")
-    print("=" * 50)
-    uvicorn.run(app, host="0.0.0.0", port=9000)

@@ -1,44 +1,39 @@
 <template>
-  <div class="notifications-page">
-    <div class="page-header">
-      <h2>通知管理</h2>
-      <el-button type="primary" @click="openCreateDialog">
-        <el-icon><Plus /></el-icon>
-        发布通知
-      </el-button>
-    </div>
+  <div class="admin-page">
+    <el-card>
+      <template #header>
+        <div class="card-header">
+          <span>通知管理</span>
+          <el-button type="primary" @click="openCreateDialog">
+            发布通知
+          </el-button>
+        </div>
+      </template>
 
-    <div class="search-bar">
-      <el-input
-        v-model="searchKeyword"
-        placeholder="搜索通知标题"
-        clearable
-        @clear="loadNotices"
-        @keyup.enter="loadNotices"
-      >
-        <template #prefix>
-          <el-icon><Search /></el-icon>
-        </template>
-      </el-input>
-    </div>
-
-    <div class="notice-list">
-      <el-table :data="noticeList" v-loading="loading">
-        <el-table-column prop="title" label="标题" min-width="200" />
-        <el-table-column prop="content" label="内容" min-width="300" show-overflow-tooltip />
-        <el-table-column prop="createdAt" label="发布时间" width="180">
+      <el-table :data="noticeList" v-loading="loading" border empty-text="暂无通知">
+        <el-table-column prop="title" label="标题" />
+        <el-table-column prop="content" label="内容" show-overflow-tooltip />
+        <el-table-column prop="targetAudience" label="发送群体" width="100">
+          <template #default="{ row }">
+            <el-tag v-if="row.targetAudience === 'all'" type="info">全部</el-tag>
+            <el-tag v-else-if="row.targetAudience === 'resident'" type="success">居民</el-tag>
+            <el-tag v-else-if="row.targetAudience === 'collector'" type="warning">收集员</el-tag>
+            <el-tag v-else-if="row.targetAudience === 'admin'" type="danger">管理员</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createdAt" label="发布时间">
           <template #default="{ row }">
             {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="status" label="状态">
           <template #default="{ row }">
             <el-tag :type="row.status === 'published' ? 'success' : 'info'">
               {{ row.status === 'published' ? '已发布' : '草稿' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="150">
           <template #default="{ row }">
             <el-button link type="primary" @click="openEditDialog(row)">编辑</el-button>
             <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
@@ -57,7 +52,7 @@
           @current-change="loadNotices"
         />
       </div>
-    </div>
+    </el-card>
 
     <el-dialog
       v-model="dialogVisible"
@@ -65,9 +60,17 @@
       width="600px"
       @close="resetForm"
     >
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="80px">
+      <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
         <el-form-item label="标题" prop="title">
           <el-input v-model="form.title" placeholder="请输入通知标题" maxlength="100" show-word-limit />
+        </el-form-item>
+        <el-form-item label="发送群体" prop="targetAudience">
+          <el-radio-group v-model="form.targetAudience">
+            <el-radio label="all">全部用户</el-radio>
+            <el-radio label="resident">居民</el-radio>
+            <el-radio label="collector">收集员</el-radio>
+            <el-radio label="admin">管理员</el-radio>
+          </el-radio-group>
         </el-form-item>
         <el-form-item label="内容" prop="content">
           <el-input
@@ -97,14 +100,16 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Search } from '@element-plus/icons-vue'
 import { noticeApi } from '@/api/notice'
+
+defineOptions({
+  name: 'AdminNotifications'
+})
 
 const loading = ref(false)
 const submitting = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
-const searchKeyword = ref('')
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
@@ -115,13 +120,17 @@ const form = reactive({
   id: null,
   title: '',
   content: '',
-  status: 'draft'
+  status: 'draft',
+  targetAudience: 'all'
 })
 
 const rules = {
   title: [
     { required: true, message: '请输入通知标题', trigger: 'blur' },
     { min: 2, max: 100, message: '标题长度在 2 到 100 个字符', trigger: 'blur' }
+  ],
+  targetAudience: [
+    { required: true, message: '请选择发送群体', trigger: 'change' }
   ],
   content: [
     { required: true, message: '请输入通知内容', trigger: 'blur' },
@@ -139,14 +148,10 @@ const loadNotices = async () => {
       page: currentPage.value,
       pageSize: pageSize.value
     }
-    if (searchKeyword.value) {
-      params.keyword = searchKeyword.value
-    }
     const response = await noticeApi.getList(params)
-    noticeList.value = response.content || []
-    total.value = response.totalElements || 0
+    noticeList.value = response.records || []
+    total.value = response.total || 0
   } catch (error) {
-    console.error('加载通知列表失败:', error)
     ElMessage.error('加载通知列表失败')
   } finally {
     loading.value = false
@@ -164,6 +169,7 @@ const openEditDialog = (row) => {
   form.title = row.title
   form.content = row.content
   form.status = row.status
+  form.targetAudience = row.targetAudience
   dialogVisible.value = true
 }
 
@@ -185,7 +191,6 @@ const handleSubmit = async () => {
       dialogVisible.value = false
       loadNotices()
     } catch (error) {
-      console.error('提交通知失败:', error)
       ElMessage.error(isEdit.value ? '更新通知失败' : '发布通知失败')
     } finally {
       submitting.value = false
@@ -205,7 +210,6 @@ const handleDelete = async (row) => {
     loadNotices()
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('删除通知失败:', error)
       ElMessage.error('删除通知失败')
     }
   }
@@ -238,51 +242,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.notifications-page {
-  background: var(--bg-white);
-  border-radius: 8px;
-  padding: 20px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.page-header h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.search-bar {
-  margin-bottom: 20px;
-}
-
-.notice-list {
-  min-height: 400px;
-}
-
-.pagination {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
-}
-
-:deep(.el-table) {
-  border: 1px solid #e5e7eb;
-}
-
-:deep(.el-table th) {
-  background: #f9fafb;
-  color: #1f2937;
-  font-weight: 600;
-}
-
-:deep(.el-dialog__body) {
-  padding: 20px;
+.admin-page {
+  padding: 0;
 }
 </style>

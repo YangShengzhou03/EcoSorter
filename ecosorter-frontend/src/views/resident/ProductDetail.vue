@@ -37,15 +37,11 @@
             <span class="sep">|</span>
             <span>已兑换{{ product?.totalPurchased }}件</span>
           </div>
-          <div class="action-row">
-            <div class="quantity">
-              <el-input-number v-model="quantity" :min="1" :max="maxQuantity"
-                :disabled="product?.status !== 'available'" />
-            </div>
-            <el-button type="primary" @click="buyNow" :disabled="!canBuy" :loading="submitting" class="btn">
-              立即兑换
-            </el-button>
-          </div>
+          <el-input-number v-model="quantity" :min="1" :max="maxQuantity"
+            :disabled="product?.status !== 'available'" />
+          <el-button type="primary" @click="buyNow" :disabled="!canBuy" :loading="submitting" class="btn">
+            立即兑换
+          </el-button>
         </div>
 
         <div class="delivery-info">
@@ -103,6 +99,10 @@ import { productApi } from '@/api/product'
 import { orderApi } from '@/api/order'
 import { userApi } from '@/api/user'
 
+defineOptions({
+  name: 'ResidentProductDetail'
+})
+
 const route = useRoute()
 const router = useRouter()
 
@@ -131,14 +131,6 @@ const orderRules = {
 
 const productImages = computed(() => {
   if (!product.value) return []
-  if (product.value.images) {
-    try {
-      const images = JSON.parse(product.value.images)
-      return Array.isArray(images) && images.length > 0 ? images : [product.value.imageUrl]
-    } catch (e) {
-      return [product.value.imageUrl]
-    }
-  }
   return [product.value.imageUrl]
 })
 
@@ -175,7 +167,9 @@ const loadUserPoints = async () => {
   try {
     const response = await userApi.getStatistics()
     userPoints.value = response.totalPoints || 0
-  } catch (error) { }
+  } catch (error) {
+    ElMessage.error('加载积分失败')
+  }
 }
 
 const buyNow = () => {
@@ -219,21 +213,18 @@ onMounted(() => {
 
 <style scoped>
 .product-detail {
-  padding: 12px;
-  background: #fff;
-  min-height: 100vh;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .breadcrumb {
-  margin-bottom: 24px;
-  padding: 12px 16px;
-  border-radius: 8px;
+  margin-bottom: 16px;
 }
 
 .main-section {
   display: flex;
   gap: 32px;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .gallery {
@@ -241,8 +232,8 @@ onMounted(() => {
 }
 
 .gallery :deep(.el-carousel) {
-  border-radius: 8px;
   overflow: hidden;
+  border: 1px solid #e4e7ed;
 }
 
 .gallery img {
@@ -250,7 +241,6 @@ onMounted(() => {
   height: 100%;
   object-fit: contain;
   background: #fafafa;
-  border-radius: 8px;
 }
 
 .info {
@@ -268,7 +258,7 @@ onMounted(() => {
 .name {
   font-size: 20px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #303133;
   margin: 0;
   line-height: 1.4;
 }
@@ -280,12 +270,12 @@ onMounted(() => {
 .price .value {
   font-size: 32px;
   font-weight: 600;
-  color: #ff4d4f;
+  color: #f56c6c;
 }
 
 .price .unit {
   font-size: 14px;
-  color: #ff4d4f;
+  color: #f56c6c;
   margin-left: 4px;
 }
 
@@ -295,7 +285,7 @@ onMounted(() => {
 
 .desc p {
   font-size: 14px;
-  color: #666;
+  color: #606266;
   line-height: 1.6;
   margin: 0;
 }
@@ -313,38 +303,28 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   font-size: 13px;
-  color: #666;
+  color: #606266;
 }
 
 .meta .sep {
-  color: #e0e0e0;
+  color: #dcdfe6;
   margin: 0 4px;
 }
 
-.action-row {
-  display: flex;
-  gap: 12px;
-}
-
-.action-row .quantity {
-  flex: 0 0 auto;
-}
-
-.action-row :deep(.el-input-number) {
+.meta-action-row :deep(.el-input-number) {
   width: 120px;
 }
 
-.action-row :deep(.el-input-number .el-input__wrapper) {
-  border-radius: 6px;
+.meta-action-row :deep(.el-input-number .el-input__wrapper) {
   box-shadow: 0 0 0 1px #dcdfe6 inset;
 }
 
-.action-row :deep(.el-input-number .el-input__wrapper:hover) {
+.meta-action-row :deep(.el-input-number .el-input__wrapper:hover) {
   box-shadow: 0 0 0 1px #c0c4cc inset;
 }
 
-.action-row :deep(.el-input-number .el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 1px #ff4d4f inset;
+.meta-action-row :deep(.el-input-number .el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px #409eff inset;
 }
 
 .btn {
@@ -352,26 +332,24 @@ onMounted(() => {
   height: 36px;
   font-size: 14px;
   font-weight: 500;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ff4d4f 100%);
+  background: #f56c6c;
   border: none;
-  box-shadow: 0 2px 8px rgba(255, 77, 79, 0.2);
+  box-shadow: 0 2px 8px rgba(245, 108, 108, 0.2);
   transition: all 0.3s ease;
 }
 
 .btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #ff5252 0%, #f44336 100%);
-  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
-  transform: translateY(-1px);
+  background: #f78989;
+  box-shadow: 0 4px 12px rgba(245, 108, 108, 0.3);
 }
 
 .btn:active:not(:disabled) {
-  transform: translateY(0);
+  background: #e64242;
 }
 
 .btn:disabled {
-  background: #f5f5f5;
-  color: #ccc;
+  background: #f5f7fa;
+  color: #c0c4cc;
   box-shadow: none;
 }
 
@@ -380,8 +358,7 @@ onMounted(() => {
   flex-direction: column;
   gap: 10px;
   padding: 16px;
-  background: #fafafa;
-  border-radius: 8px;
+  background: #f5f7fa;
   margin-top: 24px;
 }
 
@@ -393,39 +370,39 @@ onMounted(() => {
 }
 
 .delivery-label {
-  color: #999;
+  color: #909399;
   font-weight: 500;
   min-width: 40px;
 }
 
 .delivery-value {
-  color: #333;
+  color: #303133;
   flex: 1;
 }
 
 .desc-section {
   padding: 24px 0;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid #e4e7ed;
 }
 
 .desc-section h3 {
   font-size: 15px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #303133;
   margin: 0 0 16px 0;
 }
 
 .desc-section p {
   font-size: 14px;
-  color: #666;
+  color: #606266;
   line-height: 1.8;
   margin: 0;
 }
 
 .summary {
   padding: 16px;
-  background: #fafafa;
-  border-radius: 8px;
+  background: #f5f7fa;
+  border-radius: 0;
   margin-top: 16px;
 }
 
@@ -434,21 +411,21 @@ onMounted(() => {
   justify-content: space-between;
   padding: 12px 0;
   font-size: 14px;
-  color: #666;
-  border-bottom: 1px dashed #e0e0e0;
+  color: #606266;
+  border-bottom: 1px dashed #dcdfe6;
 }
 
 .summary .row:last-child {
   border-bottom: none;
   padding-top: 16px;
-  border-top: 2px solid #ff4d4f;
+  border-top: 2px solid #f56c6c;
   margin-top: 8px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #303133;
 }
 
 .summary .row .cost {
-  color: #ff4d4f;
+  color: #f56c6c;
   font-weight: 600;
 }
 </style>

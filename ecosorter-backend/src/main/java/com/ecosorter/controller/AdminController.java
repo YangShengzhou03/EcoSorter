@@ -3,12 +3,14 @@ package com.ecosorter.controller;
 import com.ecosorter.dto.*;
 import com.ecosorter.service.AdminService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
     
     private final AdminService adminService;
@@ -59,7 +61,7 @@ public class AdminController {
     public ResponseEntity<Void> adjustUserPoints(
             @PathVariable Long userId,
             @RequestBody AdjustPointsRequest request) {
-        adminService.adjustUserPoints(userId, request.getPoints(), request.getReason());
+        adminService.adjustUserPoints(userId, request.getPoints().intValue(), request.getReason());
         return ResponseEntity.ok().build();
     }
     
@@ -95,85 +97,15 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
     
-    @GetMapping("/collectors")
-    public ResponseEntity<List<UserListResponse>> getCollectors() {
-        List<UserListResponse> response = adminService.getCollectors();
-        return ResponseEntity.ok(response);
-    }
-    
-    @GetMapping("/banners")
-    public ResponseEntity<List<com.ecosorter.dto.BannerResponse>> getBanners() {
-        List<com.ecosorter.dto.BannerResponse> response = adminService.getAllBanners();
-        return ResponseEntity.ok(response);
-    }
-    
-    @PostMapping("/banners")
-    public ResponseEntity<com.ecosorter.dto.BannerResponse> createBanner(@RequestBody com.ecosorter.dto.BannerRequest request) {
-        com.ecosorter.dto.BannerResponse response = adminService.createBanner(request);
-        return ResponseEntity.ok(response);
-    }
-    
-    @PutMapping("/banners/{id}")
-    public ResponseEntity<com.ecosorter.dto.BannerResponse> updateBanner(
-            @PathVariable Long id,
-            @RequestBody com.ecosorter.dto.BannerRequest request) {
-        com.ecosorter.dto.BannerResponse response = adminService.updateBanner(id, request);
-        return ResponseEntity.ok(response);
-    }
-    
-    @DeleteMapping("/banners/{id}")
-    public ResponseEntity<Void> deleteBanner(@PathVariable Long id) {
-        adminService.deleteBanner(id);
-        return ResponseEntity.ok().build();
-    }
-    
-    @GetMapping("/categories")
-    public ResponseEntity<List<com.ecosorter.dto.WasteCategoryResponse>> getCategories() {
-        List<com.ecosorter.dto.WasteCategoryResponse> response = adminService.getAllCategories();
-        return ResponseEntity.ok(response);
-    }
-    
-    @PostMapping("/categories")
-    public ResponseEntity<com.ecosorter.dto.WasteCategoryResponse> createCategory(@RequestBody com.ecosorter.dto.WasteCategoryRequest request) {
-        com.ecosorter.dto.WasteCategoryResponse response = adminService.createCategory(request);
-        return ResponseEntity.ok(response);
-    }
-    
-    @PutMapping("/categories/{id}")
-    public ResponseEntity<com.ecosorter.dto.WasteCategoryResponse> updateCategory(
-            @PathVariable Long id,
-            @RequestBody com.ecosorter.dto.WasteCategoryRequest request) {
-        com.ecosorter.dto.WasteCategoryResponse response = adminService.updateCategory(id, request);
-        return ResponseEntity.ok(response);
-    }
-    
-    @DeleteMapping("/categories/{id}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
-        adminService.deleteCategory(id);
-        return ResponseEntity.ok().build();
-    }
-    
-    @GetMapping("/logs")
-    public ResponseEntity<List<LogResponse>> getLogs() {
-        List<LogResponse> response = adminService.getLogs();
+    @PostMapping("/devices/{deviceId}/regenerate-token")
+    public ResponseEntity<DeviceListResponse> regenerateAuthToken(@PathVariable Long deviceId) {
+        DeviceListResponse response = adminService.regenerateAuthToken(deviceId);
         return ResponseEntity.ok(response);
     }
     
     @GetMapping("/reports")
     public ResponseEntity<List<ReportResponse>> getReports() {
         List<ReportResponse> response = adminService.getReports();
-        return ResponseEntity.ok(response);
-    }
-    
-    @GetMapping("/configuration")
-    public ResponseEntity<ConfigurationResponse> getConfiguration() {
-        ConfigurationResponse response = adminService.getConfiguration();
-        return ResponseEntity.ok(response);
-    }
-    
-    @PutMapping("/configuration")
-    public ResponseEntity<ConfigurationResponse> updateConfiguration(@RequestBody ConfigurationRequest request) {
-        ConfigurationResponse response = adminService.updateConfiguration(request);
         return ResponseEntity.ok(response);
     }
 }

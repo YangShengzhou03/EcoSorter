@@ -1,17 +1,6 @@
 import request from '@/utils/request'
 
 export const classificationApi = {
-  classifyWasteFromImage(formData) {
-    return request({
-      url: '/api/classification/classify-image',
-      method: 'post',
-      data: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
-  },
-
   getClassificationHistory(params) {
     return request({
       url: '/api/classification/history',
@@ -20,25 +9,33 @@ export const classificationApi = {
     })
   },
 
-  getClassificationById(id) {
-    return request({
-      url: `/api/classification/${id}`,
-      method: 'get'
-    })
-  },
-
-  submitFeedback(id, feedback, comment) {
-    return request({
-      url: `/api/classification/${id}/feedback`,
-      method: 'put',
-      params: { feedback, comment }
-    })
-  },
-
-  getWasteCategories() {
+  getCategories() {
     return request({
       url: '/api/classification/categories',
       method: 'get'
+    })
+  },
+
+  createCategory(data) {
+    return request({
+      url: '/api/classification/categories',
+      method: 'post',
+      data
+    })
+  },
+
+  updateCategory(categoryId, data) {
+    return request({
+      url: `/api/classification/categories/${categoryId}`,
+      method: 'put',
+      data
+    })
+  },
+
+  deleteCategory(categoryId) {
+    return request({
+      url: `/api/classification/categories/${categoryId}`,
+      method: 'delete'
     })
   }
 }

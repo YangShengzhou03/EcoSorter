@@ -3,6 +3,8 @@ package com.ecosorter.controller;
 import com.ecosorter.dto.UserStatisticsResponse;
 import com.ecosorter.service.UserStatisticsService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,26 +18,13 @@ public class UserController {
     }
     
     @GetMapping("/statistics")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserStatisticsResponse> getUserStatistics(
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
-        Long userId = getUserIdFromToken(authorization);
-        if (userId == null) {
+            @AuthenticationPrincipal com.ecosorter.model.User user) {
+        if (user == null) {
             return ResponseEntity.badRequest().build();
         }
-        UserStatisticsResponse response = userStatisticsService.getUserStatistics(userId);
+        UserStatisticsResponse response = userStatisticsService.getUserStatistics(user.getId());
         return ResponseEntity.ok(response);
-    }
-    
-    private Long getUserIdFromToken(String authorization) {
-        if (authorization != null && authorization.startsWith("Bearer ")) {
-            String token = authorization.substring(7);
-            String userIdStr = token.replace("simple-token-", "");
-            try {
-                return Long.parseLong(userIdStr);
-            } catch (NumberFormatException e) {
-                return null;
-            }
-        }
-        return null;
     }
 }

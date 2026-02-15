@@ -2,89 +2,64 @@ package com.ecosorter.service;
 
 import com.ecosorter.dto.ProfileResponse;
 import com.ecosorter.model.User;
-import com.ecosorter.model.UserProfile;
-import com.ecosorter.repository.UserProfileRepository;
 import com.ecosorter.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ProfileService {
     
-    private final UserProfileRepository userProfileRepository;
     private final UserRepository userRepository;
     
-    public ProfileService(UserProfileRepository userProfileRepository, UserRepository userRepository) {
-        this.userProfileRepository = userProfileRepository;
+    public ProfileService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
     
     public ProfileResponse getProfileByUserId(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
-        UserProfile profile = userProfileRepository.findByUserId(userId)
-                .orElseGet(() -> createDefaultProfile(userId));
-        return convertToResponse(user, profile);
+        User user = userRepository.selectById(userId);
+        if (user == null) {
+            throw new RuntimeException("User not found with id: " + userId);
+        }
+        return convertToResponse(user);
     }
     
-    public ProfileResponse updateProfile(Long userId, UserProfile profileData) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
-        UserProfile profile = userProfileRepository.findByUserId(userId)
-                .orElseGet(() -> createDefaultProfile(userId));
+    public ProfileResponse updateProfile(Long userId, User profileData) {
+        User user = userRepository.selectById(userId);
+        if (user == null) {
+            throw new RuntimeException("User not found with id: " + userId);
+        }
         
-        profile.setFullName(profileData.getFullName());
-        profile.setBio(profileData.getBio());
-        profile.setBirthDate(profileData.getBirthDate());
-        profile.setGender(profileData.getGender());
-        profile.setOccupation(profileData.getOccupation());
-        profile.setCompany(profileData.getCompany());
-        profile.setWebsite(profileData.getWebsite());
-        profile.setLocation(profileData.getLocation());
-        profile.setTimezone(profileData.getTimezone());
-        profile.setLanguage(profileData.getLanguage());
+        if (profileData.getPhone() != null) {
+            user.setPhone(profileData.getPhone());
+        }
+        if (profileData.getAddress() != null) {
+            user.setAddress(profileData.getAddress());
+        }
         
-        UserProfile updatedProfile = userProfileRepository.save(profile);
-        return convertToResponse(user, updatedProfile);
+        User updatedUser = userRepository.save(user);
+        return convertToResponse(updatedUser);
     }
     
     public ProfileResponse updateAvatar(Long userId, String avatarUrl) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        User user = userRepository.selectById(userId);
+        if (user == null) {
+            throw new RuntimeException("User not found with id: " + userId);
+        }
         user.setAvatarUrl(avatarUrl);
-        userRepository.save(user);
-        UserProfile profile = userProfileRepository.findByUserId(userId)
-                .orElseGet(() -> createDefaultProfile(userId));
-        return convertToResponse(user, profile);
+        User updatedUser = userRepository.save(user);
+        return convertToResponse(updatedUser);
     }
     
-    private UserProfile createDefaultProfile(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
-        UserProfile profile = new UserProfile();
-        profile.setUser(user);
-        profile.setTimezone("Asia/Shanghai");
-        profile.setLanguage("zh-CN");
-        return userProfileRepository.save(profile);
-    }
-    
-    private ProfileResponse convertToResponse(User user, UserProfile profile) {
+    private ProfileResponse convertToResponse(User user) {
         ProfileResponse response = new ProfileResponse();
-        response.setId(profile.getId());
+        response.setId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setEmail(user.getEmail());
         response.setAvatar(user.getAvatarUrl());
-        response.setFullName(profile.getFullName());
-        response.setBio(profile.getBio());
-        response.setBirthDate(profile.getBirthDate());
-        response.setGender(profile.getGender());
-        response.setOccupation(profile.getOccupation());
-        response.setCompany(profile.getCompany());
-        response.setWebsite(profile.getWebsite());
-        response.setLocation(profile.getLocation());
-        response.setTimezone(profile.getTimezone());
-        response.setLanguage(profile.getLanguage());
+        response.setFullName(user.getUsername());
         response.setPhone(user.getPhone());
         response.setAddress(user.getAddress());
-        response.setCreatedAt(profile.getCreatedAt());
-        response.setUpdatedAt(profile.getUpdatedAt());
+        response.setCreatedAt(user.getCreatedAt());
+        response.setUpdatedAt(user.getUpdatedAt());
         return response;
     }
 }

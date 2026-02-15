@@ -1,8 +1,9 @@
-import request from '@/utils/request'
+import javaRequest from '@/utils/request'
+import { pythonRequest } from '@/utils/request'
 
 export const trashcanApi = {
   login(data) {
-    return request({
+    return javaRequest({
       url: '/api/auth/login',
       method: 'post',
       data
@@ -10,22 +11,29 @@ export const trashcanApi = {
   },
 
   register(data) {
-    return request({
+    return javaRequest({
       url: '/api/auth/register',
       method: 'post',
       data
     })
   },
 
+  getCurrentUser() {
+    return javaRequest({
+      url: '/api/auth/me',
+      method: 'get'
+    })
+  },
+
   getTrashcanInfo() {
-    return request({
+    return javaRequest({
       url: '/api/trashcan/me',
       method: 'get'
     })
   },
 
   updateStatus(data) {
-    return request({
+    return javaRequest({
       url: '/api/trashcan/status',
       method: 'put',
       data
@@ -33,22 +41,20 @@ export const trashcanApi = {
   },
 
   submitClassification(data) {
-    return request({
-      url: '/api/recognition/classification',
+    return javaRequest({
+      url: '/api/trashcan/classification',
       method: 'post',
-      data,
-      baseURL: 'http://localhost:9000'
+      data
     })
   },
 
   uploadImage(file) {
     const formData = new FormData()
     formData.append('file', file)
-    return request({
+    return pythonRequest({
       url: '/api/upload',
       method: 'post',
       data: formData,
-      baseURL: 'http://localhost:9000',
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -56,16 +62,15 @@ export const trashcanApi = {
   },
 
   getClassification(imageUrl) {
-    return request({
+    return pythonRequest({
       url: '/api/recognition/recognize',
       method: 'post',
-      data: { image_url: imageUrl },
-      baseURL: 'http://localhost:9000'
+      params: { image_url: imageUrl }
     })
   },
 
   getBanners() {
-    return request({
+    return javaRequest({
       url: '/api/banners',
       method: 'get',
       params: { target: 'trashcan' }

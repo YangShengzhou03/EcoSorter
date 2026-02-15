@@ -1,22 +1,28 @@
 <template>
-  <div class="admin-page">
+  <div class="collector-page">
     <el-card>
       <template #header>
         <div class="card-header">
-          <span>管理员个人信息</span>
+          <span>收集员个人信息</span>
           <el-button type="primary" @click="showEditDialog = true">修改信息</el-button>
         </div>
       </template>
 
       <div class="profile-info">
         <div class="avatar-container">
-          <el-avatar :size="100" :src="userInfo.avatar || ''" class="profile-avatar">
-            {{ userInfo.username?.charAt(0)?.toUpperCase() }}
-          </el-avatar>
+          <div class="avatar-wrapper" @click="openAvatarDialog">
+            <el-avatar :size="120" :src="userInfo.avatar || ''" class="profile-avatar">
+              {{ userInfo.username?.charAt(0)?.toUpperCase() }}
+            </el-avatar>
+            <div class="avatar-overlay">
+              <el-icon class="upload-icon"><Camera /></el-icon>
+              <span class="upload-text">更换头像</span>
+            </div>
+          </div>
         </div>
         <div class="info-content">
           <div class="info-header">
-            <h2 class="user-name">{{ profileForm.name || userInfo.username }}</h2>
+            <h2 class="user-name">{{ userInfo.username }}</h2>
             <p class="user-role">{{ roleText }}</p>
           </div>
           <div class="info-grid">
@@ -29,20 +35,12 @@
               <span class="info-value">{{ userInfo.email }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">姓名</span>
-              <span class="info-value">{{ profileForm.name || '未设置' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">部门</span>
-              <span class="info-value">{{ profileForm.department || '未设置' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">职位</span>
-              <span class="info-value">{{ profileForm.position || '未设置' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">联系电话</span>
+              <span class="info-label">电话</span>
               <span class="info-value">{{ profileForm.phone || '未设置' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">地址</span>
+              <span class="info-value">{{ profileForm.address || '未设置' }}</span>
             </div>
           </div>
         </div>
@@ -69,23 +67,63 @@
         <el-button type="primary" @click="handleSaveProfile" :loading="saving">保存</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="showAvatarDialog" title="更换头像" width="480px" :close-on-click-modal="false">
+      <div class="avatar-upload-container">
+        <el-upload
+          ref="uploadRef"
+          class="avatar-uploader"
+          :show-file-list="false"
+          :before-upload="beforeUpload"
+          :on-change="handleFileChange"
+          :auto-upload="false"
+          accept="image/*"
+        >
+          <div v-if="previewUrl" class="avatar-preview">
+            <img :src="previewUrl" alt="预览" />
+            <div class="preview-actions">
+              <el-icon class="change-icon" @click.stop="triggerUpload"><Camera /></el-icon>
+            </div>
+          </div>
+          <div v-else class="avatar-upload-placeholder">
+            <el-icon class="upload-placeholder-icon"><Plus /></el-icon>
+            <div class="upload-placeholder-text">点击或拖拽上传</div>
+            <div class="upload-placeholder-hint">支持 JPG、PNG、GIF 格式，不超过 10MB</div>
+          </div>
+        </el-upload>
+        <div v-if="previewUrl" class="upload-tips">
+          <el-icon><InfoFilled /></el-icon>
+          <span>点击图片可重新选择</span>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="closeAvatarDialog">取消</el-button>
+        <el-button type="primary" @click="handleUploadAvatar" :loading="uploading">确认上传</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Camera, Plus, InfoFilled } from '@element-plus/icons-vue'
 import { profileApi } from '@/api/profile'
 import { useAuthStore } from '@/stores/auth'
 
 defineOptions({
-  name: 'AdminUserProfile'
+  name: 'CollectorProfile'
 })
 
 const authStore = useAuthStore()
 const saving = ref(false)
+const uploading = ref(false)
 const profileFormRef = ref(null)
+const uploadRef = ref(null)
 const showEditDialog = ref(false)
+const showAvatarDialog = ref(false)
+const previewUrl = ref('')
+const selectedFile = ref(null)
 
 const userInfo = computed(() => authStore.userInfo)
 
@@ -94,8 +132,7 @@ const roleText = computed(() => {
   const roleMap = {
     'ADMIN': '管理员',
     'RESIDENT': '居民',
-    'COLLECTOR': '收集员',
-    'TRASHCAN': '垃圾桶'
+    'COLLECTOR': '收集员'
   }
   return roleMap[role] || '未知'
 })
@@ -129,6 +166,69 @@ const loadProfile = async () => {
   }
 }
 
+const openAvatarDialog = () => {
+  showAvatarDialog.value = true
+  previewUrl.value = ''
+  selectedFile.value = null
+}
+
+const closeAvatarDialog = () => {
+  showAvatarDialog.value = false
+  previewUrl.value = ''
+  selectedFile.value = null
+}
+
+const triggerUpload = () => {
+  uploadRef.value?.$el.querySelector('input[type="file"]').click()
+}
+
+const beforeUpload = (file) => {
+  const isImage = file.type.startsWith('image/')
+  const isLt10M = file.size / 1024 / 1024 < 10
+
+  if (!isImage) {
+    ElMessage.error('只能上传图片文件!')
+    return false
+  }
+  if (!isLt10M) {
+    ElMessage.error('图片大小不能超过 10MB!')
+    return false
+  }
+  return false
+}
+
+const handleFileChange = (file) => {
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    previewUrl.value = e.target.result
+  }
+  reader.readAsDataURL(file.raw)
+  selectedFile.value = file.raw
+}
+
+const handleUploadAvatar = async () => {
+  if (!selectedFile.value) {
+    ElMessage.warning('请先选择图片')
+    return
+  }
+
+  try {
+    uploading.value = true
+    const uploadResponse = await profileApi.uploadAvatar(selectedFile.value)
+    
+    await profileApi.updateAvatar(uploadResponse.url)
+    
+    authStore.updateUserInfo({ avatar: uploadResponse.url })
+    
+    ElMessage.success('头像上传成功')
+    closeAvatarDialog()
+  } catch (error) {
+    ElMessage.error('头像上传失败')
+  } finally {
+    uploading.value = false
+  }
+}
+
 const handleSaveProfile = async () => {
   try {
     await profileFormRef.value.validate()
@@ -157,15 +257,15 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.admin-page {
+.collector-page {
   padding: 0;
 }
 
 .profile-info {
   display: flex;
   align-items: flex-start;
-  gap: 24px;
-  padding: 16px;
+  gap: 32px;
+  padding: 20px;
 }
 
 .avatar-container {
@@ -175,46 +275,90 @@ onMounted(() => {
   align-items: center;
 }
 
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.avatar-wrapper:hover {
+  transform: scale(1.05);
+}
+
 .profile-avatar {
-  border: 2px solid #e4e7ed;
+  border: 3px solid #e4e7ed;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.3s ease;
+  gap: 4px;
+}
+
+.avatar-wrapper:hover .avatar-overlay {
+  opacity: 1;
+}
+
+.upload-icon {
+  font-size: 28px;
+  color: #fff;
+}
+
+.upload-text {
+  font-size: 12px;
+  color: #fff;
+  font-weight: 500;
 }
 
 .info-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
 }
 
 .info-header {
-  padding-bottom: 12px;
+  padding-bottom: 16px;
   border-bottom: 1px solid #e4e7ed;
 }
 
 .user-name {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   color: #303133;
-  margin: 0 0 6px 0;
+  margin: 0 0 8px 0;
 }
 
 .user-role {
-  font-size: 13px;
+  font-size: 14px;
   color: #606266;
   margin: 0;
 }
 
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
 }
 
 .info-item {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 10px;
+  gap: 4px;
+  padding: 12px;
   background-color: #f5f7fa;
   border-radius: 4px;
 }
@@ -222,13 +366,118 @@ onMounted(() => {
 .info-label {
   font-weight: 500;
   color: #606266;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .info-value {
   color: #303133;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
+}
+
+.avatar-upload-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar-uploader {
+  width: 100%;
+}
+
+.avatar-uploader :deep(.el-upload) {
+  width: 100%;
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  background-color: #fafafa;
+}
+
+.avatar-uploader :deep(.el-upload:hover) {
+  border-color: #409eff;
+  background-color: #f0f7ff;
+}
+
+.avatar-preview {
+  width: 100%;
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background-color: #f5f5f5;
+}
+
+.preview-actions {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.avatar-preview:hover .preview-actions {
+  opacity: 1;
+}
+
+.change-icon {
+  font-size: 32px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.avatar-upload-placeholder {
+  padding: 48px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.upload-placeholder-icon {
+  font-size: 48px;
+  color: #c0c4cc;
+}
+
+.upload-placeholder-text {
+  font-size: 14px;
+  color: #606266;
+  font-weight: 500;
+}
+
+.upload-placeholder-hint {
+  font-size: 12px;
+  color: #909399;
+}
+
+.upload-tips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: #ecf5ff;
+  border: 1px solid #d9ecff;
+  border-radius: 4px;
+  color: #409eff;
+  font-size: 13px;
 }
 
 @media (max-width: 768px) {
@@ -236,7 +485,7 @@ onMounted(() => {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 16px;
+    padding: 20px;
   }
   
   .info-grid {

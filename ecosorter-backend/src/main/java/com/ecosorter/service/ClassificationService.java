@@ -1,28 +1,29 @@
 package com.ecosorter.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ecosorter.dto.ClassificationResponse;
+import com.ecosorter.dto.WasteCategoryRequest;
 import com.ecosorter.dto.WasteCategoryResponse;
 import com.ecosorter.exception.BadRequestException;
 import com.ecosorter.exception.ResourceNotFoundException;
 import com.ecosorter.model.Classification;
 import com.ecosorter.model.WasteCategory;
-import com.ecosorter.model.WasteCategoryExample;
 import com.ecosorter.repository.ClassificationRepository;
 import com.ecosorter.repository.WasteCategoryRepository;
-import com.ecosorter.service.BaiduApiService;
+import com.ecosorter.service.PointService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,133 +31,133 @@ public class ClassificationService {
 
     private final ClassificationRepository classificationRepository;
     private final WasteCategoryRepository wasteCategoryRepository;
-    private final BaiduApiService baiduApiService;
     private final PointService pointService;
 
     public ClassificationService(ClassificationRepository classificationRepository,
                                  WasteCategoryRepository wasteCategoryRepository,
-                                 BaiduApiService baiduApiService,
                                  PointService pointService) {
         this.classificationRepository = classificationRepository;
         this.wasteCategoryRepository = wasteCategoryRepository;
-        this.baiduApiService = baiduApiService;
         this.pointService = pointService;
     }
 
-    public ClassificationResponse classifyWasteFromImage(MultipartFile image, String description, String location, String userGuess, Long userId) {
-        try {
-            String baiduResult = baiduApiService.classifyGarbage(image);
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode jsonNode = mapper.readTree(baiduResult);
+    public IPage<ClassificationResponse> getClassificationHistory(Long userId, int page, int size, String sortBy, String sortDirection) {
+        long current = page <= 0 ? 1 : page;
+        Page<Classification> mpPage = new Page<>(current, size);
 
-            String categoryName = "其他垃圾";
-            double confidence = 0.0;
+        String sortColumn = switch (sortBy) {
+            case "updatedAt" -> "updated_at";
+            case "createdAt" -> "created_at";
+            default -> "created_at";
+        };
+        boolean isAsc = "asc".equalsIgnoreCase(sortDirection);
 
-            if (jsonNode.has("result") && jsonNode.get("result").isArray() && jsonNode.get("result").size() > 0) {
-                JsonNode firstResult = jsonNode.get("result").get(0);
-                categoryName = firstResult.get("name").asText();
-                confidence = firstResult.get("score").asDouble();
-            }
+        QueryWrapper<Classification> wrapper = new QueryWrapper<Classification>()
+                .eq("user_id", userId)
+                .orderBy(true, isAsc, sortColumn);
 
-            WasteCategory category = wasteCategoryRepository.findByName(categoryName)
-                    .orElse(wasteCategoryRepository.findByName("其他垃圾")
-                            .orElseThrow(() -> new ResourceNotFoundException("No waste categories found")));
+        IPage<Classification> classificationPage = classificationRepository.selectPage(mpPage, wrapper);
 
-            Classification classification = new Classification();
-            classification.setUserId(userId);
-            classification.setAiSuggestion(categoryName);
-            classification.setConfidenceScore(confidence);
-            classification.setWasteCategoryId(category.getId());
-            classification.setCreatedAt(LocalDateTime.now());
-            classification.setUpdatedAt(LocalDateTime.now());
-
-            Classification savedClassification = classificationRepository.save(classification);
-
-            pointService.addPoints(userId, 10, "classification", savedClassification.getId(), 
-                "成功分类垃圾: " + categoryName);
-
-            return convertToResponse(savedClassification, category);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to classify image: " + e.getMessage());
-        }
-    }
-
-    public Page<ClassificationResponse> getClassificationHistory(Long userId, int page, int size, String sortBy, String sortDirection) {
-        Sort sort = sortDirection.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-
-        Page<Classification> classifications = classificationRepository.findByUserId(userId, pageable);
-
-        List<ClassificationResponse> responses = classifications.getContent().stream()
-                .map(c -> {
-                    WasteCategory category = wasteCategoryRepository.findById(c.getWasteCategoryId()).orElse(null);
-                    return convertToResponse(c, category);
-                })
+        List<Long> categoryIds = classificationPage.getRecords().stream()
+                .map(Classification::getWasteCategoryId)
+                .filter(id -> id != null)
+                .distinct()
                 .collect(Collectors.toList());
 
-        return new PageImpl<>(responses, pageable, classifications.getTotalElements());
-    }
+        Map<Long, WasteCategory> categoriesById = categoryIds.isEmpty()
+                ? Map.of()
+                : wasteCategoryRepository.selectBatchIds(categoryIds).stream()
+                        .collect(Collectors.toMap(WasteCategory::getId, Function.identity()));
 
-    public ClassificationResponse getClassificationById(String id, Long userId) {
-        Classification classification = classificationRepository.findById(Long.parseLong(id))
-                .orElseThrow(() -> new ResourceNotFoundException("Classification not found with id: " + id));
-
-        if (userId != null && !classification.getUserId().equals(userId)) {
-            throw new BadRequestException("You don't have permission to access this classification");
-        }
-
-        WasteCategory category = wasteCategoryRepository.findById(classification.getWasteCategoryId()).orElse(null);
-        return convertToResponse(classification, category);
-    }
-
-    public ClassificationResponse submitFeedback(String id, String feedback, String comment, Long userId) {
-        Classification classification = classificationRepository.findById(Long.parseLong(id))
-                .orElseThrow(() -> new ResourceNotFoundException("Classification not found with id: " + id));
-
-        if (!classification.getUserId().equals(userId)) {
-            throw new BadRequestException("You don't have permission to submit feedback for this classification");
-        }
-
-        classification.setUserFeedback(feedback);
-        classification.setNotes(comment);
-        classification.setUpdatedAt(LocalDateTime.now());
-
-        Classification savedClassification = classificationRepository.save(classification);
-        WasteCategory category = wasteCategoryRepository.findById(savedClassification.getWasteCategoryId()).orElse(null);
-        return convertToResponse(savedClassification, category);
+        Page<ClassificationResponse> responsePage = new Page<>(classificationPage.getCurrent(), classificationPage.getSize(), classificationPage.getTotal());
+        responsePage.setRecords(
+                classificationPage.getRecords().stream()
+                        .map(c -> {
+                            WasteCategory category = c.getWasteCategoryId() == null ? null : categoriesById.get(c.getWasteCategoryId());
+                            return convertToResponse(c, category);
+                        })
+                        .collect(Collectors.toList())
+        );
+        return responsePage;
     }
 
     @Transactional(readOnly = true)
     public List<WasteCategoryResponse> getWasteCategories() {
-        List<WasteCategory> categories = wasteCategoryRepository.findByIsActive(true);
+        List<WasteCategory> categories = wasteCategoryRepository.selectList(
+                new LambdaQueryWrapper<WasteCategory>()
+                        .eq(WasteCategory::getIsActive, true)
+                        .orderByAsc(WasteCategory::getSortOrder)
+        );
 
         return categories.stream()
-                .map(this::convertToWasteCategoryResponse)
+                .map(category -> convertToWasteCategoryResponse(category))
                 .collect(Collectors.toList());
     }
 
-    private double calculateMatchConfidence(String query, WasteCategory category) {
-        double confidence = 0;
-        String lowerQuery = query.toLowerCase();
-
-        if (category.getName().toLowerCase().contains(lowerQuery)) {
-            confidence += 40;
+    @Transactional
+    public WasteCategoryResponse createCategory(WasteCategoryRequest request) {
+        WasteCategory category = new WasteCategory();
+        category.setName(request.getName());
+        category.setDescription(request.getDescription());
+        category.setColor(request.getColor());
+        category.setIcon(request.getIcon());
+        category.setDisposalMethod(request.getDisposalMethod());
+        category.setEnvironmentalImpact(request.getEnvironmentalImpact() != null ? request.getEnvironmentalImpact().toString() : null);
+        category.setRecyclingRate(request.getRecyclingRate());
+        category.setDisposalInstructions(request.getDisposalInstructions());
+        category.setSpecialHandling(request.getSpecialHandling());
+        category.setHazardous(request.getHazardous());
+        category.setIsActive(request.getActive());
+        category.setSortOrder(0);
+        if (request.getCommonItems() != null && request.getCommonItems().length > 0) {
+            category.setCommonItems(String.join(",", request.getCommonItems()));
         }
+        
+        LocalDateTime now = LocalDateTime.now();
+        category.setCreatedAt(now);
+        category.setUpdatedAt(now);
+        
+        wasteCategoryRepository.insert(category);
+        return convertToWasteCategoryResponse(category);
+    }
 
-        if (category.getDescription() != null && category.getDescription().toLowerCase().contains(lowerQuery)) {
-            confidence += 20;
+    @Transactional
+    public WasteCategoryResponse updateCategory(Long categoryId, WasteCategoryRequest request) {
+        WasteCategory category = wasteCategoryRepository.selectById(categoryId);
+        if (category == null) {
+            throw new ResourceNotFoundException("Category not found");
         }
-
-        if (category.getExamples() != null) {
-            for (WasteCategoryExample example : category.getExamples()) {
-                if (example.getExample().toLowerCase().contains(lowerQuery)) {
-                    confidence += 30;
-                    break;
-                }
-            }
+        
+        category.setName(request.getName());
+        category.setDescription(request.getDescription());
+        category.setColor(request.getColor());
+        category.setIcon(request.getIcon());
+        category.setDisposalMethod(request.getDisposalMethod());
+        category.setEnvironmentalImpact(request.getEnvironmentalImpact() != null ? request.getEnvironmentalImpact().toString() : null);
+        category.setRecyclingRate(request.getRecyclingRate());
+        category.setDisposalInstructions(request.getDisposalInstructions());
+        category.setSpecialHandling(request.getSpecialHandling());
+        category.setHazardous(request.getHazardous());
+        category.setIsActive(request.getActive());
+        category.setUpdatedAt(LocalDateTime.now());
+        if (request.getCommonItems() != null && request.getCommonItems().length > 0) {
+            category.setCommonItems(String.join(",", request.getCommonItems()));
+        } else {
+            category.setCommonItems(null);
         }
+        
+        wasteCategoryRepository.updateById(category);
+        
+        return convertToWasteCategoryResponse(category);
+    }
 
-        return Math.min(confidence, 100);
+    @Transactional
+    public void deleteCategory(Long categoryId) {
+        WasteCategory category = wasteCategoryRepository.selectById(categoryId);
+        if (category == null) {
+            throw new ResourceNotFoundException("Category not found");
+        }
+        wasteCategoryRepository.deleteById(categoryId);
     }
 
     private ClassificationResponse convertToResponse(Classification classification, WasteCategory category) {
@@ -207,15 +208,22 @@ public class ClassificationService {
         response.setDescription(category.getDescription());
         response.setColor(category.getColor());
         response.setIcon(category.getIcon());
-        response.setEnvironmentalImpact(8);
-        response.setRecyclingRate(85.0);
-        response.setCommonItems(category.getExamples() != null 
-                ? category.getExamples().stream().map(WasteCategoryExample::getExample).toArray(String[]::new) 
-                : new String[0]);
+        try {
+            response.setEnvironmentalImpact(category.getEnvironmentalImpact() != null ? Integer.parseInt(category.getEnvironmentalImpact()) : 8);
+        } catch (NumberFormatException e) {
+            response.setEnvironmentalImpact(8);
+        }
+        response.setRecyclingRate(category.getRecyclingRate());
+        if (category.getCommonItems() != null && !category.getCommonItems().isEmpty()) {
+            response.setCommonItems(category.getCommonItems().split(","));
+        } else {
+            response.setCommonItems(new String[0]);
+        }
         response.setDisposalInstructions(category.getDisposalInstructions() != null 
                 ? category.getDisposalInstructions() : "Follow local waste disposal guidelines");
-        response.setSpecialHandling(false);
-        response.setHazardous(false);
+        response.setDisposalMethod(category.getDisposalMethod());
+        response.setSpecialHandling(category.getSpecialHandling());
+        response.setHazardous(category.getHazardous());
         response.setActive(category.getIsActive());
 
         return response;

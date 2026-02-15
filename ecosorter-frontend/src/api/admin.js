@@ -38,63 +38,10 @@ export const adminApi = {
     })
   },
 
-  getBanners() {
+  regenerateAuthToken(deviceId) {
     return request({
-      url: '/api/admin/banners',
-      method: 'get'
-    })
-  },
-
-  createBanner(data) {
-    return request({
-      url: '/api/admin/banners',
-      method: 'post',
-      data
-    })
-  },
-
-  updateBanner(id, data) {
-    return request({
-      url: `/api/admin/banners/${id}`,
-      method: 'put',
-      data
-    })
-  },
-
-  deleteBanner(id) {
-    return request({
-      url: `/api/admin/banners/${id}`,
-      method: 'delete'
-    })
-  },
-
-  getCategories() {
-    return request({
-      url: '/api/admin/categories',
-      method: 'get'
-    })
-  },
-
-  createCategory(data) {
-    return request({
-      url: '/api/admin/categories',
-      method: 'post',
-      data
-    })
-  },
-
-  updateCategory(id, data) {
-    return request({
-      url: `/api/admin/categories/${id}`,
-      method: 'put',
-      data
-    })
-  },
-
-  deleteCategory(id) {
-    return request({
-      url: `/api/admin/categories/${id}`,
-      method: 'delete'
+      url: `/api/admin/devices/${deviceId}/regenerate-token`,
+      method: 'post'
     })
   },
 
@@ -150,32 +97,10 @@ export const adminApi = {
     })
   },
 
-  getLogs() {
-    return request({
-      url: '/api/admin/logs',
-      method: 'get'
-    })
-  },
-
   getReports() {
     return request({
       url: '/api/admin/reports',
       method: 'get'
-    })
-  },
-
-  getConfiguration() {
-    return request({
-      url: '/api/admin/configuration',
-      method: 'get'
-    })
-  },
-
-  updateConfiguration(data) {
-    return request({
-      url: '/api/admin/configuration',
-      method: 'put',
-      data
     })
   }
 }

@@ -1,10 +1,8 @@
 <template>
   <div class="page-container">
     <div class="page-header">
-      <div class="header-content">
-        <h1 class="page-title">订单查询</h1>
-        <p class="page-subtitle">Order Query</p>
-      </div>
+      <h1 class="page-title">订单查询</h1>
+      <p class="page-subtitle">Order Query</p>
     </div>
 
     <div class="page-content">
@@ -152,7 +150,7 @@ const loadOrders = async () => {
       status: ''
     })
     
-    let filteredOrders = response.content || []
+    let filteredOrders = response.records || []
     if (searchKeyword.value) {
       const keyword = searchKeyword.value.toLowerCase()
       filteredOrders = filteredOrders.filter(order => 
@@ -162,7 +160,7 @@ const loadOrders = async () => {
     }
     
     orders.value = filteredOrders
-    total.value = searchKeyword.value ? filteredOrders.length : (response.totalElements || 0)
+    total.value = searchKeyword.value ? filteredOrders.length : (response.total || 0)
   } catch (error) {
     ElMessage.error('加载订单列表失败')
   } finally {
@@ -236,10 +234,6 @@ onMounted(() => {
   padding: 32px 32px 24px;
   text-align: center;
   color: white;
-}
-
-.header-content {
-  margin: 0 auto;
 }
 
 .page-title {

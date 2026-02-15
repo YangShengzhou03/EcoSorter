@@ -1,12 +1,15 @@
 package com.ecosorter.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.ecosorter.dto.ClassificationResponse;
+import com.ecosorter.dto.WasteCategoryRequest;
 import com.ecosorter.dto.WasteCategoryResponse;
 import com.ecosorter.service.ClassificationService;
-import org.springframework.data.domain.Page;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -20,55 +23,20 @@ public class ClassificationController {
         this.classificationService = classificationService;
     }
     
-    @PostMapping("/classify-image")
-    public ResponseEntity<ClassificationResponse> classifyWasteFromImage(
-            @RequestParam("image") MultipartFile image,
-            @RequestParam(value = "description", required = false) String description,
-            @RequestParam(value = "location", required = false) String location,
-            @RequestParam(value = "userGuess", required = false) String userGuess,
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
-        
-        Long userId = getUserIdFromToken(authorization);
-        ClassificationResponse response = classificationService.classifyWasteFromImage(image, description, location, userGuess, userId);
-        return ResponseEntity.ok(response);
-    }
-    
     @GetMapping("/history")
-    public ResponseEntity<Page<ClassificationResponse>> getClassificationHistory(
-            @RequestHeader(value = "Authorization", required = false) String authorization,
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<IPage<ClassificationResponse>> getClassificationHistory(
+            @AuthenticationPrincipal com.ecosorter.model.User user,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDirection) {
         
-        Long userId = getUserIdFromToken(authorization);
-        if (userId == null) {
+        if (user == null) {
             return ResponseEntity.status(401).build();
         }
-        Page<ClassificationResponse> history = classificationService.getClassificationHistory(userId, page, size, sortBy, sortDirection);
+        IPage<ClassificationResponse> history = classificationService.getClassificationHistory(user.getId(), page, size, sortBy, sortDirection);
         return ResponseEntity.ok(history);
-    }
-    
-    @GetMapping("/{id}")
-    public ResponseEntity<ClassificationResponse> getClassificationById(
-            @PathVariable String id,
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
-        
-        Long userId = getUserIdFromToken(authorization);
-        ClassificationResponse response = classificationService.getClassificationById(id, userId);
-        return ResponseEntity.ok(response);
-    }
-    
-    @PutMapping("/{id}/feedback")
-    public ResponseEntity<ClassificationResponse> submitFeedback(
-            @PathVariable String id,
-            @RequestParam String feedback,
-            @RequestParam(required = false) String comment,
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
-        
-        Long userId = getUserIdFromToken(authorization);
-        ClassificationResponse response = classificationService.submitFeedback(id, feedback, comment, userId);
-        return ResponseEntity.ok(response);
     }
     
     @GetMapping("/categories")
@@ -77,16 +45,26 @@ public class ClassificationController {
         return ResponseEntity.ok(categories);
     }
     
-    private Long getUserIdFromToken(String authorization) {
-        if (authorization != null && authorization.startsWith("Bearer ")) {
-            String token = authorization.substring(7);
-            String userIdStr = token.replace("simple-token-", "");
-            try {
-                return Long.parseLong(userIdStr);
-            } catch (NumberFormatException e) {
-                return null;
-            }
-        }
-        return null;
+    @PostMapping("/categories")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<WasteCategoryResponse> createCategory(@Valid @RequestBody WasteCategoryRequest request) {
+        WasteCategoryResponse response = classificationService.createCategory(request);
+        return ResponseEntity.ok(response);
+    }
+    
+    @PutMapping("/categories/{categoryId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<WasteCategoryResponse> updateCategory(
+            @PathVariable Long categoryId,
+            @Valid @RequestBody WasteCategoryRequest request) {
+        WasteCategoryResponse response = classificationService.updateCategory(categoryId, request);
+        return ResponseEntity.ok(response);
+    }
+    
+    @DeleteMapping("/categories/{categoryId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long categoryId) {
+        classificationService.deleteCategory(categoryId);
+        return ResponseEntity.ok().build();
     }
 }

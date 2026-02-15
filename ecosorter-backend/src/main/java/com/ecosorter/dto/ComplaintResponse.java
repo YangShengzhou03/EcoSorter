@@ -20,6 +20,8 @@ public class ComplaintResponse {
     
     private String statusText;
     
+    private String userName;
+    
     private String adminName;
     
     private String adminResponse;
@@ -93,6 +95,14 @@ public class ComplaintResponse {
 
     public void setStatusText(String statusText) {
         this.statusText = statusText;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public String getAdminName() {

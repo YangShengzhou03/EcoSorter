@@ -1,5 +1,5 @@
 <template>
-  <div class="admin-page">
+  <div class="resident-page">
     <el-row :gutter="16" class="stats-row">
       <el-col :span="24">
         <el-card class="stat-card">
@@ -20,17 +20,8 @@
     <el-card class="products-card">
       <template #header>
         <div class="card-header">
-          <div class="header-left">
-            <span>积分商城</span>
-            <el-button link type="primary" @click="goToOrders">我的订单</el-button>
-          </div>
-          <el-select v-model="selectedCategory" placeholder="选择分类" @change="loadProducts" clearable style="width: 150px">
-            <el-option label="全部" value="" />
-            <el-option label="生活用品" value="生活用品" />
-            <el-option label="电子产品" value="电子产品" />
-            <el-option label="食品饮料" value="食品饮料" />
-            <el-option label="学习用品" value="学习用品" />
-          </el-select>
+          <span>积分商城</span>
+          <el-button link type="primary" @click="goToOrders">我的订单</el-button>
         </div>
       </template>
 
@@ -88,7 +79,6 @@ const products = ref([])
 const currentPage = ref(1)
 const pageSize = ref(8)
 const total = ref(0)
-const selectedCategory = ref('')
 
 const loadPoints = async () => {
   try {
@@ -104,12 +94,10 @@ const loadProducts = async () => {
   try {
     const response = await productApi.getList({
       page: currentPage.value,
-      pageSize: pageSize.value,
-      category: selectedCategory.value,
-      status: 'available'
+      pageSize: pageSize.value
     })
-    products.value = response.content || []
-    total.value = response.totalElements || 0
+    products.value = response.records || []
+    total.value = response.total || 0
   } catch (error) {
     ElMessage.error('加载商品列表失败')
   } finally {
@@ -138,7 +126,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.admin-page {
+.resident-page {
   padding: 0;
 }
 

@@ -1,23 +1,34 @@
 package com.ecosorter.repository;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ecosorter.model.Classification;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
-@Repository
-public interface ClassificationRepository extends JpaRepository<Classification, Long> {
+@Mapper
+public interface ClassificationRepository extends BaseMapper<Classification> {
     
-    List<Classification> findByUserId(Long userId);
-    
-    Page<Classification> findByUserId(Long userId, Pageable pageable);
-    
-    long countByUserId(Long userId);
-    
+    @Select("SELECT * FROM classifications ORDER BY created_at DESC LIMIT 10")
     List<Classification> findTop10ByOrderByCreatedAtDesc();
     
+    @Select("SELECT * FROM classifications ORDER BY created_at DESC LIMIT 20")
     List<Classification> findTop20ByOrderByCreatedAtDesc();
+    
+    @Select("SELECT * FROM classifications")
+    List<Classification> findAll();
+    
+    default Classification save(Classification classification) {
+        if (classification.getId() == null) {
+            insert(classification);
+        } else {
+            updateById(classification);
+        }
+        return classification;
+    }
+    
+    default long count() {
+        return selectCount(null);
+    }
 }

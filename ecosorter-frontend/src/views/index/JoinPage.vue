@@ -1,10 +1,8 @@
 <template>
   <div class="join-page">
     <div class="page-header">
-      <div class="header-content">
-        <h1 class="page-title">加入我们</h1>
-        <p class="page-subtitle">Join Our Team</p>
-      </div>
+      <h1 class="page-title">加入我们</h1>
+      <p class="page-subtitle">Join Our Team</p>
     </div>
 
     <div class="page-content">
@@ -66,7 +64,7 @@
           </div>
           <div class="contact-item">
             <div class="contact-label">公司地址</div>
-            <div class="contact-value">江西省南昌市高新区XX路XX号</div>
+            <div class="contact-value">江西科技师范大学红角洲校区18栋520室</div>
           </div>
         </div>
       </div>
@@ -186,10 +184,6 @@ const applyJob = (job) => {
   padding: 32px 32px 24px;
   text-align: center;
   color: white;
-}
-
-.header-content {
-  margin: 0 auto;
 }
 
 .page-title {

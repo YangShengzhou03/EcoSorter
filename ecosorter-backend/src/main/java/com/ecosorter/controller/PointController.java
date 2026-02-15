@@ -1,10 +1,11 @@
 package com.ecosorter.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.ecosorter.dto.PointRecordResponse;
 import com.ecosorter.service.PointService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,54 +14,44 @@ import java.util.List;
 @RequestMapping("/api/points")
 public class PointController {
     
-    @Autowired
-    private PointService pointService;
+    private final PointService pointService;
+    
+    public PointController(PointService pointService) {
+        this.pointService = pointService;
+    }
     
     @GetMapping("/records")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<PointRecordResponse>> getPointRecords(
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
-        Long userId = getUserIdFromToken(authorization);
-        if (userId == null) {
+            @AuthenticationPrincipal com.ecosorter.model.User user) {
+        if (user == null) {
             return ResponseEntity.badRequest().build();
         }
-        List<PointRecordResponse> records = pointService.getUserPointRecords(userId);
+        List<PointRecordResponse> records = pointService.getUserPointRecords(user.getId());
         return ResponseEntity.ok(records);
     }
     
     @GetMapping("/records/page")
-    public ResponseEntity<Page<PointRecordResponse>> getPointRecordsPage(
-            @RequestHeader(value = "Authorization", required = false) String authorization,
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<IPage<PointRecordResponse>> getPointRecordsPage(
+            @AuthenticationPrincipal com.ecosorter.model.User user,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Long userId = getUserIdFromToken(authorization);
-        if (userId == null) {
+        if (user == null) {
             return ResponseEntity.badRequest().build();
         }
-        Page<PointRecordResponse> records = pointService.getUserPointRecords(userId, page, size);
+        IPage<PointRecordResponse> records = pointService.getUserPointRecords(user.getId(), page, size);
         return ResponseEntity.ok(records);
     }
     
     @GetMapping("/total")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Integer> getTotalPoints(
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
-        Long userId = getUserIdFromToken(authorization);
-        if (userId == null) {
+            @AuthenticationPrincipal com.ecosorter.model.User user) {
+        if (user == null) {
             return ResponseEntity.badRequest().build();
         }
-        Integer totalPoints = pointService.getUserTotalPoints(userId);
+        Integer totalPoints = pointService.getUserTotalPoints(user.getId());
         return ResponseEntity.ok(totalPoints);
-    }
-    
-    private Long getUserIdFromToken(String authorization) {
-        if (authorization != null && authorization.startsWith("Bearer ")) {
-            String token = authorization.substring(7);
-            String userIdStr = token.replace("simple-token-", "");
-            try {
-                return Long.parseLong(userIdStr);
-            } catch (NumberFormatException e) {
-                return null;
-            }
-        }
-        return null;
     }
 }

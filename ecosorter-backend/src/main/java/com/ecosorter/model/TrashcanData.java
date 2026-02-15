@@ -1,60 +1,40 @@
 package com.ecosorter.model;
 
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "trashcan_data")
+@TableName("trashcan_data")
 public class TrashcanData {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
     
-    @Column(name = "device_id", unique = true, nullable = false, length = 50)
     private String deviceId;
     
-    @Column(nullable = false)
     private String location;
     
-    @Column(name = "capacity_level")
-    private Integer capacityLevel = 0;
+    private Integer capacityLevel;
     
-    @Column(name = "max_capacity")
-    private Integer maxCapacity = 100;
+    private Integer maxCapacity;
     
-    @Column
-    private Integer threshold = 80;
+    private Integer threshold;
     
-    @Column(nullable = false, length = 20)
-    private String status = "online";
+    private String status;
     
-    @Column(name = "last_maintenance")
-    private LocalDate lastMaintenance;
+    private BigDecimal latitude;
     
-    @Column(name = "installation_date")
-    private LocalDate installationDate;
+    private BigDecimal longitude;
     
-    @Column
-    private Double latitude;
+    private String authToken;
     
-    @Column
-    private Double longitude;
+    private LocalDateTime lastActive;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
-    
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     public TrashcanData() {
@@ -116,44 +96,36 @@ public class TrashcanData {
         this.status = status;
     }
 
-    public LocalDate getLastMaintenance() {
-        return lastMaintenance;
-    }
-
-    public void setLastMaintenance(LocalDate lastMaintenance) {
-        this.lastMaintenance = lastMaintenance;
-    }
-
-    public LocalDate getInstallationDate() {
-        return installationDate;
-    }
-
-    public void setInstallationDate(LocalDate installationDate) {
-        this.installationDate = installationDate;
-    }
-
-    public Double getLatitude() {
+    public BigDecimal getLatitude() {
         return latitude;
     }
 
-    public void setLatitude(Double latitude) {
+    public void setLatitude(BigDecimal latitude) {
         this.latitude = latitude;
     }
 
-    public Double getLongitude() {
+    public BigDecimal getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(Double longitude) {
+    public void setLongitude(BigDecimal longitude) {
         this.longitude = longitude;
     }
 
-    public User getUser() {
-        return user;
+    public String getAuthToken() {
+        return authToken;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setAuthToken(String authToken) {
+        this.authToken = authToken;
+    }
+
+    public LocalDateTime getLastActive() {
+        return lastActive;
+    }
+
+    public void setLastActive(LocalDateTime lastActive) {
+        this.lastActive = lastActive;
     }
 
     public LocalDateTime getCreatedAt() {

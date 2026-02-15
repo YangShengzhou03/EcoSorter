@@ -1,54 +1,40 @@
 package com.ecosorter.model;
 
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.ecosorter.enums.OrderStatus;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "orders")
+@TableName("orders")
 public class Order {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private Long userId;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    private Long productId;
     
-    @Column(name = "quantity", nullable = false)
     private Integer quantity;
     
-    @Column(name = "total_points", nullable = false)
     private Integer totalPoints;
     
-    @Column(name = "contact_name", nullable = false, length = 100)
     private String contactName;
     
-    @Column(name = "contact_phone", nullable = false, length = 20)
     private String contactPhone;
     
-    @Column(name = "shipping_address", nullable = false, columnDefinition = "TEXT")
     private String shippingAddress;
     
-    @Column(name = "status", nullable = false, length = 20)
-    private String status = "pending";
+    private String trackingNumber;
     
-    @Column(name = "remark", columnDefinition = "TEXT")
+    private OrderStatus status = OrderStatus.PENDING;
+    
     private String remark;
     
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     public Order() {
@@ -62,20 +48,20 @@ public class Order {
         this.id = id;
     }
 
-    public User getUser() {
-        return user;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
-    public Product getProduct() {
-        return product;
+    public Long getProductId() {
+        return productId;
     }
 
-    public void setProduct(Product product) {
-        this.product = product;
+    public void setProductId(Long productId) {
+        this.productId = productId;
     }
 
     public Integer getQuantity() {
@@ -118,11 +104,19 @@ public class Order {
         this.shippingAddress = shippingAddress;
     }
 
-    public String getStatus() {
+    public String getTrackingNumber() {
+        return trackingNumber;
+    }
+
+    public void setTrackingNumber(String trackingNumber) {
+        this.trackingNumber = trackingNumber;
+    }
+
+    public OrderStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(OrderStatus status) {
         this.status = status;
     }
 

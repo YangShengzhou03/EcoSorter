@@ -1,10 +1,8 @@
 <template>
   <div class="agreement-page">
     <div class="page-header">
-      <div class="header-content">
-        <h1 class="page-title">用户协议</h1>
-        <p class="page-subtitle">User Agreement</p>
-      </div>
+      <h1 class="page-title">用户协议</h1>
+      <p class="page-subtitle">User Agreement</p>
     </div>
 
     <div class="page-content">
@@ -156,7 +154,7 @@
           <ul>
             <li>电子邮箱：support@ecosorter.com</li>
             <li>联系电话：400-888-8888</li>
-            <li>公司地址：江西省南昌市高新区XX路XX号</li>
+            <li>公司地址：江西科技师范大学红角洲校区18栋520室</li>
           </ul>
         </div>
       </div>
@@ -188,11 +186,6 @@ onMounted(() => {
   padding: 40px 32px 30px;
   text-align: center;
   color: white;
-}
-
-.header-content {
-  width: 100%;
-  margin: 0 auto;
 }
 
 .page-title {

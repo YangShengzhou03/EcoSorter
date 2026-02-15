@@ -52,7 +52,31 @@ public class AuthController {
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
-        UserResponse userResponse = authService.getCurrentUser(user.getId().toString());
+        UserResponse userResponse = convertToUserResponse(user);
         return ResponseEntity.ok(userResponse);
+    }
+    
+    private UserResponse convertToUserResponse(com.ecosorter.model.User user) {
+        if (user == null) {
+            return null;
+        }
+        
+        UserResponse response = new UserResponse();
+        response.setId(user.getId() != null ? user.getId().toString() : null);
+        response.setUsername(user.getUsername());
+        response.setEmail(user.getEmail());
+        response.setRole(user.getRole() != null ? user.getRole().name() : null);
+        response.setIsActive(user.getIsActive());
+        response.setLastLogin(user.getLastLogin() != null ? user.getLastLogin().toString() : null);
+        response.setCreatedAt(user.getCreatedAt() != null ? user.getCreatedAt().toString() : null);
+        response.setUpdatedAt(user.getUpdatedAt() != null ? user.getUpdatedAt().toString() : null);
+        
+        UserResponse.UserProfileDto profileDto = new UserResponse.UserProfileDto();
+        profileDto.setAvatar(user.getAvatarUrl());
+        profileDto.setPhone(user.getPhone());
+        profileDto.setFullName(user.getUsername());
+        response.setProfile(profileDto);
+        
+        return response;
     }
 }

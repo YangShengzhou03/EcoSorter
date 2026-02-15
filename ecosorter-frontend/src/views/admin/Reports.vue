@@ -1,36 +1,49 @@
 <template>
-  <div class="admin-reports">
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-number">{{ stats.totalUsers }}</div>
-        <div class="stat-label">总用户数</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number">{{ stats.totalDevices }}</div>
-        <div class="stat-label">设备总数</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number">{{ stats.totalCollections }} kg</div>
-        <div class="stat-label">总处理量</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number">{{ stats.accuracyRate }}%</div>
-        <div class="stat-label">分类准确率</div>
-      </div>
-    </div>
+  <div class="admin-page">
+    <el-row :gutter="20" class="stats-row">
+      <el-col :span="6">
+        <el-card class="stat-card">
+          <div class="stat-number">{{ stats.totalUsers }}</div>
+          <div class="stat-label">总用户数</div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card class="stat-card">
+          <div class="stat-number">{{ stats.totalDevices }}</div>
+          <div class="stat-label">设备总数</div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card class="stat-card">
+          <div class="stat-number">{{ stats.totalCollections }} kg</div>
+          <div class="stat-label">总处理量</div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card class="stat-card">
+          <div class="stat-number">{{ stats.accuracyRate }}%</div>
+          <div class="stat-label">分类准确率</div>
+        </el-card>
+      </el-col>
+    </el-row>
 
-    <div class="table-section">
+    <el-card class="table-card">
+      <template #header>
+        <div class="card-header">
+          <span>分类记录</span>
+        </div>
+      </template>
       <el-table :data="reportData" v-loading="loading" style="width: 100%" border>
-        <el-table-column prop="time" label="分类时间" width="180">
+        <el-table-column prop="createdAt" label="分类时间">
           <template #default="{ row }">
-            {{ formatTime(row.time) }}
+            {{ formatTime(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column prop="type" label="垃圾类型" width="120" />
-        <el-table-column prop="weight" label="重量(kg)" width="100" />
-        <el-table-column prop="user" label="用户" width="120" />
+        <el-table-column prop="typeText" label="垃圾类型"/>
+        <el-table-column prop="weight" label="重量(kg)"/>
+        <el-table-column prop="userName" label="用户"/>
       </el-table>
-    </div>
+    </el-card>
   </div>
 </template>
 
@@ -38,6 +51,11 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { adminApi } from '@/api/admin'
+import { formatTime } from '@/utils/helpers'
+
+defineOptions({
+  name: 'AdminReports'
+})
 
 const loading = ref(false)
 const reportData = ref([])
@@ -56,28 +74,16 @@ const loadReports = async () => {
     
     const dashboard = await adminApi.getDashboard()
     stats.value = {
-      totalUsers: dashboard.totalUsers || 0,
+      totalUsers: dashboard.residentCount || 0,
       totalDevices: dashboard.totalDevices || 0,
-      totalCollections: dashboard.totalCollections || 0,
+      totalCollections: 0,
       accuracyRate: 94.2
     }
   } catch (error) {
-    console.error('加载报表数据失败:', error)
     ElMessage.error('加载报表数据失败')
   } finally {
     loading.value = false
   }
-}
-
-const formatTime = (time) => {
-  if (!time) return ''
-  return new Date(time).toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
 }
 
 onMounted(() => {
@@ -86,23 +92,17 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.admin-reports {
+.admin-page {
   padding: 0;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+.stats-row {
   margin-bottom: 16px;
 }
 
 .stat-card {
-  background: var(--bg-white);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 16px;
   text-align: center;
+  padding: 16px;
 }
 
 .stat-number {
@@ -115,12 +115,5 @@ onMounted(() => {
 .stat-label {
   font-size: 14px;
   color: var(--text-secondary);
-}
-
-.table-section {
-  background: var(--bg-white);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 16px;
 }
 </style>

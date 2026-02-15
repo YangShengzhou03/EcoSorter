@@ -1,5 +1,5 @@
 <template>
-  <div class="admin-page">
+  <div class="resident-page">
     <el-row :gutter="16" class="stats-row">
       <el-col :span="24">
         <el-card class="stat-card">
@@ -83,8 +83,8 @@ const loadRecords = async () => {
       pointApi.getRecordsPage(currentPage.value - 1, pageSize.value)
     ])
     points.value = statsResponse.totalPoints || 0
-    records.value = recordsResponse.content || []
-    total.value = recordsResponse.totalElements || 0
+    records.value = recordsResponse.records || []
+    total.value = recordsResponse.total || 0
   } catch (error) {
     ElMessage.error('加载积分数据失败')
   } finally {
@@ -98,7 +98,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.admin-page {
+.resident-page {
   padding: 0;
 }
 

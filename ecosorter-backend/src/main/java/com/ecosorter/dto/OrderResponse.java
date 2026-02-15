@@ -13,6 +13,9 @@ public class OrderResponse {
     private String contactName;
     private String contactPhone;
     private String shippingAddress;
+    
+    private String trackingNumber;
+    
     private String status;
     private String remark;
     private LocalDateTime createdAt;
@@ -88,6 +91,14 @@ public class OrderResponse {
 
     public void setShippingAddress(String shippingAddress) {
         this.shippingAddress = shippingAddress;
+    }
+
+    public String getTrackingNumber() {
+        return trackingNumber;
+    }
+
+    public void setTrackingNumber(String trackingNumber) {
+        this.trackingNumber = trackingNumber;
     }
 
     public String getStatus() {

@@ -1,27 +1,20 @@
 package com.ecosorter.dto;
 
-public class DeviceListResponse {
-    
-    private Long id;
-    
-    private String deviceId;
-    
-    private String name;
-    
-    private String location;
-    
-    private Integer capacity;
-    
-    private Integer maxCapacity;
-    
-    private Integer threshold;
-    
-    private String status;
-    
-    private String lastUpdate;
+import java.math.BigDecimal;
 
-    public DeviceListResponse() {
-    }
+public class DeviceListResponse {
+    private Long id;
+    private String deviceId;
+    private String location;
+    private String status;
+    private String statusText;
+    private Integer capacityLevel;
+    private Integer maxCapacity;
+    private Integer threshold;
+    private BigDecimal latitude;
+    private BigDecimal longitude;
+    private String lastUpdate;
+    private String authToken;
 
     public Long getId() {
         return id;
@@ -39,14 +32,6 @@ public class DeviceListResponse {
         this.deviceId = deviceId;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getLocation() {
         return location;
     }
@@ -55,12 +40,28 @@ public class DeviceListResponse {
         this.location = location;
     }
 
-    public Integer getCapacity() {
-        return capacity;
+    public String getStatus() {
+        return status;
     }
 
-    public void setCapacity(Integer capacity) {
-        this.capacity = capacity;
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getStatusText() {
+        return statusText;
+    }
+
+    public void setStatusText(String statusText) {
+        this.statusText = statusText;
+    }
+
+    public Integer getCapacityLevel() {
+        return capacityLevel;
+    }
+
+    public void setCapacityLevel(Integer capacityLevel) {
+        this.capacityLevel = capacityLevel;
     }
 
     public Integer getMaxCapacity() {
@@ -79,12 +80,20 @@ public class DeviceListResponse {
         this.threshold = threshold;
     }
 
-    public String getStatus() {
-        return status;
+    public BigDecimal getLatitude() {
+        return latitude;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setLatitude(BigDecimal latitude) {
+        this.latitude = latitude;
+    }
+
+    public BigDecimal getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(BigDecimal longitude) {
+        this.longitude = longitude;
     }
 
     public String getLastUpdate() {
@@ -93,5 +102,13 @@ public class DeviceListResponse {
 
     public void setLastUpdate(String lastUpdate) {
         this.lastUpdate = lastUpdate;
+    }
+
+    public String getAuthToken() {
+        return authToken;
+    }
+
+    public void setAuthToken(String authToken) {
+        this.authToken = authToken;
     }
 }

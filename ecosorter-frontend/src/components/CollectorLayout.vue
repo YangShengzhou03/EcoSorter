@@ -28,6 +28,11 @@
           <el-breadcrumb-item v-if="currentPage">{{ currentPage }}</el-breadcrumb-item>
         </el-breadcrumb>
         <div class="header-right">
+          <el-badge :value="notificationCount" :hidden="notificationCount === 0" class="notification-badge">
+            <el-button circle class="icon-button" @click="goToNotifications">
+              <el-icon><Bell /></el-icon>
+            </el-button>
+          </el-badge>
           <el-dropdown @command="handleCommand" trigger="click">
             <div class="user-dropdown">
               <el-avatar :size="40" :src="userInfo.avatar || DEFAULT_AVATAR" />
@@ -75,7 +80,8 @@ import {
   SwitchButton,
   DataLine,
   Memo,
-  Monitor
+  Monitor,
+  Bell
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -83,11 +89,13 @@ const route = useRoute()
 const authStore = useAuthStore()
 
 const userInfo = computed(() => authStore.userInfo)
+const notificationCount = ref(0)
 
 const routeMap = {
   '/collector/dashboard': { category: '首页', page: '仪表盘' },
   '/collector/tasks': { category: '工作', page: '我的任务' },
   '/collector/device-status': { category: '工作', page: '设备状态' },
+  '/collector/notifications': { category: '信息', page: '通知' },
   '/collector/profile': { category: '我的', page: '个人资料' }
 }
 
@@ -112,6 +120,10 @@ const handleCommand = (command) => {
       router.push('/login')
       break
   }
+}
+
+const goToNotifications = () => {
+  router.push('/collector/notifications')
 }
 </script>
 
@@ -175,6 +187,26 @@ const handleCommand = (command) => {
   align-items: center;
   gap: 16px;
   margin-left: auto;
+}
+
+.icon-button {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 18px;
+  padding: 0;
+}
+
+.icon-button:hover {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.notification-badge :deep(.el-badge__content) {
+  background: #ef4444;
+  border: 2px solid #ffffff;
 }
 
 .user-dropdown {

@@ -1,50 +1,53 @@
 <template>
-  <div class="orders-page">
-    <div class="page-header">
-      <h2>订单管理</h2>
-    </div>
+  <div class="admin-page">
+    <el-card>
+      <template #header>
+        <div class="card-header">
+          <span>订单管理</span>
+        </div>
+      </template>
 
-    <div class="filter-bar">
-      <el-select v-model="filterStatus" placeholder="订单状态" @change="loadOrders" clearable style="width: 150px">
-        <el-option label="全部" value="" />
-        <el-option label="待发货" value="pending" />
-        <el-option label="已发货" value="shipped" />
-        <el-option label="已完成" value="completed" />
-        <el-option label="已取消" value="cancelled" />
-      </el-select>
-    </div>
+      <div class="filter-bar">
+        <el-select v-model="filterStatus" placeholder="订单状态" @change="loadOrders" clearable style="width: 150px">
+          <el-option label="全部" value="" />
+          <el-option label="待发货" value="pending" />
+          <el-option label="已发货" value="shipped" />
+          <el-option label="已完成" value="completed" />
+          <el-option label="已取消" value="cancelled" />
+        </el-select>
+      </div>
 
-    <div class="orders-list">
-      <el-table :data="orders" v-loading="loading">
-        <el-table-column prop="id" label="订单号" width="100" />
-        <el-table-column label="商品信息" min-width="200">
+      <el-table :data="orders" v-loading="loading" border empty-text="暂无订单">
+        <el-table-column prop="id" label="订单号" />
+        <el-table-column label="商品信息">
           <template #default="{ row }">
-            <div class="product-info">
-              <img :src="row.productImageUrl || '/placeholder.png'" :alt="row.productName"></img>
+            <div class="table-product-info">
+              <img :src="row.productImageUrl || '/placeholder.png'" :alt="row.productName" />
               <div>
-                <div class="product-name">{{ row.productName }}</div>
-                <div class="product-detail">数量: {{ row.quantity }}</div>
+                <div class="table-product-name">{{ row.productName }}</div>
+                <div class="table-product-detail">数量: {{ row.quantity }}</div>
               </div>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="contactName" label="联系人" width="100" />
-        <el-table-column prop="contactPhone" label="联系电话" width="120" />
-        <el-table-column prop="shippingAddress" label="收货地址" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="totalPoints" label="消耗积分" width="100" />
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="contactName" label="联系人" />
+        <el-table-column prop="contactPhone" label="联系电话" />
+        <el-table-column prop="shippingAddress" label="收货地址" show-overflow-tooltip />
+        <el-table-column prop="trackingNumber" label="快递单号" />
+        <el-table-column prop="totalPoints" label="消耗积分" />
+        <el-table-column prop="status" label="状态">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)">
               {{ getStatusText(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="下单时间" width="180">
+        <el-table-column prop="createdAt" label="下单时间">
           <template #default="{ row }">
-            {{ formatDate(row.createdAt) }}
+            {{ formatTime(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="200">
           <template #default="{ row }">
             <el-button
               link
@@ -85,18 +88,18 @@
           @current-change="loadOrders"
         />
       </div>
-    </div>
+    </el-card>
 
     <el-dialog v-model="statusDialogVisible" title="订单详情" width="600px">
       <div class="order-detail" v-if="selectedOrder">
         <div class="detail-section">
           <h4>商品信息</h4>
-          <div class="product-detail">
-            <img :src="selectedOrder.productImageUrl || '/placeholder.png'" :alt="selectedOrder.productName"></img>
+          <div class="detail-product-info">
+            <img :src="selectedOrder.productImageUrl || '/placeholder.png'" :alt="selectedOrder.productName" />
             <div>
               <div class="product-name">{{ selectedOrder.productName }}</div>
-              <div class="product-info">数量: {{ selectedOrder.quantity }}</div>
-              <div class="product-info">消耗积分: {{ selectedOrder.totalPoints }}</div>
+              <div class="product-detail">数量: {{ selectedOrder.quantity }}</div>
+              <div class="product-detail">消耗积分: {{ selectedOrder.totalPoints }}</div>
             </div>
           </div>
         </div>
@@ -129,13 +132,22 @@
           </div>
           <div class="info-row">
             <span class="label">下单时间:</span>
-            <span class="value">{{ formatDate(selectedOrder.createdAt) }}</span>
+            <span class="value">{{ formatTime(selectedOrder.createdAt) }}</span>
           </div>
           <div class="info-row">
             <span class="label">订单状态:</span>
             <el-tag :type="getStatusType(selectedOrder.status)">
               {{ getStatusText(selectedOrder.status) }}
             </el-tag>
+          </div>
+          <div class="info-row" v-if="selectedOrder.status === 'shipped' || selectedOrder.status === 'completed'">
+            <span class="label">快递单号:</span>
+            <span class="value">{{ selectedOrder.trackingNumber || '-' }}</span>
+          </div>
+          <div class="info-row" v-if="selectedOrder.status === 'shipped' || selectedOrder.status === 'completed'">
+            <span class="label">更新快递单号:</span>
+            <el-input v-model="trackingNumberInput" placeholder="请输入快递单号" style="width: 200px" />
+            <el-button type="primary" size="small" @click="updateTrackingNumber" style="margin-left: 10px">更新</el-button>
           </div>
         </div>
       </div>
@@ -153,10 +165,16 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { orderApi } from '@/api/order'
+import { formatTime, getStatusType, getStatusText } from '@/utils/helpers'
+
+defineOptions({
+  name: 'AdminOrders'
+})
 
 const loading = ref(false)
 const statusDialogVisible = ref(false)
 const selectedOrder = ref(null)
+const trackingNumberInput = ref('')
 
 const orders = ref([])
 const currentPage = ref(1)
@@ -172,10 +190,9 @@ const loadOrders = async () => {
       pageSize: pageSize.value,
       status: filterStatus.value
     })
-    orders.value = response.content || []
-    total.value = response.totalElements || 0
+    orders.value = response.records || []
+    total.value = response.total || 0
   } catch (error) {
-    console.error('加载订单列表失败:', error)
     ElMessage.error('加载订单列表失败')
   } finally {
     loading.value = false
@@ -184,6 +201,7 @@ const loadOrders = async () => {
 
 const openStatusDialog = (row) => {
   selectedOrder.value = row
+  trackingNumberInput.value = row.trackingNumber || ''
   statusDialogVisible.value = true
 }
 
@@ -194,8 +212,21 @@ const confirmShipment = async () => {
     statusDialogVisible.value = false
     loadOrders()
   } catch (error) {
-    console.error('发货失败:', error)
     ElMessage.error('发货失败')
+  }
+}
+
+const updateTrackingNumber = async () => {
+  if (!trackingNumberInput.value.trim()) {
+    ElMessage.warning('请输入快递单号')
+    return
+  }
+  try {
+    await orderApi.updateTrackingNumber(selectedOrder.value.id, trackingNumberInput.value)
+    ElMessage.success('快递单号更新成功')
+    loadOrders()
+  } catch (error) {
+    ElMessage.error('更新快递单号失败')
   }
 }
 
@@ -215,41 +246,9 @@ const updateOrderStatus = async (id, status) => {
       ElMessage.success(`${statusText[status]}成功`)
       loadOrders()
     } catch (error) {
-      console.error('操作失败:', error)
       ElMessage.error('操作失败')
     }
   }).catch(() => {})
-}
-
-const formatDate = (dateString) => {
-  if (!dateString) return ''
-  return new Date(dateString).toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-const getStatusType = (status) => {
-  const statusMap = {
-    pending: 'warning',
-    shipped: 'primary',
-    completed: 'success',
-    cancelled: 'info'
-  }
-  return statusMap[status] || 'info'
-}
-
-const getStatusText = (status) => {
-  const statusMap = {
-    pending: '待发货',
-    shipped: '已发货',
-    completed: '已完成',
-    cancelled: '已取消'
-  }
-  return statusMap[status] || status
 }
 
 onMounted(() => {
@@ -258,60 +257,32 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.orders-page {
-  padding: 20px;
+.admin-page {
+  padding: 0;
 }
 
-.page-header {
-  margin-bottom: 20px;
-}
-
-.page-header h2 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.filter-bar {
-  margin-bottom: 20px;
-}
-
-.orders-list {
-  background: var(--bg-white);
-  border-radius: 8px;
-  padding: 16px;
-  border: 1px solid var(--border-color);
-}
-
-.product-info {
+.table-product-info {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.product-info img {
+.table-product-info img {
   width: 50px;
   height: 50px;
-  border-radius: 4px;
+  border-radius: 0;
   object-fit: cover;
 }
 
-.product-name {
+.table-product-name {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.product-detail {
+.table-product-detail {
   font-size: 12px;
   color: var(--text-secondary);
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
 }
 
 .order-detail {
@@ -329,29 +300,29 @@ onMounted(() => {
   color: var(--text-primary);
 }
 
-.product-detail {
+.detail-product-info {
   display: flex;
   gap: 12px;
   padding: 12px;
   background: var(--bg-light);
-  border-radius: 8px;
+  border-radius: 0;
 }
 
-.product-detail img {
+.detail-product-info img {
   width: 80px;
   height: 80px;
-  border-radius: 8px;
+  border-radius: 0;
   object-fit: cover;
 }
 
-.product-detail .product-name {
+.detail-product-info .product-name {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 4px;
 }
 
-.product-detail .product-info {
+.detail-product-info .product-detail {
   font-size: 13px;
   color: var(--text-secondary);
   margin-bottom: 4px;

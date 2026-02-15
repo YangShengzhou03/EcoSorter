@@ -1,5 +1,5 @@
 <template>
-  <div class="resident-page">
+  <div class="collector-page">
     <el-card>
       <template #header>
         <div class="card-header">
@@ -45,7 +45,7 @@ import { noticeApi } from '@/api/notice'
 import { formatTime } from '@/utils/helpers'
 
 defineOptions({
-  name: 'ResidentNotifications'
+  name: 'CollectorNotifications'
 })
 
 const router = useRouter()
@@ -69,7 +69,7 @@ const loadNotices = async () => {
 }
 
 const viewNotice = (notice) => {
-  router.push(`/resident/notifications/${notice.id}`)
+  router.push(`/collector/notifications/${notice.id}`)
 }
 
 onMounted(() => {
@@ -78,7 +78,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.resident-page {
+.collector-page {
   padding: 0;
 }
 

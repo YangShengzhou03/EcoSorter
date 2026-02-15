@@ -1,61 +1,44 @@
 package com.ecosorter.model;
 
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.ecosorter.enums.TaskPriority;
+import com.ecosorter.enums.TaskStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "collection_tasks")
+@TableName("collection_tasks")
 public class CollectionTask {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
     
-    @Column(name = "task_id", unique = true, nullable = false, length = 50)
     private String taskId;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trashcan_id", nullable = false)
-    private TrashcanData trashcan;
+    private Long trashcanId;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "collector_id")
-    private User collector;
+    private Long collectorId;
     
-    @Column(nullable = false, length = 20)
-    private String status = "pending";
+    private TaskStatus status = TaskStatus.PENDING;
     
-    @Column(nullable = false, length = 20)
-    private String priority = "medium";
+    private TaskPriority priority = TaskPriority.MEDIUM;
     
-    @Column(precision = 10, scale = 2)
     private BigDecimal estimatedWeight;
     
-    @Column(precision = 10, scale = 2)
     private BigDecimal actualWeight;
     
-    @Column(length = 50)
     private String garbageType = "混合垃圾";
     
-    @Column(name = "start_time")
     private LocalDateTime startTime;
     
-    @Column(name = "end_time")
     private LocalDateTime endTime;
     
-    @Column(columnDefinition = "TEXT")
     private String notes;
     
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     public CollectionTask() {
@@ -77,35 +60,35 @@ public class CollectionTask {
         this.taskId = taskId;
     }
 
-    public TrashcanData getTrashcan() {
-        return trashcan;
+    public Long getTrashcanId() {
+        return trashcanId;
     }
 
-    public void setTrashcan(TrashcanData trashcan) {
-        this.trashcan = trashcan;
+    public void setTrashcanId(Long trashcanId) {
+        this.trashcanId = trashcanId;
     }
 
-    public User getCollector() {
-        return collector;
+    public Long getCollectorId() {
+        return collectorId;
     }
 
-    public void setCollector(User collector) {
-        this.collector = collector;
+    public void setCollectorId(Long collectorId) {
+        this.collectorId = collectorId;
     }
 
-    public String getStatus() {
+    public TaskStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(TaskStatus status) {
         this.status = status;
     }
 
-    public String getPriority() {
+    public TaskPriority getPriority() {
         return priority;
     }
 
-    public void setPriority(String priority) {
+    public void setPriority(TaskPriority priority) {
         this.priority = priority;
     }
 

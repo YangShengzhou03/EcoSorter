@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 public class PointRecordResponse {
     private Long id;
     private Integer points;
+    private Integer pointsChange;
+    private Integer balance;
     private String type;
     private Long referenceId;
     private String description;
@@ -35,6 +37,22 @@ public class PointRecordResponse {
     
     public void setPoints(Integer points) {
         this.points = points;
+    }
+    
+    public Integer getPointsChange() {
+        return pointsChange;
+    }
+    
+    public void setPointsChange(Integer pointsChange) {
+        this.pointsChange = pointsChange;
+    }
+    
+    public Integer getBalance() {
+        return balance;
+    }
+    
+    public void setBalance(Integer balance) {
+        this.balance = balance;
     }
     
     public String getType() {

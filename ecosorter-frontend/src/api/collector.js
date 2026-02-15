@@ -8,16 +8,46 @@ export const collectorApi = {
     })
   },
 
-  getTasks() {
+  getTasks(params) {
     return request({
       url: '/api/collector/tasks',
+      method: 'get',
+      params
+    })
+  },
+
+  getTaskDetail(taskId) {
+    return request({
+      url: `/api/collector/tasks/${taskId}`,
       method: 'get'
     })
   },
 
-  getCollectionRecords() {
+  startTask(taskId) {
     return request({
-      url: '/api/collector/collection-records',
+      url: `/api/collector/tasks/${taskId}/start`,
+      method: 'post'
+    })
+  },
+
+  completeTask(taskId) {
+    return request({
+      url: `/api/collector/tasks/${taskId}/complete`,
+      method: 'post'
+    })
+  },
+
+  reportException(taskId, data) {
+    return request({
+      url: `/api/collector/tasks/${taskId}/exception`,
+      method: 'post',
+      data
+    })
+  },
+
+  getDevices() {
+    return request({
+      url: '/api/collector/devices',
       method: 'get'
     })
   }

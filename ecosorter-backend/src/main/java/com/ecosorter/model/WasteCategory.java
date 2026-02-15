@@ -1,59 +1,49 @@
 package com.ecosorter.model;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-@Entity
-@Table(name = "waste_categories")
+@TableName("waste_categories")
 public class WasteCategory {
     
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
     
     @NotBlank(message = "Category name is required")
-    @Column(nullable = false, unique = true)
     private String name;
     
-    @Column(name = "name_en")
     private String nameEn;
     
-    @Column(columnDefinition = "TEXT")
     private String description;
     
-    @Column(length = 7)
     private String color;
     
-    @Column(length = 50)
     private String icon;
     
-    @Column(columnDefinition = "TEXT")
     private String disposalInstructions;
     
-    @Column(name = "environmental_impact", columnDefinition = "TEXT")
+    private String disposalMethod;
+    
     private String environmentalImpact;
     
-    @Column(name = "is_active", nullable = false)
+    private Double recyclingRate;
+    
+    private String commonItems;
+    
+    private Boolean specialHandling = false;
+    
+    private Boolean hazardous = false;
+    
     private Boolean isActive = true;
     
-    @Column(name = "sort_order")
     private Integer sortOrder = 0;
-    
-    @OneToMany(mappedBy = "wasteCategory", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<WasteCategoryExample> examples;
-    
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
+        
     private LocalDateTime createdAt;
-    
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
+        
     private LocalDateTime updatedAt;
 
     public WasteCategory() {
@@ -115,12 +105,52 @@ public class WasteCategory {
         this.disposalInstructions = disposalInstructions;
     }
 
+    public String getDisposalMethod() {
+        return disposalMethod;
+    }
+
+    public void setDisposalMethod(String disposalMethod) {
+        this.disposalMethod = disposalMethod;
+    }
+
     public String getEnvironmentalImpact() {
         return environmentalImpact;
     }
 
     public void setEnvironmentalImpact(String environmentalImpact) {
         this.environmentalImpact = environmentalImpact;
+    }
+
+    public Double getRecyclingRate() {
+        return recyclingRate;
+    }
+
+    public void setRecyclingRate(Double recyclingRate) {
+        this.recyclingRate = recyclingRate;
+    }
+
+    public String getCommonItems() {
+        return commonItems;
+    }
+
+    public void setCommonItems(String commonItems) {
+        this.commonItems = commonItems;
+    }
+
+    public Boolean getSpecialHandling() {
+        return specialHandling;
+    }
+
+    public void setSpecialHandling(Boolean specialHandling) {
+        this.specialHandling = specialHandling;
+    }
+
+    public Boolean getHazardous() {
+        return hazardous;
+    }
+
+    public void setHazardous(Boolean hazardous) {
+        this.hazardous = hazardous;
     }
 
     public Boolean getIsActive() {
@@ -137,14 +167,6 @@ public class WasteCategory {
 
     public void setSortOrder(Integer sortOrder) {
         this.sortOrder = sortOrder;
-    }
-
-    public List<WasteCategoryExample> getExamples() {
-        return examples;
-    }
-
-    public void setExamples(List<WasteCategoryExample> examples) {
-        this.examples = examples;
     }
 
     public LocalDateTime getCreatedAt() {

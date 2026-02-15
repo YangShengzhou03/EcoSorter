@@ -8,7 +8,6 @@ public class ProductResponse {
     private String name;
     private String description;
     private String imageUrl;
-    private String images;
     private Integer points;
     private Integer stock;
     private Integer maxPurchase;
@@ -48,14 +47,6 @@ public class ProductResponse {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
-    }
-
-    public String getImages() {
-        return images;
-    }
-
-    public void setImages(String images) {
-        this.images = images;
     }
 
     public Integer getPoints() {

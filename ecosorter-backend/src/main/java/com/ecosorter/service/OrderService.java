@@ -1,20 +1,25 @@
 package com.ecosorter.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ecosorter.dto.OrderResponse;
+import com.ecosorter.enums.OrderStatus;
+import com.ecosorter.exception.BadRequestException;
+import com.ecosorter.exception.ResourceNotFoundException;
 import com.ecosorter.model.Order;
 import com.ecosorter.model.Product;
 import com.ecosorter.model.User;
 import com.ecosorter.repository.OrderRepository;
 import com.ecosorter.repository.ProductRepository;
 import com.ecosorter.repository.UserRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,47 +37,61 @@ public class OrderService {
         this.pointService = pointService;
     }
     
-    public Page<OrderResponse> getUserOrders(Long userId, int page, int pageSize, String status) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new com.ecosorter.exception.ResourceNotFoundException("User not found"));
-        Pageable pageable = PageRequest.of(page - 1, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        
-        Page<Order> orderPage;
-        if (status != null && !status.trim().isEmpty()) {
-            orderPage = orderRepository.findByUserAndStatus(user, status, pageable);
-        } else {
-            orderPage = orderRepository.findByUser(user, pageable);
+    public IPage<OrderResponse> getUserOrders(Long userId, int page, int pageSize, String status) {
+        User user = userRepository.selectById(userId);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found");
         }
-        
-        return orderPage.map(this::convertToResponse);
+
+        Page<Order> mpPage = new Page<>(page, pageSize);
+        LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
+                .eq(Order::getUserId, userId)
+                .orderByDesc(Order::getCreatedAt);
+        if (status != null && !status.trim().isEmpty()) {
+            wrapper.eq(Order::getStatus, OrderStatus.valueOf(status.toUpperCase()));
+        }
+
+        IPage<Order> orderPage = orderRepository.selectPage(mpPage, wrapper);
+        return toResponsePage(orderPage);
     }
     
-    public Page<OrderResponse> getAllOrders(int page, int pageSize, String status) {
-        Pageable pageable = PageRequest.of(page - 1, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        
-        Page<Order> orderPage;
+    public IPage<OrderResponse> getAllOrders(int page, int pageSize, String status) {
+        Page<Order> mpPage = new Page<>(page, pageSize);
+        LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
+                .orderByDesc(Order::getCreatedAt);
         if (status != null && !status.trim().isEmpty()) {
-            orderPage = orderRepository.findByStatus(status, pageable);
-        } else {
-            orderPage = orderRepository.findAll(pageable);
+            wrapper.eq(Order::getStatus, OrderStatus.valueOf(status.toUpperCase()));
         }
-        
-        return orderPage.map(this::convertToResponse);
+        IPage<Order> orderPage = orderRepository.selectPage(mpPage, wrapper);
+        return toResponsePage(orderPage);
     }
     
     public OrderResponse getOrderById(Long id) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new com.ecosorter.exception.ResourceNotFoundException("Order not found"));
+        Order order = orderRepository.selectById(id);
+        if (order == null) {
+            throw new ResourceNotFoundException("Order not found");
+        }
         return convertToResponse(order);
     }
     
     @Transactional
     public OrderResponse createOrder(Long userId, Order order) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new com.ecosorter.exception.ResourceNotFoundException("User not found"));
-        
-        Product product = productRepository.findById(order.getProduct().getId())
-                .orElseThrow(() -> new com.ecosorter.exception.ResourceNotFoundException("Product not found"));
+        User user = userRepository.selectById(userId);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found");
+        }
+
+        if (order == null || order.getProductId() == null) {
+            throw new BadRequestException("Product is required");
+        }
+        if (order.getQuantity() == null || order.getQuantity() <= 0) {
+            throw new BadRequestException("Quantity must be positive");
+        }
+
+        Product product = productRepository.selectById(order.getProductId());
+        if (product == null) {
+            throw new ResourceNotFoundException("Product not found");
+        }
         
         if (product.getStock() < order.getQuantity()) {
             throw new RuntimeException("Insufficient stock");
@@ -84,54 +103,108 @@ public class OrderService {
         if (currentPoints < totalPoints) {
             throw new RuntimeException("Insufficient points");
         }
-        
-        List<Order> existingOrders = orderRepository.findByUserAndProduct(user, product);
-        Integer purchasedQuantity = existingOrders.stream()
-                .mapToInt(Order::getQuantity)
-                .sum();
+
+        Integer purchasedQuantity = getPurchasedQuantity(userId, product.getId());
         
         if (product.getMaxPurchase() != null && purchasedQuantity + order.getQuantity() > product.getMaxPurchase()) {
             throw new RuntimeException("Purchase limit exceeded. Maximum purchase: " + product.getMaxPurchase());
         }
         
         product.setStock(product.getStock() - order.getQuantity());
-        productRepository.save(product);
-        
-        order.setUser(user);
-        order.setProduct(product);
+        product.setUpdatedAt(LocalDateTime.now());
+        productRepository.updateById(product);
+
+        order.setUserId(user.getId());
+        order.setProductId(product.getId());
         order.setTotalPoints(totalPoints);
-        order.setStatus("pending");
-        
-        Order savedOrder = orderRepository.save(order);
-        
-        pointService.deductPoints(userId, totalPoints, "order", savedOrder.getId(), 
+        order.setStatus(OrderStatus.PENDING);
+
+        LocalDateTime now = LocalDateTime.now();
+        order.setCreatedAt(now);
+        order.setUpdatedAt(now);
+        orderRepository.insert(order);
+
+        pointService.deductPoints(userId, totalPoints, "order", order.getId(),
             "兑换商品: " + product.getName() + " x" + order.getQuantity());
         
-        return convertToResponse(savedOrder);
+        return convertToResponse(order);
     }
     
     @Transactional
     public OrderResponse updateOrderStatus(Long id, String status) {
-        Order existingOrder = orderRepository.findById(id)
-                .orElseThrow(() -> new com.ecosorter.exception.ResourceNotFoundException("Order not found"));
+        Order existingOrder = orderRepository.selectById(id);
+        if (existingOrder == null) {
+            throw new ResourceNotFoundException("Order not found");
+        }
         
-        existingOrder.setStatus(status);
-        Order updatedOrder = orderRepository.save(existingOrder);
-        return convertToResponse(updatedOrder);
+        existingOrder.setStatus(OrderStatus.valueOf(status.toUpperCase()));
+        existingOrder.setUpdatedAt(LocalDateTime.now());
+        orderRepository.updateById(existingOrder);
+        return convertToResponse(existingOrder);
     }
     
+    @Transactional
+    public OrderResponse updateTrackingNumber(Long id, String trackingNumber) {
+        Order existingOrder = orderRepository.selectById(id);
+        if (existingOrder == null) {
+            throw new ResourceNotFoundException("Order not found");
+        }
+        
+        existingOrder.setTrackingNumber(trackingNumber);
+        existingOrder.setUpdatedAt(LocalDateTime.now());
+        orderRepository.updateById(existingOrder);
+        return convertToResponse(existingOrder);
+    }
+    
+    private Integer getPurchasedQuantity(Long userId, Long productId) {
+        QueryWrapper<Order> wrapper = new QueryWrapper<>();
+        wrapper.select("IFNULL(SUM(quantity), 0) as purchasedQuantity")
+                .eq("user_id", userId)
+                .eq("product_id", productId);
+        List<Map<String, Object>> rows = orderRepository.selectMaps(wrapper);
+        if (rows.isEmpty()) {
+            return 0;
+        }
+        Object value = rows.get(0).get("purchasedQuantity");
+        return value == null ? 0 : ((Number) value).intValue();
+    }
+
+    private IPage<OrderResponse> toResponsePage(IPage<Order> orderPage) {
+        List<Long> productIds = orderPage.getRecords().stream()
+                .map(Order::getProductId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<Long, Product> productsById = productIds.isEmpty()
+                ? Map.of()
+                : productRepository.selectBatchIds(productIds).stream()
+                        .collect(Collectors.toMap(Product::getId, p -> p));
+
+        Page<OrderResponse> responsePage = new Page<>(orderPage.getCurrent(), orderPage.getSize(), orderPage.getTotal());
+        responsePage.setRecords(orderPage.getRecords().stream()
+                .map(order -> convertToResponse(order, productsById.get(order.getProductId())))
+                .collect(Collectors.toList()));
+        return responsePage;
+    }
+
     private OrderResponse convertToResponse(Order order) {
+        Product product = order.getProductId() == null ? null : productRepository.selectById(order.getProductId());
+        return convertToResponse(order, product);
+    }
+
+    private OrderResponse convertToResponse(Order order, Product product) {
         OrderResponse response = new OrderResponse();
         response.setId(order.getId());
-        response.setProductId(order.getProduct().getId());
-        response.setProductName(order.getProduct().getName());
-        response.setProductImageUrl(order.getProduct().getImageUrl());
+        response.setProductId(order.getProductId());
+        response.setProductName(product != null ? product.getName() : null);
+        response.setProductImageUrl(product != null ? product.getImageUrl() : null);
         response.setQuantity(order.getQuantity());
         response.setTotalPoints(order.getTotalPoints());
         response.setContactName(order.getContactName());
         response.setContactPhone(order.getContactPhone());
         response.setShippingAddress(order.getShippingAddress());
-        response.setStatus(order.getStatus());
+        response.setTrackingNumber(order.getTrackingNumber());
+        response.setStatus(order.getStatus().name().toLowerCase());
         response.setRemark(order.getRemark());
         response.setCreatedAt(order.getCreatedAt());
         response.setUpdatedAt(order.getUpdatedAt());

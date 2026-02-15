@@ -1,21 +1,24 @@
 package com.ecosorter.repository;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ecosorter.model.UserStatistics;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.Optional;
 
-@Repository
-public interface UserStatisticsRepository extends JpaRepository<UserStatistics, Long> {
+@Mapper
+public interface UserStatisticsRepository extends BaseMapper<UserStatistics> {
     
+    @Select("SELECT * FROM user_statistics WHERE user_id = #{userId}")
     Optional<UserStatistics> findByUserId(Long userId);
     
-    @Query("SELECT u FROM UserStatistics u ORDER BY u.totalClassifications DESC")
-    java.util.List<UserStatistics> findTopClassifiers();
-    
-    @Query("SELECT u FROM UserStatistics u WHERE u.streakDays > 0 ORDER BY u.streakDays DESC")
-    java.util.List<UserStatistics> findActiveUsers();
+    default UserStatistics save(UserStatistics statistics) {
+        if (statistics.getId() == null) {
+            insert(statistics);
+        } else {
+            updateById(statistics);
+        }
+        return statistics;
+    }
 }
