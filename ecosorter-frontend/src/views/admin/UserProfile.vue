@@ -42,6 +42,13 @@
               <span class="info-label">地址</span>
               <span class="info-value">{{ profileForm.address || '未设置' }}</span>
             </div>
+            <div class="info-item">
+              <span class="info-label">人脸识别</span>
+              <span class="info-value">
+                <el-tag v-if="userInfo.faceVerified" type="success">已认证</el-tag>
+                <el-button v-else type="primary" @click="openFaceDialog">上传人脸</el-button>
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -88,7 +95,7 @@
           <div v-else class="avatar-upload-placeholder">
             <el-icon class="upload-placeholder-icon"><Plus /></el-icon>
             <div class="upload-placeholder-text">点击或拖拽上传</div>
-            <div class="upload-placeholder-hint">支持 JPG、PNG、GIF 格式，不超过 10MB</div>
+            <div class="upload-placeholder-hint">支持 JPG、PNG、GIF 格式，不超过 512KB</div>
           </div>
         </el-upload>
         <div v-if="previewUrl" class="upload-tips">
@@ -99,6 +106,40 @@
       <template #footer>
         <el-button @click="closeAvatarDialog">取消</el-button>
         <el-button type="primary" @click="handleUploadAvatar" :loading="uploading">确认上传</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="showFaceDialog" title="上传人脸" width="480px" :close-on-click-modal="false">
+      <div class="avatar-upload-container">
+        <el-upload
+          ref="faceUploadRef"
+          class="avatar-uploader"
+          :show-file-list="false"
+          :before-upload="beforeFaceUpload"
+          :on-change="handleFaceFileChange"
+          :auto-upload="false"
+          accept="image/*"
+        >
+          <div v-if="facePreviewUrl" class="avatar-preview">
+            <img :src="facePreviewUrl" alt="人脸预览" />
+            <div class="preview-actions">
+              <el-icon class="change-icon" @click.stop="triggerFaceUpload"><Camera /></el-icon>
+            </div>
+          </div>
+          <div v-else class="avatar-upload-placeholder">
+            <el-icon class="upload-placeholder-icon"><Plus /></el-icon>
+            <div class="upload-placeholder-text">点击或拖拽上传人脸照片</div>
+            <div class="upload-placeholder-hint">请上传清晰的正脸照片，光线充足</div>
+          </div>
+        </el-upload>
+        <div v-if="facePreviewUrl" class="upload-tips">
+          <el-icon><InfoFilled /></el-icon>
+          <span>点击图片可重新选择</span>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="closeFaceDialog">取消</el-button>
+        <el-button type="primary" @click="handleUploadFace" :loading="uploadingFace">确认上传</el-button>
       </template>
     </el-dialog>
   </div>
@@ -118,12 +159,17 @@ defineOptions({
 const authStore = useAuthStore()
 const saving = ref(false)
 const uploading = ref(false)
+const uploadingFace = ref(false)
 const profileFormRef = ref(null)
 const uploadRef = ref(null)
+const faceUploadRef = ref(null)
 const showEditDialog = ref(false)
 const showAvatarDialog = ref(false)
+const showFaceDialog = ref(false)
 const previewUrl = ref('')
+const facePreviewUrl = ref('')
 const selectedFile = ref(null)
+const selectedFaceFile = ref(null)
 
 const userInfo = computed(() => authStore.userInfo)
 
@@ -184,14 +230,14 @@ const triggerUpload = () => {
 
 const beforeUpload = (file) => {
   const isImage = file.type.startsWith('image/')
-  const isLt10M = file.size / 1024 / 1024 < 10
+  const isLt512K = file.size / 1024 < 512
 
   if (!isImage) {
     ElMessage.error('只能上传图片文件!')
     return false
   }
-  if (!isLt10M) {
-    ElMessage.error('图片大小不能超过 10MB!')
+  if (!isLt512K) {
+    ElMessage.error('图片大小不能超过512KB!')
     return false
   }
   return false
@@ -248,6 +294,67 @@ const handleSaveProfile = async () => {
     }
   } finally {
     saving.value = false
+  }
+}
+
+const openFaceDialog = () => {
+  showFaceDialog.value = true
+  facePreviewUrl.value = ''
+  selectedFaceFile.value = null
+}
+
+const closeFaceDialog = () => {
+  showFaceDialog.value = false
+  facePreviewUrl.value = ''
+  selectedFaceFile.value = null
+}
+
+const triggerFaceUpload = () => {
+  faceUploadRef.value?.$el.querySelector('input[type="file"]').click()
+}
+
+const beforeFaceUpload = (file) => {
+  const isImage = file.type.startsWith('image/')
+  const isLt512K = file.size / 1024 < 512
+
+  if (!isImage) {
+    ElMessage.error('只能上传图片文件!')
+    return false
+  }
+  if (!isLt512K) {
+    ElMessage.error('图片大小不能超过512KB!')
+    return false
+  }
+  return false
+}
+
+const handleFaceFileChange = (file) => {
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    facePreviewUrl.value = e.target.result
+  }
+  reader.readAsDataURL(file.raw)
+  selectedFaceFile.value = file.raw
+}
+
+const handleUploadFace = async () => {
+  if (!selectedFaceFile.value) {
+    ElMessage.warning('请先选择人脸照片')
+    return
+  }
+
+  try {
+    uploadingFace.value = true
+    await profileApi.registerFaceFromFile(selectedFaceFile.value)
+    
+    authStore.updateUserInfo({ faceVerified: true })
+    
+    ElMessage.success('人脸注册成功')
+    closeFaceDialog()
+  } catch (error) {
+    ElMessage.error('人脸注册失败')
+  } finally {
+    uploadingFace.value = false
   }
 }
 

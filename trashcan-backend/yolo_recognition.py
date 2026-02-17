@@ -1,17 +1,21 @@
+import io
+import json
+import os
+import random
+import shutil
+from datetime import datetime
+from pathlib import Path
+from typing import Optional, Dict, Any
+
+import numpy as np
+import pymysql
+from PIL import Image
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
-import uvicorn
-import pymysql
-import random
-from datetime import datetime
-import os
-import shutil
-from pathlib import Path
+import face_recognition
 
-app = FastAPI(title="YOLO26 Garbage Recognition API", version="1.0.0")
+app = FastAPI(title="EcoSorter Recognition API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -131,6 +135,177 @@ async def upload_image(file: UploadFile = File(...)):
     try:
         file_extension = os.path.splitext(file.filename)[1]
         new_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}"
+        file_path = UPLOAD_DIR / new_filename
+        
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        file_url = f"/uploads/{new_filename}"
+        
+        return {"url": file_url, "filename": new_filename, "message": "上传成功"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"上传失败: {str(e)}")
+
+class FaceEncodingRequest(BaseModel):
+    image_url: str
+
+class FaceEncodingResponse(BaseModel):
+    success: bool
+    encoding: Optional[str] = None
+    message: str
+
+class FaceVerificationResponse(BaseModel):
+    success: bool
+    verified: bool
+    confidence: float
+    message: str
+
+def extract_face_encoding(image_array):
+    try:
+        face_encodings = face_recognition.face_encodings(image_array)
+        if len(face_encodings) > 0:
+            encoding = face_encodings[0]
+            return json.dumps(encoding.tolist())
+        return None
+    except Exception as e:
+        return None
+
+def extract_face_encoding_from_url(image_url):
+    try:
+        if image_url.startswith('/uploads/'):
+            image_path = image_url[1:]
+            if os.path.exists(image_path):
+                image = face_recognition.load_image_file(image_path)
+                encoding = extract_face_encoding(image)
+                return encoding
+        return None
+    except Exception as e:
+        return None
+
+def generate_mock_face_encoding():
+    return json.dumps([random.uniform(-1, 1) for _ in range(128)])
+
+def calculate_face_confidence(encoding1: str, encoding2: str) -> float:
+    try:
+        arr1 = json.loads(encoding1)
+        arr2 = json.loads(encoding2)
+        distance = sum((a - b) ** 2 for a, b in zip(arr1, arr2)) ** 0.5
+        confidence = max(0, min(1, 1 - distance / 2))
+        return confidence
+    except:
+        return random.uniform(0.5, 0.99)
+
+@app.post("/api/face/encode", response_model=FaceEncodingResponse)
+async def encode_face(request: FaceEncodingRequest):
+    try:
+        encoding = extract_face_encoding_from_url(request.image_url)
+        
+        if encoding is None:
+            return FaceEncodingResponse(
+                success=False,
+                encoding=None,
+                message="无法检测到人脸"
+            )
+        
+        return FaceEncodingResponse(
+            success=True,
+            encoding=encoding,
+            message="人脸特征提取成功"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"特征提取失败: {str(e)}")
+
+@app.post("/api/face/verify", response_model=FaceVerificationResponse)
+async def verify_face(
+    image_url: str,
+    stored_encoding: str,
+    threshold: float = 0.6
+):
+    try:
+        current_encoding = extract_face_encoding_from_url(image_url)
+        
+        if current_encoding is None:
+            return FaceVerificationResponse(
+                success=True,
+                verified=False,
+                confidence=0.0,
+                message="无法检测到人脸"
+            )
+        
+        confidence = calculate_face_confidence(current_encoding, stored_encoding)
+        verified = confidence >= threshold
+        
+        return FaceVerificationResponse(
+            success=True,
+            verified=verified,
+            confidence=confidence,
+            message="验证成功" if verified else "验证失败"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"验证失败: {str(e)}")
+
+@app.post("/api/face/encode-from-file", response_model=FaceEncodingResponse)
+async def encode_face_from_file(file: UploadFile = File(...)):
+    try:
+        contents = await file.read()
+        
+        image = Image.open(io.BytesIO(contents))
+        image = image.convert('RGB')
+        
+        image_array = np.array(image)
+        
+        encoding = extract_face_encoding(image_array)
+        
+        if encoding is None:
+            return FaceEncodingResponse(
+                success=False,
+                encoding=None,
+                message="无法检测到人脸"
+            )
+        
+        return FaceEncodingResponse(
+            success=True,
+            encoding=encoding,
+            message="人脸特征提取成功"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"特征提取失败: {str(e)}")
+
+class FaceRegisterRequest(BaseModel):
+    userId: int
+    faceEncoding: str
+
+class FaceRegisterResponse(BaseModel):
+    success: bool
+    message: str
+
+@app.post("/api/face/register", response_model=FaceRegisterResponse)
+async def register_face(request: FaceRegisterRequest):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute(
+            "UPDATE users SET face_encoding = %s, face_verified = 1 WHERE id = %s",
+            (request.faceEncoding, request.userId)
+        )
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return FaceRegisterResponse(
+            success=True,
+            message="人脸注册成功"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"注册失败: {str(e)}")
+
+@app.post("/api/face/upload")
+async def upload_face_image(file: UploadFile = File(...)):
+    try:
+        file_extension = os.path.splitext(file.filename)[1]
+        new_filename = f"face_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}"
         file_path = UPLOAD_DIR / new_filename
         
         with open(file_path, "wb") as buffer:

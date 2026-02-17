@@ -140,7 +140,6 @@ const startCamera = async () => {
       ElMessage.success('摄像头已启动')
     }
   } catch (error) {
-    console.error('摄像头启动失败:', error)
     ElMessage.error('无法启动摄像头，请检查权限设置')
   }
 }
@@ -196,7 +195,6 @@ const captureImage = async () => {
       throw new Error('上传失败')
     }
   } catch (error) {
-    console.error('上传图片失败:', error)
     ElMessage.error('上传图片失败，请重试')
   }
 }
@@ -224,7 +222,6 @@ const performClassification = async (imageUrl) => {
       throw new Error('识别失败')
     }
   } catch (error) {
-    console.error('识别失败:', error)
     ElMessage.error('识别失败，请重试')
   }
 }
@@ -240,7 +237,6 @@ const submitClassification = async (result) => {
       })
     }
   } catch (error) {
-    console.error('提交分类记录失败:', error)
   }
 }
 

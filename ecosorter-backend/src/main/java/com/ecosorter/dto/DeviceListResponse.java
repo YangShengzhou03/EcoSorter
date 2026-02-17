@@ -5,9 +5,11 @@ import java.math.BigDecimal;
 public class DeviceListResponse {
     private Long id;
     private String deviceId;
+    private String deviceName;
     private String location;
     private String status;
     private String statusText;
+    private String binType;
     private Integer capacityLevel;
     private Integer maxCapacity;
     private Integer threshold;
@@ -32,6 +34,14 @@ public class DeviceListResponse {
         this.deviceId = deviceId;
     }
 
+    public String getDeviceName() {
+        return deviceName;
+    }
+
+    public void setDeviceName(String deviceName) {
+        this.deviceName = deviceName;
+    }
+
     public String getLocation() {
         return location;
     }
@@ -54,6 +64,14 @@ public class DeviceListResponse {
 
     public void setStatusText(String statusText) {
         this.statusText = statusText;
+    }
+
+    public String getBinType() {
+        return binType;
+    }
+
+    public void setBinType(String binType) {
+        this.binType = binType;
     }
 
     public Integer getCapacityLevel() {

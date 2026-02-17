@@ -1,6 +1,8 @@
 package com.ecosorter.controller;
 
 import com.ecosorter.dto.AuthResponse;
+import com.ecosorter.dto.DeviceActivateRequest;
+import com.ecosorter.dto.DeviceListResponse;
 import com.ecosorter.dto.LoginRequest;
 import com.ecosorter.dto.RegisterRequest;
 import com.ecosorter.dto.UserResponse;
@@ -26,6 +28,13 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
     
+    @PostMapping("/device/activate")
+    public ResponseEntity<DeviceListResponse> activateDevice(
+            @Valid @RequestBody DeviceActivateRequest request) {
+        DeviceListResponse response = authService.activateDevice(request);
+        return ResponseEntity.ok(response);
+    }
+    
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         AuthResponse response = authService.login(loginRequest);
@@ -45,6 +54,17 @@ public class AuthController {
         }
         authService.logout(user.getId().toString());
         return ResponseEntity.ok("Logged out successfully");
+    }
+    
+    @PostMapping("/face-login")
+    public ResponseEntity<AuthResponse> faceLogin(@RequestBody java.util.Map<String, String> request) {
+        String faceImageUrl = request.get("faceImageUrl");
+        if (faceImageUrl == null || faceImageUrl.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        AuthResponse response = authService.faceLogin(faceImageUrl);
+        return ResponseEntity.ok(response);
     }
     
     @GetMapping("/me")

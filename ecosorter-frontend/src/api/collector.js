@@ -50,5 +50,50 @@ export const collectorApi = {
       url: '/api/collector/devices',
       method: 'get'
     })
+  },
+
+  getStatistics() {
+    return request({
+      url: '/api/collector/statistics',
+      method: 'get'
+    })
+  },
+
+  getPointRecords(params) {
+    return request({
+      url: '/api/collector/point-records',
+      method: 'get',
+      params
+    })
+  },
+
+  getOrders(params) {
+    return request({
+      url: '/api/collector/orders',
+      method: 'get',
+      params
+    })
+  },
+
+  createOrder(data) {
+    return request({
+      url: '/api/collector/orders',
+      method: 'post',
+      data
+    })
+  },
+
+  getOrderDetail(orderId) {
+    return request({
+      url: `/api/collector/orders/${orderId}`,
+      method: 'get'
+    })
+  },
+
+  cancelOrder(orderId) {
+    return request({
+      url: `/api/collector/orders/${orderId}/cancel`,
+      method: 'post'
+    })
   }
 }

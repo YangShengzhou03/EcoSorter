@@ -74,10 +74,10 @@ const loadReports = async () => {
     
     const dashboard = await adminApi.getDashboard()
     stats.value = {
-      totalUsers: dashboard.residentCount || 0,
+      totalUsers: dashboard.totalUsers || 0,
       totalDevices: dashboard.totalDevices || 0,
-      totalCollections: 0,
-      accuracyRate: 94.2
+      totalCollections: dashboard.totalWeight || 0,
+      accuracyRate: dashboard.accuracyRate || 0
     }
   } catch (error) {
     ElMessage.error('加载报表数据失败')

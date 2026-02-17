@@ -1,0 +1,94 @@
+spring:
+  application:
+    name: ecosorter-backend
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:mysql://localhost:3306/eco_sorter?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&useServerPrepStmts=true&cachePrepStmts=true&prepStmtCacheSize=250&prepStmtCacheSqlLimit=2048&useLocalSessionState=true&rewriteBatchedStatements=true&cacheResultSetMetadata=true&cacheServerConfiguration=true&elideSetAutoCommits=true&maintainTimeStats=false
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 请填写数据库密码
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      connection-timeout: 30000
+      idle-timeout: 300000
+      max-lifetime: 900000
+      connection-test-query: SELECT 1
+      pool-name: EcoSorterHikariCP
+  sql:
+    init:
+      mode: never
+  servlet:
+    multipart:
+      max-file-size: 512KB
+      max-request-size: 512KB
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+        cache:
+          use_second_level_cache: true
+          use_query_cache: true
+
+server:
+  port: 8081
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,application/javascript,application/json
+    min-response-size: 1024
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+    include-exception: false
+
+app:
+  base-url: http://localhost:8081
+  jwt:
+    secret: 请填写JWT密钥
+    expires-ms: 86400000
+
+face:
+  recognition:
+    service:
+      url: http://localhost:9000
+      threshold: 0.6
+
+upload:
+  path: ./uploads
+
+aliyun:
+  oss:
+    endpoint: oss-cn-hangzhou.aliyuncs.com
+    access-key-id: 请填写阿里云AccessKey ID
+    access-key-secret: 请填写阿里云AccessKey Secret
+    bucket-name: 请填写阿里云Bucket名称
+    base-url: https://请填写阿里云Bucket名称.oss-cn-hangzhou.aliyuncs.com
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      simple:
+        enabled: true

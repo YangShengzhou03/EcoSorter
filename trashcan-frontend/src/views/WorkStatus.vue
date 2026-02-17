@@ -1,46 +1,69 @@
 <template>
-  <div class="work-page">
-    <div class="left-panel">
-      <div class="brand-section">
-        <div class="logo-wrapper">
-          <el-icon :size="40" class="logo-icon"><Delete /></el-icon>
+  <div class="work-page" @click="handlePageClick">
+    <el-carousel height="100%" :interval="8000" arrow="hover" indicator-position="outside">
+      <el-carousel-item v-for="(banner, index) in banners" :key="index">
+        <div class="banner-content" :style="{ background: banner.background }">
+          <h2 class="banner-title">{{ banner.title }}</h2>
+          <p class="banner-desc">{{ banner.description }}</p>
         </div>
-        <div class="brand-info">
-          <h1 class="brand-title">易控智能垃圾桶</h1>
-          <p class="brand-subtitle">{{ currentTime }}</p>
+      </el-carousel-item>
+    </el-carousel>
+    
+    <div class="admin-entry" @click.stop="showLoginOverlay">
+      <el-icon><Setting /></el-icon>
+    </div>
+    
+    <div class="login-overlay" :class="{ visible: showLogin }" @click="hideLoginOverlay">
+      <div class="login-container" @click.stop>
+        <div class="login-header">
+          <p class="login-subtitle">请输入管理员密码</p>
         </div>
-      </div>
-      
-      <div class="device-info">
-        <el-descriptions :column="1" border size="small">
-          <el-descriptions-item label="设备名称">{{ deviceInfo.deviceName }}</el-descriptions-item>
-          <el-descriptions-item label="设备位置">{{ deviceInfo.location }}</el-descriptions-item>
-          <el-descriptions-item label="垃圾桶类型">
-            <el-tag :type="binTypeTag" size="small">{{ binTypeLabel }}</el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="设备状态">
-            <el-tag type="success" size="small">在线</el-tag>
-          </el-descriptions-item>
-        </el-descriptions>
+        
+        <el-form :model="loginForm" :rules="loginRules" ref="loginFormRef" class="login-form">
+          <el-form-item prop="password">
+            <el-input
+              v-model="loginForm.password"
+              type="password"
+              placeholder="请输入管理员密码"
+              size="large"
+              show-password
+              @keyup.enter="handleLogin"
+            >
+              <template #prefix>
+                <el-icon><Lock /></el-icon>
+              </template>
+            </el-input>
+          </el-form-item>
+          
+          <el-form-item>
+            <el-button
+              type="primary"
+              size="large"
+              :loading="loginLoading"
+              @click="handleLogin"
+              style="width: 100%"
+            >
+              登录
+            </el-button>
+          </el-form-item>
+        </el-form>
       </div>
     </div>
-
-    <div class="right-panel">
-      <el-carousel height="100%" :interval="8000" arrow="never" indicator-position="none">
-        <el-carousel-item v-for="(banner, index) in banners" :key="index">
-          <div class="banner-content" :style="{ background: banner.background }">
-            <h2 class="banner-title">{{ banner.title }}</h2>
-            <p class="banner-desc">{{ banner.description }}</p>
-          </div>
-        </el-carousel-item>
-      </el-carousel>
+    
+    <div class="device-info-overlay" :class="{ visible: showDeviceInfo }" @click="hideDeviceInfo">
+      <h1 class="brand-title">易控智能垃圾桶</h1>
+      <p class="brand-subtitle">{{ currentTime }}</p>
       
-      <div class="start-overlay" @click="goToLogin">
-        <div class="start-content">
-          <el-icon class="touch-icon"><Pointer /></el-icon>
-          <span class="start-text">点击屏幕开始使用</span>
-        </div>
-      </div>
+      <el-descriptions :column="1" border size="large" class="device-info">
+        <el-descriptions-item label="设备名称">{{ deviceInfo.deviceName }}</el-descriptions-item>
+        <el-descriptions-item label="设备位置">{{ deviceInfo.location }}</el-descriptions-item>
+        <el-descriptions-item label="垃圾桶类型">
+          <el-tag :type="binTypeTag" size="large">{{ binTypeLabel }}</el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="设备状态">
+          <el-tag type="success" size="large">在线</el-tag>
+        </el-descriptions-item>
+      </el-descriptions>
     </div>
   </div>
 </template>
@@ -48,28 +71,42 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { Setting, Lock } from '@element-plus/icons-vue'
 import { trashcanApi } from '@/api/trashcan'
+import { ElMessage } from 'element-plus'
 
 defineOptions({
   name: 'WorkStatus'
 })
 
 const router = useRouter()
-
 const currentTime = ref('')
 let timeInterval = null
 
-const deviceInfo = ref({
-  deviceName: '易控智能垃圾桶-001',
-  location: 'A区-1号楼大厅',
-  binType: 'recyclable'
+const showLogin = ref(false)
+const showDeviceInfo = ref(false)
+
+const loginLoading = ref(false)
+
+const loginFormRef = ref(null)
+
+const loginForm = ref({
+  password: ''
 })
 
-const banners = ref([
-  { title: '智能垃圾分类', description: '让垃圾分类更简单，让环境更美好', background: '#409eff' },
-  { title: '保护环境', description: '从我做起，从垃圾分类做起', background: '#67c23a' },
-  { title: '绿色生活', description: '共建美好家园，共享绿色未来', background: '#e6a23c' }
-])
+const loginRules = {
+  password: [
+    { required: true, message: '请输入管理员密码', trigger: 'blur' }
+  ]
+}
+
+const deviceInfo = ref({
+  deviceName: '',
+  location: '',
+  binType: ''
+})
+
+const banners = ref([])
 
 const binTypeMap = {
   recyclable: { label: '可回收物', tag: 'success' },
@@ -93,8 +130,42 @@ const updateTime = () => {
   })
 }
 
-const goToLogin = () => {
+const showLoginOverlay = () => {
+  showLogin.value = true
+}
+
+const hideLoginOverlay = () => {
+  showLogin.value = false
+}
+
+const handlePageClick = () => {
   router.push('/login')
+}
+
+const hideDeviceInfo = () => {
+  showDeviceInfo.value = false
+}
+
+const handleLogin = async () => {
+  try {
+    await loginFormRef.value.validate()
+    loginLoading.value = true
+
+    const response = await trashcanApi.adminLogin(loginForm.value.password)
+    
+    if (response && response.success) {
+      localStorage.setItem('trashcanAdminLoggedIn', 'true')
+      ElMessage.success('登录成功')
+      hideLoginOverlay()
+      router.push('/admin')
+    } else {
+      throw new Error('登录失败')
+    }
+  } catch (error) {
+    ElMessage.error(error.response?.data?.message || '密码错误，请重试')
+  } finally {
+    loginLoading.value = false
+  }
 }
 
 const loadBanners = async () => {
@@ -104,7 +175,6 @@ const loadBanners = async () => {
       banners.value = response
     }
   } catch (error) {
-    console.error('加载轮播图失败:', error)
   }
 }
 
@@ -113,13 +183,12 @@ const loadDeviceInfo = async () => {
     const response = await trashcanApi.getTrashcanInfo()
     if (response) {
       deviceInfo.value = {
-        deviceName: response.deviceId || deviceInfo.value.deviceName,
-        location: response.location || deviceInfo.value.location,
-        binType: response.binType || deviceInfo.value.binType
+        deviceName: response.deviceName || '',
+        location: response.location || '',
+        binType: response.binType || ''
       }
     }
   } catch (error) {
-    console.error('加载设备信息失败:', error)
   }
 }
 
@@ -145,85 +214,26 @@ onUnmounted(() => {
 .work-page {
   width: 100vw;
   height: 100vh;
-  display: flex;
-  background: #f5f5f5;
-}
-
-.left-panel {
-  width: 320px;
-  background: #1a1a2e;
-  display: flex;
-  flex-direction: column;
-  padding: 24px;
-}
-
-.brand-section {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #2a2a3e;
-  margin-bottom: 20px;
-}
-
-.logo-wrapper {
-  width: 56px;
-  height: 56px;
-  background: #409eff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.logo-icon {
-  color: white;
-}
-
-.brand-info {
-  flex: 1;
-}
-
-.brand-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: white;
-  margin: 0 0 4px;
-}
-
-.brand-subtitle {
-  font-size: 13px;
-  color: #909399;
-  margin: 0;
-  font-family: monospace;
-}
-
-.device-info {
-  flex: 1;
-}
-
-.device-info :deep(.el-descriptions) {
-  background: transparent;
-}
-
-.device-info :deep(.el-descriptions__label) {
-  color: #909399;
-  background: #1a1a2e;
-}
-
-.device-info :deep(.el-descriptions__content) {
-  color: white;
-  background: #1a1a2e;
-}
-
-.device-info :deep(.el-descriptions__cell) {
-  border-color: #2a2a3e;
-}
-
-.right-panel {
-  flex: 1;
   position: relative;
   overflow: hidden;
+}
+
+.work-page :deep(.el-carousel) {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.work-page :deep(.el-carousel__container) {
+  width: 100%;
+  height: 100%;
+}
+
+.work-page :deep(.el-carousel__item) {
+  width: 100%;
+  height: 100%;
 }
 
 .banner-content {
@@ -239,106 +249,233 @@ onUnmounted(() => {
 }
 
 .banner-title {
-  font-size: 42px;
+  font-size: 48px;
   font-weight: 600;
-  margin: 0 0 16px;
+  margin: 0 0 20px;
 }
 
 .banner-desc {
-  font-size: 20px;
+  font-size: 24px;
   margin: 0;
   opacity: 0.9;
 }
 
-.start-overlay {
+.admin-entry {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  z-index: 100;
+}
+
+.admin-entry:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
+}
+
+.admin-entry .el-icon {
+  font-size: 18px;
+  color: white;
+}
+
+.login-overlay {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  background: rgba(0, 0, 0, 0.3);
   opacity: 0;
-  transition: opacity 0.3s;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
 }
 
-.start-overlay:hover {
+.login-overlay.visible {
   opacity: 1;
+  visibility: visible;
 }
 
-.start-content {
+.login-container {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  width: 100%;
+  max-width: 320px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.login-subtitle {
+  font-size: 13px;
+  color: #909399;
+  margin: 0;
+}
+
+.login-form {
+  margin-top: 16px;
+}
+
+.device-info-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  padding: 40px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.device-info-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.brand-title {
+  font-size: 36px;
+  font-weight: 600;
   color: white;
+  margin: 0 0 12px;
 }
 
-.touch-icon {
-  font-size: 48px;
+.brand-subtitle {
+  font-size: 16px;
+  color: #909399;
+  margin: 0 0 40px;
+  font-family: monospace;
 }
 
-.start-text {
-  font-size: 18px;
+.device-info {
+  max-width: 600px;
+  width: 100%;
+}
+
+.device-info :deep(.el-descriptions) {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.device-info :deep(.el-descriptions__label) {
+  color: #e5e7eb;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 16px;
   font-weight: 500;
 }
 
-@media (max-width: 1024px) {
-  .left-panel {
-    width: 280px;
-    padding: 20px;
+.device-info :deep(.el-descriptions__content) {
+  color: white;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 18px;
+}
+
+.device-info :deep(.el-descriptions__cell) {
+  border-color: rgba(255, 255, 255, 0.1);
+  padding: 16px;
+}
+
+.close-hint {
+  position: absolute;
+  bottom: 40px;
+  color: #9ca3af;
+  font-size: 14px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
   }
-  
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 1024px) {
   .banner-title {
-    font-size: 32px;
+    font-size: 36px;
   }
   
   .banner-desc {
-    font-size: 16px;
+    font-size: 20px;
+  }
+  
+  .brand-title {
+    font-size: 28px;
+  }
+  
+  .device-info {
+    max-width: 500px;
   }
 }
 
 @media (max-width: 768px) {
-  .work-page {
-    flex-direction: column;
-  }
-  
-  .left-panel {
-    width: 100%;
-    padding: 16px;
-  }
-  
-  .brand-section {
-    padding-bottom: 12px;
-    margin-bottom: 12px;
-  }
-  
-  .logo-wrapper {
-    width: 44px;
-    height: 44px;
-  }
-  
-  .brand-title {
-    font-size: 16px;
-  }
-  
-  .device-info {
-    display: none;
-  }
-  
-  .right-panel {
-    flex: 1;
-  }
-  
   .banner-title {
-    font-size: 24px;
+    font-size: 28px;
   }
   
   .banner-desc {
+    font-size: 16px;
+  }
+  
+  .brand-title {
+    font-size: 24px;
+  }
+  
+  .brand-subtitle {
     font-size: 14px;
+  }
+  
+  .device-info-overlay {
+    padding: 20px;
+  }
+  
+  .device-info {
+    max-width: 100%;
+  }
+  
+  .device-info :deep(.el-descriptions__label) {
+    font-size: 14px;
+  }
+  
+  .device-info :deep(.el-descriptions__content) {
+    font-size: 16px;
+  }
+  
+  .device-info :deep(.el-descriptions__cell) {
+    padding: 12px;
+  }
+  
+  .recognition-container,
+  .points-container {
+    padding: 24px;
+    max-width: 90%;
+  }
+  
+  .camera-preview {
+    height: 200px;
   }
 }
 </style>

@@ -14,6 +14,7 @@ import com.ecosorter.model.User;
 import com.ecosorter.repository.OrderRepository;
 import com.ecosorter.repository.ProductRepository;
 import com.ecosorter.repository.UserRepository;
+import com.ecosorter.util.PaginationUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +44,10 @@ public class OrderService {
             throw new ResourceNotFoundException("User not found");
         }
 
-        Page<Order> mpPage = new Page<>(page, pageSize);
+        long normalizedPage = PaginationUtil.normalizePage(page);
+        int normalizedPageSize = PaginationUtil.normalizePageSize(pageSize);
+
+        Page<Order> mpPage = new Page<>(normalizedPage, normalizedPageSize);
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
                 .eq(Order::getUserId, userId)
                 .orderByDesc(Order::getCreatedAt);
@@ -56,7 +60,10 @@ public class OrderService {
     }
     
     public IPage<OrderResponse> getAllOrders(int page, int pageSize, String status) {
-        Page<Order> mpPage = new Page<>(page, pageSize);
+        long normalizedPage = PaginationUtil.normalizePage(page);
+        int normalizedPageSize = PaginationUtil.normalizePageSize(pageSize);
+
+        Page<Order> mpPage = new Page<>(normalizedPage, normalizedPageSize);
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
                 .orderByDesc(Order::getCreatedAt);
         if (status != null && !status.trim().isEmpty()) {
@@ -154,6 +161,37 @@ public class OrderService {
         existingOrder.setUpdatedAt(LocalDateTime.now());
         orderRepository.updateById(existingOrder);
         return convertToResponse(existingOrder);
+    }
+    
+    @Transactional
+    public void cancelOrder(Long orderId, Long userId) {
+        Order order = orderRepository.selectById(orderId);
+        if (order == null) {
+            throw new ResourceNotFoundException("Order not found");
+        }
+        
+        if (!order.getUserId().equals(userId)) {
+            throw new RuntimeException("You can only cancel your own orders");
+        }
+        
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new RuntimeException("Only pending orders can be cancelled");
+        }
+        
+        Product product = productRepository.selectById(order.getProductId());
+        if (product != null) {
+            product.setStock(product.getStock() + order.getQuantity());
+            product.setUpdatedAt(LocalDateTime.now());
+            productRepository.updateById(product);
+        }
+        
+        pointService.addPoints(userId, order.getTotalPoints(), "order_refund", 
+            order.getId(), "订单取消退款: " + 
+            (product != null ? product.getName() : "商品") + " x" + order.getQuantity());
+        
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setUpdatedAt(LocalDateTime.now());
+        orderRepository.updateById(order);
     }
     
     private Integer getPurchasedQuantity(Long userId, Long productId) {

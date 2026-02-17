@@ -15,6 +15,8 @@ public class TrashcanData {
     
     private String deviceId;
     
+    private String deviceName;
+    
     private String location;
     
     private Integer capacityLevel;
@@ -25,11 +27,15 @@ public class TrashcanData {
     
     private String status;
     
+    private String binType;
+    
     private BigDecimal latitude;
     
     private BigDecimal longitude;
     
     private String authToken;
+    
+    private String adminPassword;
     
     private LocalDateTime lastActive;
     
@@ -54,6 +60,14 @@ public class TrashcanData {
 
     public void setDeviceId(String deviceId) {
         this.deviceId = deviceId;
+    }
+
+    public String getDeviceName() {
+        return deviceName;
+    }
+
+    public void setDeviceName(String deviceName) {
+        this.deviceName = deviceName;
     }
 
     public String getLocation() {
@@ -96,6 +110,14 @@ public class TrashcanData {
         this.status = status;
     }
 
+    public String getBinType() {
+        return binType;
+    }
+
+    public void setBinType(String binType) {
+        this.binType = binType;
+    }
+
     public BigDecimal getLatitude() {
         return latitude;
     }
@@ -118,6 +140,14 @@ public class TrashcanData {
 
     public void setAuthToken(String authToken) {
         this.authToken = authToken;
+    }
+
+    public String getAdminPassword() {
+        return adminPassword;
+    }
+
+    public void setAdminPassword(String adminPassword) {
+        this.adminPassword = adminPassword;
     }
 
     public LocalDateTime getLastActive() {

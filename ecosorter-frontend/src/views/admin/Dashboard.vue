@@ -3,8 +3,8 @@
     <el-row :gutter="20" class="stats-row">
       <el-col :span="6">
         <el-card class="stat-card">
-          <div class="stat-number">{{ stats.residentCount }}</div>
-          <div class="stat-label">居民数</div>
+          <div class="stat-number">{{ stats.totalUsers }}</div>
+          <div class="stat-label">总用户数</div>
         </el-card>
       </el-col>
       <el-col :span="6">
@@ -15,14 +15,14 @@
       </el-col>
       <el-col :span="6">
         <el-card class="stat-card">
-          <div class="stat-number">{{ stats.collectorCount }}</div>
-          <div class="stat-label">收集员数</div>
+          <div class="stat-number">{{ stats.totalWeight }} kg</div>
+          <div class="stat-label">总处理量</div>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card class="stat-card">
-          <div class="stat-number">{{ stats.pendingOrders }}</div>
-          <div class="stat-label">待发货</div>
+          <div class="stat-number">{{ stats.accuracyRate }}%</div>
+          <div class="stat-label">分类准确率</div>
         </el-card>
       </el-col>
     </el-row>
@@ -171,7 +171,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { adminApi } from '@/api/admin'
@@ -194,10 +194,10 @@ defineOptions({
 const router = useRouter()
 
 const stats = reactive({
-  residentCount: 0,
+  totalUsers: 0,
   totalDevices: 0,
-  collectorCount: 0,
-  pendingOrders: 0
+  totalWeight: 0,
+  accuracyRate: 0.0
 })
 
 const deviceStatus = reactive({
@@ -213,13 +213,31 @@ const navigateTo = (path) => {
   router.push(path)
 }
 
+const formatTime = (time) => {
+  if (!time) return ''
+  const date = new Date(time)
+  const now = new Date()
+  const diff = now - date
+  
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+  
+  if (minutes < 1) return '刚刚'
+  if (minutes < 60) return `${minutes}分钟前`
+  if (hours < 24) return `${hours}小时前`
+  if (days < 7) return `${days}天前`
+  
+  return date.toLocaleDateString('zh-CN')
+}
+
 const loadDashboard = async () => {
   try {
     const response = await adminApi.getDashboard()
-    stats.residentCount = response.residentCount || 0
+    stats.totalUsers = response.totalUsers || 0
     stats.totalDevices = response.totalDevices || 0
-    stats.collectorCount = response.collectorCount || 0
-    stats.pendingOrders = response.pendingOrders || 0
+    stats.totalWeight = response.totalWeight || 0
+    stats.accuracyRate = response.accuracyRate || 0.0
   } catch (error) {
     ElMessage.error('加载仪表板数据失败')
   }
@@ -257,6 +275,12 @@ const refreshActivities = () => {
 }
 
 onMounted(() => {
+  loadDashboard()
+  loadDeviceStatus()
+  loadActivities()
+})
+
+onActivated(() => {
   loadDashboard()
   loadDeviceStatus()
   loadActivities()

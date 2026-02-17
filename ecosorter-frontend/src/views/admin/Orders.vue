@@ -18,11 +18,10 @@
       </div>
 
       <el-table :data="orders" v-loading="loading" border empty-text="暂无订单">
-        <el-table-column prop="id" label="订单号" />
-        <el-table-column label="商品信息">
+        <el-table-column prop="id" label="订单号" width="100" />
+        <el-table-column label="商品信息" width="120">
           <template #default="{ row }">
             <div class="table-product-info">
-              <img :src="row.productImageUrl || '/placeholder.png'" :alt="row.productName" />
               <div>
                 <div class="table-product-name">{{ row.productName }}</div>
                 <div class="table-product-detail">数量: {{ row.quantity }}</div>
@@ -30,19 +29,23 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="contactName" label="联系人" />
-        <el-table-column prop="contactPhone" label="联系电话" />
+        <el-table-column prop="contactName" label="联系人" width="100" />
+        <el-table-column prop="contactPhone" label="联系电话" width="130" />
         <el-table-column prop="shippingAddress" label="收货地址" show-overflow-tooltip />
-        <el-table-column prop="trackingNumber" label="快递单号" />
-        <el-table-column prop="totalPoints" label="消耗积分" />
-        <el-table-column prop="status" label="状态">
+        <el-table-column prop="trackingNumber" label="快递单号" width="150">
+          <template #default="{ row }">
+            {{ row.trackingNumber || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="totalPoints" label="消耗积分" width="100" />
+        <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)">
               {{ getStatusText(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="下单时间">
+        <el-table-column prop="createdAt" label="下单时间" width="180">
           <template #default="{ row }">
             {{ formatTime(row.createdAt) }}
           </template>
@@ -95,7 +98,6 @@
         <div class="detail-section">
           <h4>商品信息</h4>
           <div class="detail-product-info">
-            <img :src="selectedOrder.productImageUrl || '/placeholder.png'" :alt="selectedOrder.productName" />
             <div>
               <div class="product-name">{{ selectedOrder.productName }}</div>
               <div class="product-detail">数量: {{ selectedOrder.quantity }}</div>
@@ -144,10 +146,9 @@
             <span class="label">快递单号:</span>
             <span class="value">{{ selectedOrder.trackingNumber || '-' }}</span>
           </div>
-          <div class="info-row" v-if="selectedOrder.status === 'shipped' || selectedOrder.status === 'completed'">
-            <span class="label">更新快递单号:</span>
+          <div class="info-row" v-if="selectedOrder.status === 'pending'">
+            <span class="label">快递单号:</span>
             <el-input v-model="trackingNumberInput" placeholder="请输入快递单号" style="width: 200px" />
-            <el-button type="primary" size="small" @click="updateTrackingNumber" style="margin-left: 10px">更新</el-button>
           </div>
         </div>
       </div>
@@ -206,27 +207,18 @@ const openStatusDialog = (row) => {
 }
 
 const confirmShipment = async () => {
-  try {
-    await orderApi.updateStatus(selectedOrder.value.id, 'shipped')
-    ElMessage.success('发货成功')
-    statusDialogVisible.value = false
-    loadOrders()
-  } catch (error) {
-    ElMessage.error('发货失败')
-  }
-}
-
-const updateTrackingNumber = async () => {
   if (!trackingNumberInput.value.trim()) {
     ElMessage.warning('请输入快递单号')
     return
   }
   try {
     await orderApi.updateTrackingNumber(selectedOrder.value.id, trackingNumberInput.value)
-    ElMessage.success('快递单号更新成功')
+    await orderApi.updateStatus(selectedOrder.value.id, 'shipped')
+    ElMessage.success('发货成功')
+    statusDialogVisible.value = false
     loadOrders()
   } catch (error) {
-    ElMessage.error('更新快递单号失败')
+    ElMessage.error('发货失败')
   }
 }
 

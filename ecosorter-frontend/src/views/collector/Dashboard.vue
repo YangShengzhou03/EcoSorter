@@ -124,7 +124,7 @@
 </template>
 
 <script setup>
-import { reactive, onMounted } from 'vue'
+import { reactive, onMounted, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { collectorApi } from '@/api/collector'
@@ -170,6 +170,10 @@ const refreshTasks = () => {
 }
 
 onMounted(() => {
+  loadDashboard()
+})
+
+onActivated(() => {
   loadDashboard()
 })
 </script>

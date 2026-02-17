@@ -17,6 +17,14 @@
           <el-icon><Monitor /></el-icon>
           <span>设备状态</span>
         </el-menu-item>
+        <el-menu-item index="/collector/points">
+          <el-icon><Coin /></el-icon>
+          <span>积分商城</span>
+        </el-menu-item>
+        <el-menu-item index="/collector/notifications">
+          <el-icon><Bell /></el-icon>
+          <span>通知消息</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
 
@@ -35,7 +43,7 @@
           </el-badge>
           <el-dropdown @command="handleCommand" trigger="click">
             <div class="user-dropdown">
-              <el-avatar :size="40" :src="userInfo.avatar || DEFAULT_AVATAR" />
+              <el-avatar :size="32" :src="userInfo.avatar || DEFAULT_AVATAR" />
               <span class="user-name">{{ userInfo.username || '收集员' }}</span>
               <el-icon class="dropdown-icon"><arrow-down /></el-icon>
             </div>
@@ -81,7 +89,10 @@ import {
   DataLine,
   Memo,
   Monitor,
-  Bell
+  Bell,
+  Coin,
+  Tickets,
+  ShoppingCart
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -95,7 +106,10 @@ const routeMap = {
   '/collector/dashboard': { category: '首页', page: '仪表盘' },
   '/collector/tasks': { category: '工作', page: '我的任务' },
   '/collector/device-status': { category: '工作', page: '设备状态' },
-  '/collector/notifications': { category: '信息', page: '通知' },
+  '/collector/points': { category: '我的', page: '积分商城' },
+  '/collector/point-records': { category: '我的', page: '积分明细' },
+  '/collector/orders': { category: '我的', page: '我的订单' },
+  '/collector/notifications': { category: '信息', page: '通知消息' },
   '/collector/profile': { category: '我的', page: '个人资料' }
 }
 

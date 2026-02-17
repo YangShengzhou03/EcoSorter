@@ -20,17 +20,6 @@ public class PointController {
         this.pointService = pointService;
     }
     
-    @GetMapping("/records")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<PointRecordResponse>> getPointRecords(
-            @AuthenticationPrincipal com.ecosorter.model.User user) {
-        if (user == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        List<PointRecordResponse> records = pointService.getUserPointRecords(user.getId());
-        return ResponseEntity.ok(records);
-    }
-    
     @GetMapping("/records/page")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<IPage<PointRecordResponse>> getPointRecordsPage(
@@ -42,16 +31,5 @@ public class PointController {
         }
         IPage<PointRecordResponse> records = pointService.getUserPointRecords(user.getId(), page, size);
         return ResponseEntity.ok(records);
-    }
-    
-    @GetMapping("/total")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Integer> getTotalPoints(
-            @AuthenticationPrincipal com.ecosorter.model.User user) {
-        if (user == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        Integer totalPoints = pointService.getUserTotalPoints(user.getId());
-        return ResponseEntity.ok(totalPoints);
     }
 }

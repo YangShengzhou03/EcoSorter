@@ -32,6 +32,8 @@ public class WasteCategory {
     
     private Double recyclingRate;
     
+    private Integer points;
+    
     private String commonItems;
     
     private Boolean specialHandling = false;
@@ -127,6 +129,14 @@ public class WasteCategory {
 
     public void setRecyclingRate(Double recyclingRate) {
         this.recyclingRate = recyclingRate;
+    }
+
+    public Integer getPoints() {
+        return points;
+    }
+
+    public void setPoints(Integer points) {
+        this.points = points;
     }
 
     public String getCommonItems() {

@@ -1,13 +1,13 @@
 package com.ecosorter.config;
 
+import com.ecosorter.model.TrashcanData;
 import com.ecosorter.model.User;
+import com.ecosorter.repository.TrashcanDataRepository;
 import com.ecosorter.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,14 +21,17 @@ import java.util.Collections;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
-    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private static final String BEARER_PREFIX = "Bearer ";
     
     private final UserRepository userRepository;
+    private final TrashcanDataRepository trashcanDataRepository;
     private final JwtUtil jwtUtil;
     
-    public JwtAuthenticationFilter(UserRepository userRepository, JwtUtil jwtUtil) {
+    public JwtAuthenticationFilter(UserRepository userRepository, 
+                                  TrashcanDataRepository trashcanDataRepository,
+                                  JwtUtil jwtUtil) {
         this.userRepository = userRepository;
+        this.trashcanDataRepository = trashcanDataRepository;
         this.jwtUtil = jwtUtil;
     }
     
@@ -43,31 +46,53 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             
             try {
                 if (jwtUtil.validateToken(token)) {
-                    Long userId = jwtUtil.getUserIdFromToken(token);
+                    String tokenType = jwtUtil.getTokenType(token);
                     
-                    User user = userRepository.findById(userId).orElse(null);
-                    
-                    if (user != null && user.getIsActive()) {
-                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                                user,
-                                null,
-                                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole()))
-                        );
-                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                        
-                        logger.debug("Authenticated user: {} with role: {}", user.getUsername(), user.getRole());
+                    if ("device".equals(tokenType)) {
+                        authenticateDevice(token, request);
                     } else {
-                        logger.warn("Invalid token: user not found or inactive for userId: {}", userId);
+                        authenticateUser(token, request);
                     }
-                } else {
-                    logger.warn("Invalid JWT token");
                 }
             } catch (Exception e) {
-                logger.error("Error processing authentication token", e);
             }
         }
         
         filterChain.doFilter(request, response);
+    }
+    
+    private void authenticateUser(String token, HttpServletRequest request) {
+        Long userId = jwtUtil.getUserIdFromToken(token);
+        
+        User user = userRepository.findById(userId).orElse(null);
+        
+        if (user != null && user.getIsActive()) {
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    user,
+                    null,
+                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole()))
+            );
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
+    }
+    
+    private void authenticateDevice(String token, HttpServletRequest request) {
+        String deviceId = jwtUtil.getDeviceIdFromToken(token);
+        
+        TrashcanData trashcan = trashcanDataRepository.findByDeviceId(deviceId);
+        
+        if (trashcan != null && "online".equals(trashcan.getStatus())) {
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    trashcan,
+                    null,
+                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_DEVICE"))
+            );
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            
+            trashcan.setLastActive(java.time.LocalDateTime.now());
+            trashcanDataRepository.updateById(trashcan);
+        }
     }
 }

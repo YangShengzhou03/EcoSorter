@@ -52,7 +52,7 @@
         <el-form-item label="目标端" prop="target">
           <el-select v-model="bannerForm.target" placeholder="请选择目标端">
             <el-option label="用户端" value="user" />
-            <el-option label="垃圾桶端" value="bin" />
+            <el-option label="垃圾桶端" value="trashcan" />
           </el-select>
         </el-form-item>
       </el-form>

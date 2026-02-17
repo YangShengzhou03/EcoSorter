@@ -7,8 +7,6 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -20,8 +18,6 @@ import java.util.Map;
 
 @Component
 public class JwtUtil {
-    
-    private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
     
     @Value("${app.jwt.secret}")
     private String jwtSecret;
@@ -46,6 +42,23 @@ public class JwtUtil {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(username)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+    
+    public String generateDeviceToken(String deviceId) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("deviceId", deviceId);
+        claims.put("type", "device");
+        
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtExpirationMs * 365);
+        
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(deviceId)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -82,6 +95,26 @@ public class JwtUtil {
         return claims.get("role", String.class);
     }
     
+    public String getDeviceIdFromToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        
+        return claims.get("deviceId", String.class);
+    }
+    
+    public String getTokenType(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        
+        return claims.get("type", String.class);
+    }
+    
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
@@ -90,15 +123,10 @@ public class JwtUtil {
                     .parseClaimsJws(token);
             return true;
         } catch (SecurityException ex) {
-            logger.error("Invalid JWT signature: {}", ex.getMessage());
         } catch (MalformedJwtException ex) {
-            logger.error("Invalid JWT token: {}", ex.getMessage());
         } catch (ExpiredJwtException ex) {
-            logger.error("Expired JWT token: {}", ex.getMessage());
         } catch (UnsupportedJwtException ex) {
-            logger.error("Unsupported JWT token: {}", ex.getMessage());
         } catch (IllegalArgumentException ex) {
-            logger.error("JWT claims string is empty: {}", ex.getMessage());
         }
         return false;
     }

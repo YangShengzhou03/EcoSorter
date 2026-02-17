@@ -30,12 +30,14 @@ public class ClassificationController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDirection) {
+            @RequestParam(defaultValue = "desc") String sortDirection,
+            @RequestParam(required = false) String categoryName,
+            @RequestParam(required = false) String status) {
         
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
-        IPage<ClassificationResponse> history = classificationService.getClassificationHistory(user.getId(), page, size, sortBy, sortDirection);
+        IPage<ClassificationResponse> history = classificationService.getClassificationHistory(user.getId(), page, size, sortBy, sortDirection, categoryName, status);
         return ResponseEntity.ok(history);
     }
     

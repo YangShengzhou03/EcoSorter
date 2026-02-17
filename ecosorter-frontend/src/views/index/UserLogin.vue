@@ -47,6 +47,7 @@ defineOptions({
 const router = useRouter();
 const authStore = useAuthStore();
 const loginFormRef = ref();
+
 const loginForm = reactive({ email: "", password: "" });
 
 const loginRules = {

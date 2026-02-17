@@ -18,6 +18,8 @@ CREATE TABLE users (
     phone VARCHAR(20) COMMENT '电话',
     address TEXT COMMENT '地址',
     current_points INT DEFAULT 0 COMMENT '当前积分',
+    face_encoding TEXT COMMENT '人脸特征向量（128维浮点数数组，JSON格式存储）',
+    face_verified BOOLEAN DEFAULT FALSE COMMENT '是否已通过人脸验证',
     last_login DATETIME COMMENT '最后登录时间',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
@@ -27,14 +29,17 @@ CREATE TABLE users (
 CREATE TABLE trashcan_data (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '设备ID',
     device_id VARCHAR(50) UNIQUE NOT NULL COMMENT '设备编号',
+    device_name VARCHAR(100) COMMENT '设备名称',
     location VARCHAR(255) NOT NULL COMMENT '位置',
     capacity_level INT DEFAULT 0 COMMENT '当前容量级别',
     max_capacity INT DEFAULT 100 COMMENT '最大容量',
     threshold INT DEFAULT 80 COMMENT '告警阈值',
     status VARCHAR(20) DEFAULT 'online' COMMENT '状态: online-在线, offline-离线, maintenance-维护中',
+    bin_type VARCHAR(20) DEFAULT 'recyclable' COMMENT '垃圾桶类型: recyclable-可回收物, hazardous-有害垃圾, kitchen-厨余垃圾, other-其他垃圾',
     latitude DECIMAL(10, 8) COMMENT '纬度',
     longitude DECIMAL(11, 8) COMMENT '经度',
     auth_token VARCHAR(255) COMMENT '设备认证令牌',
+    admin_password VARCHAR(255) DEFAULT '123456' COMMENT '设备管理员密码',
     last_active DATETIME COMMENT '最后活跃时间',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -59,6 +64,7 @@ CREATE TABLE waste_categories (
     hazardous BOOLEAN DEFAULT FALSE COMMENT '是否为危险品',
     is_active BOOLEAN DEFAULT TRUE COMMENT '是否启用',
     sort_order INT DEFAULT 0 COMMENT '排序',
+    points INT DEFAULT 0 COMMENT '积分',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='垃圾类别表';
@@ -294,10 +300,10 @@ INSERT INTO user_statistics (user_id, total_classifications, correct_classificat
 (3, 0, 0, 0.00, 0.00, 0, 0, 0, 50, 200, NOW(), NOW());
 
 -- 插入垃圾类别数据
-INSERT INTO waste_categories (name, description, color, icon, disposal_instructions, is_active, common_items, created_at, updated_at) VALUES
-('可回收物', '可回收物是指适宜回收利用和资源化利用的生活废弃物，如废纸、废塑料、废玻璃、废金属、废织物等。', '#10b981', 'recycle', '请保持清洁干燥，避免污染。可回收物应投放到蓝色垃圾桶。', true, '废纸,塑料瓶', NOW(), NOW()),
-('有害垃圾', '有害垃圾是指对人体健康或者自然环境造成直接或者潜在危害的生活废弃物，如废电池、废灯管、废药品、废油漆等。', '#ef4444', 'warning', '请轻放。有害垃圾应投放到红色垃圾桶，并注意密封包装。', true, '废电池', NOW(), NOW()),
-('厨余垃圾', '厨余垃圾是指居民日常生活及食品加工、饮食服务、单位供餐等活动中产生的垃圾，包括丢弃不用的菜叶、剩菜、剩饭、果皮、蛋壳、茶渣、骨头等。', '#f59e0b', 'food', '请沥干水分。厨余垃圾应投放到绿色垃圾桶。', true, '菜叶', NOW(), NOW()),
-('其他垃圾', '其他垃圾是指除可回收物、有害垃圾、厨余垃圾以外的其他生活废弃物，如砖瓦陶瓷、渣土、卫生间废纸、瓷器碎片等难以回收的废弃物。', '#6b7280', 'delete', '请尽量沥干水分。其他垃圾应投放到灰色垃圾桶。', true, '砖瓦', NOW(), NOW());
+INSERT INTO waste_categories (name, description, color, icon, disposal_instructions, disposal_method, environmental_impact, recycling_rate, special_handling, hazardous, is_active, common_items, points, created_at, updated_at) VALUES
+('可回收物', '可回收物是指适宜回收利用和资源化利用的生活废弃物，如废纸、废塑料、废玻璃、废金属、废织物等。', '#10b981', 'recycle', '请保持清洁干燥，避免污染。可回收物应投放到蓝色垃圾桶。', '回收再利用', '3', 85.00, false, false, true, '废纸,塑料瓶', 10, NOW(), NOW()),
+('有害垃圾', '有害垃圾是指对人体健康或者自然环境造成直接或者潜在危害的生活废弃物，如废电池、废灯管、废药品、废油漆等。', '#ef4444', 'warning', '请轻放。有害垃圾应投放到红色垃圾桶，并注意密封包装。', '专业处理', '9', 95.00, true, true, true, '废电池', 20, NOW(), NOW()),
+('厨余垃圾', '厨余垃圾是指居民日常生活及食品加工、饮食服务、单位供餐等活动中产生的垃圾，包括丢弃不用的菜叶、剩菜、剩饭、果皮、蛋壳、茶渣、骨头等。', '#f59e0b', 'food', '请沥干水分。厨余垃圾应投放到绿色垃圾桶。', '堆肥处理', '5', 60.00, false, false, true, '菜叶', 5, NOW(), NOW()),
+('其他垃圾', '其他垃圾是指除可回收物、有害垃圾、厨余垃圾以外的其他生活废弃物，如砖瓦陶瓷、渣土、卫生间废纸、瓷器碎片等难以回收的废弃物。', '#6b7280', 'delete', '请尽量沥干水分。其他垃圾应投放到灰色垃圾桶。', '填埋处理', '7', 10.00, false, false, true, '砖瓦', 2, NOW(), NOW());
 
 SELECT 'EcoSorter 数据库初始化完成！' as message;

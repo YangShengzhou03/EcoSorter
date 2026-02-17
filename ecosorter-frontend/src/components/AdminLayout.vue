@@ -65,7 +65,7 @@
           </el-button>
           <el-dropdown @command="handleCommand" trigger="click">
             <div class="user-dropdown">
-              <el-avatar :size="40" :src="userInfo.avatar || DEFAULT_AVATAR" />
+              <el-avatar :size="32" :src="userInfo.avatar || DEFAULT_AVATAR" />
               <span class="user-name">{{ userInfo.username || '管理员' }}</span>
               <el-icon class="dropdown-icon"><arrow-down /></el-icon>
             </div>

@@ -32,29 +32,10 @@
             {{ formatTime(row.lastUpdate) }}
           </template>
         </el-table-column>
-        <el-table-column prop="authToken" label="认证令牌" width="200">
-          <template #default="{ row }">
-            <el-input 
-              v-model="row.authToken" 
-              readonly 
-              size="small" 
-              :show-password="true"
-              style="width: 100%"
-            >
-              <template #append>
-                <el-button 
-                  @click="copyToken(row.authToken)" 
-                  size="small"
-                  icon="CopyDocument"
-                />
-              </template>
-            </el-input>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="280">
+        <el-table-column label="操作" width="320">
           <template #default="{ row }">
             <el-button size="small" @click="editDevice(row)">编辑</el-button>
-            <el-button size="small" type="warning" @click="regenerateToken(row)">重新生成令牌</el-button>
+            <el-button size="small" type="warning" @click="resetAdminPassword(row)">重置管理员密码</el-button>
             <el-button size="small" type="danger" @click="deleteDevice(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -62,13 +43,19 @@
 
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑设备' : '添加设备'" width="500px">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑设备' : '添加设备'" width="700px">
       <el-form :model="deviceForm" :rules="rules" ref="formRef" label-width="100px">
         <el-form-item label="设备ID" prop="deviceId">
           <el-input v-model="deviceForm.deviceId" :disabled="isEdit" placeholder="请输入设备ID" />
         </el-form-item>
         <el-form-item label="位置" prop="location">
           <el-input v-model="deviceForm.location" placeholder="请输入设备位置" />
+        </el-form-item>
+        <el-form-item label="地图选点" prop="mapLocation">
+          <div class="map-container">
+            <div id="amap-container" class="amap-container"></div>
+            <el-button type="primary" size="small" @click="openMapPicker" :icon="Location">在地图上选点</el-button>
+          </div>
         </el-form-item>
         <el-form-item label="纬度" prop="latitude">
           <el-input-number v-model="deviceForm.latitude" :precision="8" :min="-90" :max="90" placeholder="请输入纬度" />
@@ -96,12 +83,43 @@
         <el-button type="primary" @click="submitForm" :loading="submitting">确定</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="mapDialogVisible" title="选择位置" width="800px" :close-on-click-modal="false">
+      <div class="map-picker-container">
+        <div id="map-picker" class="map-picker"></div>
+        <div class="map-info">
+          <el-alert type="info" :closable="false">
+            <template #title>
+              <div class="selected-location">
+                <span>已选择位置：</span>
+                <strong>{{ selectedLocation.address || '请在地图上点击选择位置' }}</strong>
+              </div>
+            </template>
+          </el-alert>
+          <div class="coordinate-info">
+            <div class="coord-item">
+              <span class="coord-label">纬度：</span>
+              <span class="coord-value">{{ selectedLocation.lat }}</span>
+            </div>
+            <div class="coord-item">
+              <span class="coord-label">经度：</span>
+              <span class="coord-value">{{ selectedLocation.lng }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="mapDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmLocation" :disabled="!selectedLocation.lat || !selectedLocation.lng">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Location } from '@element-plus/icons-vue'
 import { adminApi } from '@/api/admin'
 import { formatTime, getCapacityColorByRow, getCapacityPercentage, getCapacityStatus, getStatusType, getStatusText } from '@/utils/helpers'
 
@@ -116,6 +134,16 @@ const dialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref(null)
 const currentDeviceId = ref(null)
+const mapDialogVisible = ref(false)
+const mapInstance = ref(null)
+const markerInstance = ref(null)
+const geocoder = ref(null)
+
+const selectedLocation = ref({
+  lat: null,
+  lng: null,
+  address: ''
+})
 
 const deviceForm = ref({
   deviceId: '',
@@ -227,32 +255,145 @@ const deleteDevice = async (row) => {
   }
 }
 
-const copyToken = async (token) => {
+const resetAdminPassword = async (row) => {
   try {
-    await navigator.clipboard.writeText(token)
-    ElMessage.success('令牌已复制到剪贴板')
-  } catch (error) {
-    ElMessage.error('复制失败')
-  }
-}
-
-const regenerateToken = async (row) => {
-  try {
-    await ElMessageBox.confirm('确定要重新生成该设备的认证令牌吗？旧令牌将立即失效。', '提示', {
+    await ElMessageBox.confirm('确定要重置该设备的管理员密码吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
     
-    await adminApi.regenerateAuthToken(row.id)
-    ElMessage.success('令牌重新生成成功')
-    loadDevices()
+    await adminApi.resetAdminPassword(row.id)
+    ElMessage.success('管理员密码重置成功，新密码为: 123456')
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('重新生成令牌失败')
+      ElMessage.error('重置密码失败')
     }
   }
 }
+
+const loadAMapScript = () => {
+  return new Promise((resolve, reject) => {
+    if (window.AMap) {
+      resolve(window.AMap)
+      return
+    }
+    
+    const script = document.createElement('script')
+    script.type = 'text/javascript'
+    script.src = 'https://webapi.amap.com/maps?v=2.0&key=YOUR_AMAP_KEY&plugin=AMap.Geocoder,AMap.Marker'
+    script.onload = () => {
+      resolve(window.AMap)
+    }
+    script.onerror = () => {
+      reject(new Error('高德地图加载失败'))
+    }
+    document.head.appendChild(script)
+  })
+}
+
+const initMap = async () => {
+  try {
+    const AMap = await loadAMapScript()
+    
+    mapInstance.value = new AMap.Map('map-picker', {
+      zoom: 11,
+      center: [116.397428, 39.90923],
+      viewMode: '3D'
+    })
+    
+    mapInstance.value.on('click', onMapClick)
+    
+    geocoder.value = new AMap.Geocoder({
+      city: '全国'
+    })
+    
+    if (deviceForm.value.latitude && deviceForm.value.longitude) {
+      const position = [deviceForm.value.longitude, deviceForm.value.latitude]
+      mapInstance.value.setCenter(position)
+      addMarker(position)
+      
+      geocoder.value.getAddress(position, (status, result) => {
+        if (status === 'complete' && result.info === 'OK') {
+          selectedLocation.value.address = result.regeocode.formattedAddress
+        }
+      })
+    }
+  } catch (error) {
+    ElMessage.error('地图加载失败，请检查网络连接')
+  }
+}
+
+const addMarker = (position) => {
+  if (markerInstance.value) {
+    mapInstance.value.remove(markerInstance.value)
+  }
+  
+  markerInstance.value = new window.AMap.Marker({
+    position: position,
+    map: mapInstance.value,
+    animation: 'AMAP_ANIMATION_DROP'
+  })
+}
+
+const onMapClick = (e) => {
+  const lnglat = e.lnglat
+  const position = [lnglat.getLng(), lnglat.getLat()]
+  
+  selectedLocation.value.lat = lnglat.getLat()
+  selectedLocation.value.lng = lnglat.getLng()
+  
+  addMarker(position)
+  
+  if (geocoder.value) {
+    geocoder.value.getAddress(position, (status, result) => {
+      if (status === 'complete' && result.info === 'OK') {
+        selectedLocation.value.address = result.regeocode.formattedAddress
+      }
+    })
+  }
+}
+
+const openMapPicker = async () => {
+  mapDialogVisible.value = true
+  
+  await nextTick()
+  
+  if (!mapInstance.value) {
+    await initMap()
+  } else {
+    if (deviceForm.value.latitude && deviceForm.value.longitude) {
+      const position = [deviceForm.value.longitude, deviceForm.value.latitude]
+      mapInstance.value.setCenter(position)
+      addMarker(position)
+      
+      selectedLocation.value.lat = deviceForm.value.latitude
+      selectedLocation.value.lng = deviceForm.value.longitude
+    }
+  }
+}
+
+const confirmLocation = () => {
+  deviceForm.value.latitude = selectedLocation.value.lat
+  deviceForm.value.longitude = selectedLocation.value.lng
+  
+  if (selectedLocation.value.address && !deviceForm.value.location) {
+    deviceForm.value.location = selectedLocation.value.address
+  }
+  
+  mapDialogVisible.value = false
+  ElMessage.success('位置已选择')
+}
+
+watch(mapDialogVisible, (newVal) => {
+  if (!newVal) {
+    selectedLocation.value = {
+      lat: null,
+      lng: null,
+      address: ''
+    }
+  }
+})
 
 onMounted(() => {
   loadDevices()
@@ -268,5 +409,69 @@ onMounted(() => {
   font-size: 12px;
   color: var(--text-secondary);
   margin-left: 8px;
+}
+
+.map-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.amap-container {
+  width: 100%;
+  height: 200px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.map-picker-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.map-picker {
+  width: 100%;
+  height: 400px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+}
+
+.map-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.selected-location {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.coordinate-info {
+  display: flex;
+  gap: 16px;
+  padding: 12px;
+  background: #f5f7fa;
+  border-radius: 4px;
+}
+
+.coord-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.coord-label {
+  font-size: 13px;
+  color: #606266;
+}
+
+.coord-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
 }
 </style>

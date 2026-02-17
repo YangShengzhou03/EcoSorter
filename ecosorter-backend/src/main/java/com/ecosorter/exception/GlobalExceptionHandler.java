@@ -112,8 +112,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
+        ex.printStackTrace();
+        Map<String, Object> response = buildErrorResponse("服务器内部错误: " + ex.getMessage(), "INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+        response.put("exception", ex.getClass().getSimpleName());
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(buildErrorResponse("服务器内部错误", "INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR));
+                .body(response);
     }
 }

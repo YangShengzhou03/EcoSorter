@@ -19,6 +19,9 @@ public interface ClassificationRepository extends BaseMapper<Classification> {
     @Select("SELECT * FROM classifications")
     List<Classification> findAll();
     
+    @Select("DELETE FROM classifications WHERE trashcan_id = #{trashcanId}")
+    void deleteByTrashcanId(Long trashcanId);
+    
     default Classification save(Classification classification) {
         if (classification.getId() == null) {
             insert(classification);

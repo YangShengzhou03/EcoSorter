@@ -58,7 +58,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Coin } from '@element-plus/icons-vue'
@@ -118,6 +118,13 @@ const goToRecords = () => {
 }
 
 onMounted(async () => {
+  await Promise.all([
+    loadPoints(),
+    loadProducts()
+  ])
+})
+
+onActivated(async () => {
   await Promise.all([
     loadPoints(),
     loadProducts()

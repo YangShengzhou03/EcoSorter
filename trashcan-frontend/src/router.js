@@ -18,6 +18,12 @@ const routes = [
     meta: { title: "工作状态" }
   },
   { 
+    path: "/admin", 
+    name: "TrashcanAdmin",
+    component: () => import("./views/TrashcanAdmin.vue"),
+    meta: { title: "管理后台" }
+  },
+  { 
     path: "/login", 
     name: "UserLogin",
     component: () => import("./views/UserLogin.vue"),
@@ -59,7 +65,6 @@ router.afterEach((to) => {
 })
 
 router.onError((error) => {
-  console.error("页面加载失败:", error.message)
   const isInitialized = localStorage.getItem('deviceInitialized')
   if (!isInitialized) {
     window.location.href = '/init'

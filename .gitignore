@@ -152,6 +152,7 @@ credentials/
 *.pfx
 config/secrets.yml
 config/credentials.yml
+application.yml
 
 # IDE
 .vscode/settings.json

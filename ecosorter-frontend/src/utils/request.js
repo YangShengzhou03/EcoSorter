@@ -62,6 +62,7 @@ request.interceptors.response.use(
       
       switch (status) {
         case 401:
+        case 403:
           localStorage.removeItem('token')
           localStorage.removeItem('userInfo')
           router.push('/login')

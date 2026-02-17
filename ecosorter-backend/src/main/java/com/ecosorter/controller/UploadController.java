@@ -30,4 +30,34 @@ public class UploadController {
         
         return ResponseEntity.ok(response);
     }
+    
+    @PostMapping("/image")
+    public ResponseEntity<UploadResponse> uploadImage(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        String fileUrl = uploadService.uploadImage(file);
+        UploadResponse response = new UploadResponse();
+        response.setUrl(fileUrl);
+        response.setFilename(file.getOriginalFilename());
+        response.setSize(file.getSize());
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/face")
+    public ResponseEntity<UploadResponse> uploadFaceImage(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        String fileUrl = uploadService.uploadImage(file);
+        UploadResponse response = new UploadResponse();
+        response.setUrl(fileUrl);
+        response.setFilename(file.getOriginalFilename());
+        response.setSize(file.getSize());
+        
+        return ResponseEntity.ok(response);
+    }
 }

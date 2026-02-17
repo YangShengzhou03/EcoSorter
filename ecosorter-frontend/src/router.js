@@ -63,6 +63,10 @@ const routes = [
       { path: "notifications", component: () => import("./views/collector/Notifications.vue") },
       { path: "notifications/:id", component: () => import("./views/collector/NotificationDetail.vue") },
       { path: "profile", component: () => import("./views/collector/CollectorProfile.vue") },
+      { path: "points", component: () => import("./views/collector/CollectorPoints.vue") },
+      { path: "product/:id", component: () => import("./views/collector/ProductDetail.vue") },
+      { path: "point-records", component: () => import("./views/collector/CollectorPointRecords.vue") },
+      { path: "orders", component: () => import("./views/collector/CollectorOrders.vue") },
     ],
   },
   {

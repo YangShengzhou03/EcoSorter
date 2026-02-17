@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onActivated } from 'vue'
 import { ElMessage } from 'element-plus'
 import { orderApi } from '@/api/order'
 import { formatTime, getStatusType, getStatusText } from '@/utils/helpers'
@@ -76,6 +76,10 @@ const loadOrders = async () => {
 }
 
 onMounted(() => {
+  loadOrders()
+})
+
+onActivated(() => {
   loadOrders()
 })
 </script>

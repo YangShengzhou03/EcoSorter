@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { bannerApi } from '@/api/banner'
@@ -104,6 +104,10 @@ const loadBanners = async () => {
 }
 
 onMounted(() => {
+  loadBanners()
+})
+
+onActivated(() => {
   loadBanners()
 })
 </script>

@@ -83,14 +83,26 @@ const records = ref([])
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
+const filterCategory = ref('')
+const filterStatus = ref('')
 
 const loadRecords = async () => {
   loading.value = true
   try {
-    const response = await classificationApi.getClassificationHistory({
+    const params = {
       page: currentPage.value - 1,
       size: pageSize.value
-    })
+    }
+    
+    if (filterCategory.value) {
+      params.categoryName = filterCategory.value
+    }
+    
+    if (filterStatus.value) {
+      params.status = filterStatus.value
+    }
+    
+    const response = await classificationApi.getClassificationHistory(params)
     records.value = response.records || []
     total.value = response.total || 0
   } catch (error) {

@@ -45,8 +45,13 @@ export const getCapacityColorByRow = (row) => {
 }
 
 export const getCapacityPercentage = (row) => {
-  if (!row.maxCapacity || row.maxCapacity === 0) return 0
-  return Math.round((row.capacity / row.maxCapacity) * 100)
+  const capacity = row.capacityLevel !== undefined && row.capacityLevel !== null ? row.capacityLevel : (row.capacity || 0)
+  const maxCapacity = row.maxCapacity || 100
+  
+  if (!maxCapacity || maxCapacity === 0) return 0
+  if (!capacity || capacity === 0) return 0
+  
+  return Math.round((capacity / maxCapacity) * 100)
 }
 
 export const getCapacityStatus = (row) => {

@@ -126,6 +126,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Cpu, DataAnalysis, Cloudy, Lock } from '@element-plus/icons-vue'
 import { trashcanApi } from '@/api/trashcan'
 
 defineOptions({
@@ -187,34 +188,33 @@ const handleInit = async () => {
 
   loading.value = true
   try {
-    const registerData = {
-      username: formData.deviceName,
-      email: `${formData.deviceName}@trashcan.com`,
-      password: formData.adminPassword,
-      role: 'TRASHCAN',
-      location: formData.location
+    const activateData = {
+      deviceName: formData.deviceName,
+      location: formData.location,
+      binType: formData.binType,
+      password: formData.adminPassword
     }
     
-    const response = await trashcanApi.register(registerData)
+    const response = await trashcanApi.activateDevice(activateData)
     
-    if (response.accessToken) {
-      localStorage.setItem('token', response.accessToken)
+    if (response && response.authToken) {
+      localStorage.setItem('token', response.authToken)
       localStorage.setItem('deviceInitialized', 'true')
       localStorage.setItem('deviceInfo', JSON.stringify({
-        deviceName: formData.deviceName,
-        location: formData.location,
-        binType: formData.binType
+        deviceId: response.deviceId,
+        deviceName: response.deviceName,
+        location: response.location,
+        binType: response.binType,
+        status: response.status
       }))
       
       ElMessage.success('设备激活成功')
-      setTimeout(() => {
-        router.push('/work')
-      }, 1000)
+      
+      await router.push('/work')
     } else {
-      throw new Error('注册失败')
+      throw new Error('激活失败：响应中缺少 authToken')
     }
   } catch (error) {
-    console.error('设备激活失败:', error)
     ElMessage.error(error.response?.data?.message || '设备激活失败，请稍后重试')
   } finally {
     loading.value = false

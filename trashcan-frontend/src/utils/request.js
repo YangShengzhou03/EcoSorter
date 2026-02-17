@@ -39,8 +39,11 @@ const setupInterceptors = (axiosInstance) => {
         pendingRequests.set(requestKey, cancel)
       })
       
-      const token = localStorage.getItem('token')
-      if (token && !config.url.includes('/auth/login') && !config.url.includes('/auth/register')) {
+      const deviceToken = localStorage.getItem('token')
+      const userToken = sessionStorage.getItem('userToken')
+      const token = userToken || deviceToken
+      
+      if (token && !config.url.includes('/auth/login') && !config.url.includes('/auth/register') && !config.url.includes('/auth/device/activate')) {
         config.headers.Authorization = `Bearer ${token}`
       }
       
@@ -70,30 +73,22 @@ const setupInterceptors = (axiosInstance) => {
       
       if (error.response) {
         const { status } = error.response
+        const isDeviceToken = localStorage.getItem('token') && !sessionStorage.getItem('userToken')
         
         switch (status) {
           case 401:
-            localStorage.removeItem('token')
-            localStorage.removeItem('deviceInitialized')
-            localStorage.removeItem('deviceInfo')
-            window.location.href = '/init'
-            break
           case 403:
-            console.error('权限不足:', error.response?.data?.message || 'Forbidden')
+            if (isDeviceToken) {
+              localStorage.removeItem('token')
+              localStorage.removeItem('deviceInitialized')
+              localStorage.removeItem('deviceInfo')
+              window.location.href = '/init'
+            } else {
+              sessionStorage.removeItem('userToken')
+              sessionStorage.removeItem('user')
+            }
             break
-          case 404:
-            console.error('资源不存在:', error.response?.data?.message || 'Not Found')
-            break
-          case 500:
-            console.error('服务器错误:', error.response?.data?.message || 'Internal Server Error')
-            break
-          default:
-            console.error('请求错误:', error.response?.data?.message || error.message)
         }
-      } else if (error.request) {
-        console.error('网络错误: 请检查网络连接')
-      } else {
-        console.error('请求配置错误:', error.message)
       }
       
       return Promise.reject(error)

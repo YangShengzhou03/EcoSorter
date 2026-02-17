@@ -41,7 +41,7 @@ public class ClassificationService {
         this.pointService = pointService;
     }
 
-    public IPage<ClassificationResponse> getClassificationHistory(Long userId, int page, int size, String sortBy, String sortDirection) {
+    public IPage<ClassificationResponse> getClassificationHistory(Long userId, int page, int size, String sortBy, String sortDirection, String categoryName, String status) {
         long current = page <= 0 ? 1 : page;
         Page<Classification> mpPage = new Page<>(current, size);
 
@@ -55,6 +55,17 @@ public class ClassificationService {
         QueryWrapper<Classification> wrapper = new QueryWrapper<Classification>()
                 .eq("user_id", userId)
                 .orderBy(true, isAsc, sortColumn);
+
+        if (categoryName != null && !categoryName.trim().isEmpty()) {
+            wrapper.in("waste_category_id", wasteCategoryRepository.selectList(
+                    new LambdaQueryWrapper<WasteCategory>()
+                            .eq(WasteCategory::getName, categoryName)
+            ).stream().map(WasteCategory::getId).collect(Collectors.toList()));
+        }
+
+        if (status != null && !status.trim().isEmpty()) {
+            wrapper.eq("status", status);
+        }
 
         IPage<Classification> classificationPage = classificationRepository.selectPage(mpPage, wrapper);
 
@@ -83,11 +94,7 @@ public class ClassificationService {
 
     @Transactional(readOnly = true)
     public List<WasteCategoryResponse> getWasteCategories() {
-        List<WasteCategory> categories = wasteCategoryRepository.selectList(
-                new LambdaQueryWrapper<WasteCategory>()
-                        .eq(WasteCategory::getIsActive, true)
-                        .orderByAsc(WasteCategory::getSortOrder)
-        );
+        List<WasteCategory> categories = wasteCategoryRepository.findAll();
 
         return categories.stream()
                 .map(category -> convertToWasteCategoryResponse(category))
@@ -174,7 +181,11 @@ public class ClassificationService {
         response.setModel("eco-sorter-v1.0");
         response.setCreatedAt(classification.getCreatedAt());
         response.setNotes(classification.getNotes());
-        response.setPoints(10);
+        
+        Integer basePoints = (category != null && category.getPoints() != null) ? category.getPoints() : 10;
+        Double confidenceBonus = classification.getConfidenceScore() != null ? classification.getConfidenceScore() * 10 : 0;
+        Integer calculatedPoints = basePoints + confidenceBonus.intValue();
+        response.setPoints(calculatedPoints);
 
         if (classification.getUserFeedback() != null) {
             response.setUserFeedback(classification.getUserFeedback());

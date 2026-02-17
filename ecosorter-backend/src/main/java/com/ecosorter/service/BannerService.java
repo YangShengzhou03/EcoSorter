@@ -8,9 +8,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.logging.Logger;
 
 @Service
 public class BannerService {
+    
+    private static final Logger logger = Logger.getLogger(BannerService.class.getName());
     
     private final BannerRepository bannerRepository;
     
@@ -25,9 +28,17 @@ public class BannerService {
         } else {
             banners = bannerRepository.findAllByOrderBySortOrderAsc();
         }
-        return banners.stream()
+        
+        List<BannerResponse> responses = banners.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
+        
+        logger.info("获取轮播图 - target: " + target + ", 数量: " + responses.size());
+        for (BannerResponse response : responses) {
+            logger.fine("轮播图: " + response.getTitle() + ", 背景: " + response.getBackground());
+        }
+        
+        return responses;
     }
     
     public BannerResponse getBannerById(Long id) {

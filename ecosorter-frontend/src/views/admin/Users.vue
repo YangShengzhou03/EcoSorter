@@ -23,7 +23,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="points" label="积分" />
-        <el-table-column label="操作" width="280">
+        <el-table-column label="操作" width="360">
           <template #default="{ row }">
             <el-button size="small" @click="editUser(row)">编辑</el-button>
             <el-button size="small" type="warning" @click="adjustPoints(row)">调整积分</el-button>
@@ -34,16 +34,16 @@
 
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑用户' : '添加用户'" width="500px">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑用户' : '添加用户'" width="600px">
       <el-form :model="userForm" :rules="rules" ref="formRef" label-width="80px">
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="userForm.username" :disabled="isEdit" />
+          <el-input v-model="userForm.username" placeholder="请输入用户名" />
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
-          <el-input v-model="userForm.email" :disabled="isEdit" />
+          <el-input v-model="userForm.email" placeholder="请输入邮箱" />
         </el-form-item>
         <el-form-item label="密码" prop="password" v-if="!isEdit">
-          <el-input v-model="userForm.password" type="password" />
+          <el-input v-model="userForm.password" type="password" placeholder="请输入密码" />
         </el-form-item>
         <el-form-item label="角色" prop="role">
           <el-select v-model="userForm.role" placeholder="请选择角色">
@@ -91,7 +91,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Camera, Plus, InfoFilled } from '@element-plus/icons-vue'
 import { adminApi } from '@/api/admin'
+import { profileApi } from '@/api/profile'
 
 defineOptions({
   name: 'AdminUsers'
@@ -219,10 +221,20 @@ const submitForm = async () => {
     submitting.value = true
     
     if (isEdit.value) {
-      await adminApi.updateUser(currentUserId.value, {
+      const updateData = {
         role: userForm.value.role,
         isActive: userForm.value.status
-      })
+      }
+      
+      if (userForm.value.username) {
+        updateData.username = userForm.value.username
+      }
+      
+      if (userForm.value.email) {
+        updateData.email = userForm.value.email
+      }
+      
+      await adminApi.updateUser(currentUserId.value, updateData)
       ElMessage.success('更新用户成功')
     } else {
       await adminApi.createUser({

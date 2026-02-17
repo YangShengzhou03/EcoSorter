@@ -156,16 +156,15 @@ public class PointService {
             return List.of();
         }
         
-        int balance = getUserTotalPoints(records.get(0).getUserId());
         List<PointRecordResponse> responses = new ArrayList<>();
+        int balance = 0;
         
-        for (int i = records.size() - 1; i >= 0; i--) {
-            PointRecord record = records.get(i);
+        for (PointRecord record : records) {
+            balance += record.getPoints();
             PointRecordResponse response = toResponse(record);
             response.setPointsChange(record.getPoints());
             response.setBalance(balance);
-            responses.add(0, response);
-            balance -= record.getPoints();
+            responses.add(response);
         }
         
         return responses;

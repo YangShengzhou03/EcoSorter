@@ -4,6 +4,7 @@ import com.ecosorter.dto.ProfileResponse;
 import com.ecosorter.model.User;
 import com.ecosorter.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProfileService {
@@ -28,6 +29,12 @@ public class ProfileService {
             throw new RuntimeException("User not found with id: " + userId);
         }
         
+        if (profileData.getUsername() != null && !profileData.getUsername().trim().isEmpty()) {
+            user.setUsername(profileData.getUsername().trim());
+        }
+        if (profileData.getEmail() != null && !profileData.getEmail().trim().isEmpty()) {
+            user.setEmail(profileData.getEmail().trim());
+        }
         if (profileData.getPhone() != null) {
             user.setPhone(profileData.getPhone());
         }

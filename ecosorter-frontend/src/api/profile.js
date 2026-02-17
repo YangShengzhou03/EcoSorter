@@ -37,11 +37,37 @@ export const profileApi = {
     })
   },
 
-  changePassword(data) {
+  uploadFaceImage(file) {
+    const formData = new FormData()
+    formData.append('file', file)
     return request({
-      url: '/api/profile/change-password',
+      url: '/api/upload/face',
       method: 'post',
-      data
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  },
+
+  registerFace(faceImageUrl) {
+    return request({
+      url: '/api/profile/face',
+      method: 'post',
+      data: { faceImageUrl }
+    })
+  },
+
+  registerFaceFromFile(file) {
+    const formData = new FormData()
+    formData.append('file', file)
+    return request({
+      url: '/api/profile/face/register-from-file',
+      method: 'post',
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
     })
   }
 }

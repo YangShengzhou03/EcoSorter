@@ -13,6 +13,7 @@ import com.ecosorter.model.Booking;
 import com.ecosorter.model.User;
 import com.ecosorter.repository.BookingRepository;
 import com.ecosorter.repository.UserRepository;
+import com.ecosorter.util.PaginationUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

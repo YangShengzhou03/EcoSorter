@@ -34,7 +34,12 @@ public class BookingController {
     
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<BookingResponse> getBookingById(@PathVariable Long id) {
+    public ResponseEntity<BookingResponse> getBookingById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal com.ecosorter.model.User user) {
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
         return ResponseEntity.ok(bookingService.getBookingById(id));
     }
     

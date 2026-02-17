@@ -24,13 +24,6 @@ export const complaintApi = {
     })
   },
 
-  getPendingCount() {
-    return request({
-      url: '/api/complaints/admin/pending-count',
-      method: 'get'
-    })
-  },
-
   processComplaint(id, data) {
     return request({
       url: `/api/complaints/admin/${id}`,

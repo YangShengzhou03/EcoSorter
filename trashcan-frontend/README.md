@@ -8,7 +8,6 @@
 - Element Plus UI 组件库
 - Vue Router 4
 - Axios
-- Pinia
 
 ## 安装依赖
 

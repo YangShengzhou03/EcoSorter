@@ -48,11 +48,15 @@ public class User {
     private LocalDateTime createdAt;
     
     private LocalDateTime updatedAt;
+    
+    private String faceEncoding;
+    
+    private Boolean faceVerified = false;
 
     public User() {
     }
 
-    public User(Long id, String username, String email, String password, UserRole role, Boolean isActive, String avatarUrl, String phone, String address, LocalDateTime lastLogin, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public User(Long id, String username, String email, String password, UserRole role, Boolean isActive, String avatarUrl, String phone, String address, Integer currentPoints, LocalDateTime lastLogin, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.username = username;
         this.email = email;
@@ -62,6 +66,7 @@ public class User {
         this.avatarUrl = avatarUrl;
         this.phone = phone;
         this.address = address;
+        this.currentPoints = currentPoints;
         this.lastLogin = lastLogin;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -173,5 +178,21 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getFaceEncoding() {
+        return faceEncoding;
+    }
+
+    public void setFaceEncoding(String faceEncoding) {
+        this.faceEncoding = faceEncoding;
+    }
+
+    public Boolean getFaceVerified() {
+        return faceVerified;
+    }
+
+    public void setFaceVerified(Boolean faceVerified) {
+        this.faceVerified = faceVerified;
     }
 }

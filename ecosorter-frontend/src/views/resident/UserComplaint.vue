@@ -105,7 +105,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onActivated } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { complaintApi } from '@/api/complaint'
 import { classificationApi } from '@/api/classification'
@@ -224,6 +224,13 @@ const resetForm = () => {
 }
 
 onMounted(async () => {
+  await Promise.all([
+    loadRecords(),
+    loadComplaints()
+  ])
+})
+
+onActivated(async () => {
   await Promise.all([
     loadRecords(),
     loadComplaints()

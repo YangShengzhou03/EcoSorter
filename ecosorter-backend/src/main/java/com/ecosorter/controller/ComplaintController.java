@@ -56,13 +56,6 @@ public class ComplaintController {
         return ResponseEntity.ok(response);
     }
     
-    @GetMapping("/admin/pending-count")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Long> getPendingCount() {
-        long count = complaintService.getPendingCount();
-        return ResponseEntity.ok(count);
-    }
-    
     @PutMapping("/admin/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ComplaintResponse> processComplaint(

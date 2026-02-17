@@ -38,9 +38,9 @@ export const adminApi = {
     })
   },
 
-  regenerateAuthToken(deviceId) {
+  resetAdminPassword(deviceId) {
     return request({
-      url: `/api/admin/devices/${deviceId}/regenerate-token`,
+      url: `/api/admin/devices/${deviceId}/reset-admin-password`,
       method: 'post'
     })
   },

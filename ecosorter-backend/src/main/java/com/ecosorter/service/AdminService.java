@@ -3,6 +3,7 @@ package com.ecosorter.service;
 import com.ecosorter.dto.*;
 import com.ecosorter.enums.PointType;
 import com.ecosorter.enums.TrashcanStatus;
+import com.ecosorter.model.TrashcanData;
 import com.ecosorter.repository.UserRepository;
 import com.ecosorter.repository.TrashcanDataRepository;
 import com.ecosorter.repository.ClassificationRepository;
@@ -30,6 +31,7 @@ public class AdminService {
     private final BannerRepository bannerRepository;
     private final PointRecordRepository pointRecordRepository;
     private final OrderRepository orderRepository;
+    private final ProfileService profileService;
     
     public AdminService(UserRepository userRepository,
                         TrashcanDataRepository trashcanDataRepository,
@@ -38,7 +40,8 @@ public class AdminService {
                         WasteCategoryRepository wasteCategoryRepository,
                         BannerRepository bannerRepository,
                         PointRecordRepository pointRecordRepository,
-                        OrderRepository orderRepository) {
+                        OrderRepository orderRepository,
+                        ProfileService profileService) {
         this.userRepository = userRepository;
         this.trashcanDataRepository = trashcanDataRepository;
         this.classificationRepository = classificationRepository;
@@ -47,30 +50,73 @@ public class AdminService {
         this.bannerRepository = bannerRepository;
         this.pointRecordRepository = pointRecordRepository;
         this.orderRepository = orderRepository;
+        this.profileService = profileService;
     }
     
     public AdminDashboardResponse getDashboard() {
         AdminDashboardResponse response = new AdminDashboardResponse();
-        response.setResidentCount(userRepository.selectList(null).stream()
-            .filter(user -> user.getRole() != null && user.getRole().name().equals("RESIDENT"))
-            .count());
+        
+        response.setTotalUsers(userRepository.count());
         response.setTotalDevices(trashcanDataRepository.count());
-        response.setCollectorCount(userRepository.selectList(null).stream()
-            .filter(user -> user.getRole() != null && user.getRole().name().equals("COLLECTOR"))
-            .count());
-        response.setPendingOrders(orderRepository.selectList(null).stream()
-            .filter(order -> order.getStatus() != null && order.getStatus().equals(OrderStatus.PENDING))
-            .count());
+        
+        List<com.ecosorter.model.Classification> allClassifications = classificationRepository.selectList(null);
+        response.setRecentClassifications((long) allClassifications.size());
+        
+        Long totalWeight = 0L;
+        int correctClassifications = 0;
+        for (com.ecosorter.model.Classification classification : allClassifications) {
+            if (classification.getTrashcanId() != null) {
+                com.ecosorter.model.TrashcanData trashcan = trashcanDataRepository.selectById(classification.getTrashcanId());
+                if (trashcan != null && trashcan.getCapacityLevel() != null) {
+                    totalWeight += trashcan.getCapacityLevel();
+                }
+            }
+            if (classification.getConfidenceScore() != null && classification.getConfidenceScore() >= 0.8) {
+                correctClassifications++;
+            }
+        }
+        response.setTotalWeight(totalWeight);
+        
+        if (!allClassifications.isEmpty()) {
+            double accuracy = (double) correctClassifications / allClassifications.size() * 100;
+            response.setAccuracyRate(Math.round(accuracy * 10.0) / 10.0);
+        } else {
+            response.setAccuracyRate(0.0);
+        }
         
         return response;
     }
     
     public DeviceStatusResponse getDeviceStatus() {
         DeviceStatusResponse response = new DeviceStatusResponse();
-        response.setOnline(trashcanDataRepository.findByStatus("online").size());
-        response.setOffline(trashcanDataRepository.findByStatus("offline").size());
-        response.setError(trashcanDataRepository.findByStatus("error").size());
-        response.setMaintenance(trashcanDataRepository.findByStatus("maintenance").size());
+        
+        List<TrashcanData> allDevices = trashcanDataRepository.findAll();
+        LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
+        
+        int online = 0;
+        int offline = 0;
+        int error = 0;
+        int maintenance = 0;
+        
+        for (TrashcanData device : allDevices) {
+            String status = device.getStatus();
+            LocalDateTime lastActive = device.getLastActive();
+            
+            if ("maintenance".equals(status)) {
+                maintenance++;
+            } else if ("error".equals(status)) {
+                error++;
+            } else if (lastActive != null && lastActive.isAfter(fiveMinutesAgo)) {
+                online++;
+            } else {
+                offline++;
+            }
+        }
+        
+        response.setOnline(online);
+        response.setOffline(offline);
+        response.setError(error);
+        response.setMaintenance(maintenance);
         
         return response;
     }
@@ -147,6 +193,37 @@ public class AdminService {
         
         if (isActive != null) {
             user.setIsActive(isActive);
+        }
+        
+        userRepository.save(user);
+        return convertToUserListResponse(user);
+    }
+    
+    @Transactional
+    public UserListResponse updateUser(Long userId, UpdateUserRequest request) {
+        com.ecosorter.model.User user = userRepository.selectById(userId);
+        if (user == null) {
+            throw new com.ecosorter.exception.ResourceNotFoundException("User not found with id: " + userId);
+        }
+        
+        if (request.getUsername() != null && !request.getUsername().trim().isEmpty()) {
+            user.setUsername(request.getUsername().trim());
+        }
+        
+        if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
+            user.setEmail(request.getEmail().trim());
+        }
+        
+        if (request.getRole() != null) {
+            try {
+                user.setRole(com.ecosorter.model.User.UserRole.valueOf(request.getRole().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                throw new com.ecosorter.exception.BadRequestException("Invalid role: " + request.getRole());
+            }
+        }
+        
+        if (request.getIsActive() != null) {
+            user.setIsActive(request.getIsActive());
         }
         
         userRepository.save(user);
@@ -249,20 +326,16 @@ public class AdminService {
     }
 
     @Transactional
-    public DeviceListResponse regenerateAuthToken(Long deviceId) {
+    public void resetAdminPassword(Long deviceId) {
         com.ecosorter.model.TrashcanData trashcan = trashcanDataRepository.selectById(deviceId);
         if (trashcan == null) {
             throw new com.ecosorter.exception.ResourceNotFoundException("Device not found with id: " + deviceId);
         }
         
-        String newAuthToken = generateAuthToken();
-        trashcan.setAuthToken(newAuthToken);
+        trashcan.setAdminPassword("123456");
         trashcan.setLastActive(java.time.LocalDateTime.now());
         
-        com.ecosorter.model.TrashcanData savedTrashcan = trashcanDataRepository.save(trashcan);
-        DeviceListResponse response = convertToDeviceListResponse(savedTrashcan);
-        response.setAuthToken(newAuthToken);
-        return response;
+        trashcanDataRepository.save(trashcan);
     }
 
     private DeviceListResponse convertToDeviceListResponse(com.ecosorter.model.TrashcanData trashcan) {
@@ -273,12 +346,31 @@ public class AdminService {
         device.setCapacityLevel(trashcan.getCapacityLevel());
         device.setMaxCapacity(trashcan.getMaxCapacity());
         device.setThreshold(trashcan.getThreshold());
-        device.setStatus(trashcan.getStatus());
-        device.setStatusText(getStatusText(trashcan.getStatus()));
+        
+        String actualStatus = getActualStatus(trashcan);
+        device.setStatus(actualStatus);
+        device.setStatusText(getStatusText(actualStatus));
+        
         device.setLatitude(trashcan.getLatitude());
         device.setLongitude(trashcan.getLongitude());
         device.setLastUpdate(trashcan.getUpdatedAt() != null ? trashcan.getUpdatedAt().toString() : "");
         return device;
+    }
+
+    private String getActualStatus(com.ecosorter.model.TrashcanData trashcan) {
+        String status = trashcan.getStatus();
+        if ("maintenance".equals(status)) {
+            return "maintenance";
+        }
+        if ("error".equals(status)) {
+            return "error";
+        }
+        
+        LocalDateTime lastActive = trashcan.getLastActive();
+        if (lastActive != null && lastActive.isAfter(java.time.LocalDateTime.now().minusMinutes(5))) {
+            return "online";
+        }
+        return "offline";
     }
 
     private String getStatusText(String status) {
@@ -307,17 +399,17 @@ public class AdminService {
         report.setId(classification.getId());
         report.setCreatedAt(classification.getCreatedAt());
         report.setType("waste_classification");
-        report.setTypeText("垃圾分类");
-        report.setTitle("垃圾分类记录");
-        report.setDescription("用户完成垃圾分类操作");
-        report.setStatus("completed");
-        report.setStatusText("已完成");
-
+        
         com.ecosorter.model.WasteCategory category = null;
         if (classification.getWasteCategoryId() != null) {
             category = wasteCategoryRepository.selectById(classification.getWasteCategoryId());
         }
         String categoryName = category != null ? category.getName() : "未知";
+        report.setTypeText(categoryName);
+        report.setTitle("垃圾分类记录");
+        report.setDescription("用户完成垃圾分类操作");
+        report.setStatus("completed");
+        report.setStatusText("已完成");
 
         com.ecosorter.model.User user = userRepository.selectById(classification.getUserId());
         String userName = user != null ? user.getUsername() : "未知用户";
@@ -326,8 +418,8 @@ public class AdminService {
         Double weight = 0.0;
         if (classification.getTrashcanId() != null) {
             com.ecosorter.model.TrashcanData trashcan = trashcanDataRepository.selectById(classification.getTrashcanId());
-            if (trashcan != null) {
-                weight = trashcan.getCapacityLevel() != null ? trashcan.getCapacityLevel().doubleValue() : 0.0;
+            if (trashcan != null && trashcan.getCapacityLevel() != null) {
+                weight = trashcan.getCapacityLevel().doubleValue();
             }
         }
         report.setWeight(weight);

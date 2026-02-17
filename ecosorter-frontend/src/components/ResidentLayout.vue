@@ -21,6 +21,10 @@
           <el-icon><ChatDotRound /></el-icon>
           <span>投诉建议</span>
         </el-menu-item>
+        <el-menu-item index="/resident/notifications">
+          <el-icon><Bell /></el-icon>
+          <span>通知消息</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
 
@@ -37,7 +41,7 @@
           </el-button>
           <el-dropdown @command="handleCommand" trigger="click">
             <div class="user-dropdown">
-              <el-avatar :size="40" :src="userInfo.avatar || DEFAULT_AVATAR" />
+              <el-avatar :size="32" :src="userInfo.avatar || DEFAULT_AVATAR" />
               <span class="user-name">{{ userInfo.username || '居民用户' }}</span>
               <el-icon class="dropdown-icon"><arrow-down /></el-icon>
             </div>
@@ -84,7 +88,9 @@ import {
   SwitchButton,
   DataLine,
   Coin,
-  ChatDotRound
+  ChatDotRound,
+  Tickets,
+  ShoppingCart
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -97,6 +103,9 @@ const routeMap = {
   '/resident/dashboard': { category: '首页', page: '仪表盘' },
   '/resident/records': { category: '我的', page: '投递记录' },
   '/resident/points': { category: '我的', page: '积分商城' },
+  '/resident/product': { category: '我的', page: '商品详情' },
+  '/resident/point-records': { category: '我的', page: '积分明细' },
+  '/resident/orders': { category: '我的', page: '我的订单' },
   '/resident/complaint': { category: '我的', page: '投诉建议' },
   '/resident/notifications': { category: '我的', page: '通知消息' }
 }

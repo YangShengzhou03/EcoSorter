@@ -2,26 +2,11 @@ import javaRequest from '@/utils/request'
 import { pythonRequest } from '@/utils/request'
 
 export const trashcanApi = {
-  login(data) {
+  activateDevice(data) {
     return javaRequest({
-      url: '/api/auth/login',
+      url: '/api/auth/device/activate',
       method: 'post',
       data
-    })
-  },
-
-  register(data) {
-    return javaRequest({
-      url: '/api/auth/register',
-      method: 'post',
-      data
-    })
-  },
-
-  getCurrentUser() {
-    return javaRequest({
-      url: '/api/auth/me',
-      method: 'get'
     })
   },
 
@@ -32,7 +17,15 @@ export const trashcanApi = {
     })
   },
 
-  updateStatus(data) {
+  updateTrashcanInfo(data) {
+    return javaRequest({
+      url: '/api/trashcan/me',
+      method: 'put',
+      data
+    })
+  },
+
+  updateTrashcanStatus(data) {
     return javaRequest({
       url: '/api/trashcan/status',
       method: 'put',
@@ -51,12 +44,35 @@ export const trashcanApi = {
   uploadImage(file) {
     const formData = new FormData()
     formData.append('file', file)
-    return pythonRequest({
-      url: '/api/upload',
+    return javaRequest({
+      url: '/api/upload/image',
       method: 'post',
       data: formData,
       headers: {
         'Content-Type': 'multipart/form-data'
+      }
+    })
+  },
+
+  uploadFaceImage(file) {
+    const formData = new FormData()
+    formData.append('file', file)
+    return javaRequest({
+      url: '/api/upload/face',
+      method: 'post',
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  },
+
+  faceLogin(faceImageUrl) {
+    return javaRequest({
+      url: '/api/auth/face-login',
+      method: 'post',
+      data: {
+        faceImageUrl: faceImageUrl
       }
     })
   },
@@ -74,6 +90,40 @@ export const trashcanApi = {
       url: '/api/banners',
       method: 'get',
       params: { target: 'trashcan' }
+    })
+  },
+
+  adminLogin(password) {
+    return javaRequest({
+      url: '/api/trashcan/admin-login',
+      method: 'post',
+      data: {
+        password: password
+      }
+    })
+  },
+
+  resetAdminPassword(newPassword) {
+    return javaRequest({
+      url: '/api/trashcan/reset-password',
+      method: 'post',
+      data: {
+        newPassword: newPassword
+      }
+    })
+  },
+
+  clearDeviceData() {
+    return javaRequest({
+      url: '/api/trashcan/clear-data',
+      method: 'post'
+    })
+  },
+
+  heartbeat() {
+    return javaRequest({
+      url: '/api/trashcan/heartbeat',
+      method: 'post'
     })
   }
 }

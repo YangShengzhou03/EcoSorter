@@ -2,20 +2,21 @@ package com.ecosorter.dto;
 
 public class AdminDashboardResponse {
     
-    private Long residentCount;
+    private Long totalUsers;
     private Long totalDevices;
-    private Long collectorCount;
-    private Long pendingOrders;
+    private Long totalWeight;
+    private Double accuracyRate;
+    private Long recentClassifications;
 
     public AdminDashboardResponse() {
     }
 
-    public Long getResidentCount() {
-        return residentCount;
+    public Long getTotalUsers() {
+        return totalUsers;
     }
 
-    public void setResidentCount(Long residentCount) {
-        this.residentCount = residentCount;
+    public void setTotalUsers(Long totalUsers) {
+        this.totalUsers = totalUsers;
     }
 
     public Long getTotalDevices() {
@@ -26,19 +27,27 @@ public class AdminDashboardResponse {
         this.totalDevices = totalDevices;
     }
 
-    public Long getCollectorCount() {
-        return collectorCount;
+    public Long getTotalWeight() {
+        return totalWeight;
     }
 
-    public void setCollectorCount(Long collectorCount) {
-        this.collectorCount = collectorCount;
+    public void setTotalWeight(Long totalWeight) {
+        this.totalWeight = totalWeight;
     }
 
-    public Long getPendingOrders() {
-        return pendingOrders;
+    public Double getAccuracyRate() {
+        return accuracyRate;
     }
 
-    public void setPendingOrders(Long pendingOrders) {
-        this.pendingOrders = pendingOrders;
+    public void setAccuracyRate(Double accuracyRate) {
+        this.accuracyRate = accuracyRate;
+    }
+
+    public Long getRecentClassifications() {
+        return recentClassifications;
+    }
+
+    public void setRecentClassifications(Long recentClassifications) {
+        this.recentClassifications = recentClassifications;
     }
 }

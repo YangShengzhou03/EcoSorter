@@ -53,7 +53,7 @@ public class AdminController {
     public ResponseEntity<UserListResponse> updateUser(
             @PathVariable Long userId,
             @RequestBody UpdateUserRequest request) {
-        UserListResponse response = adminService.updateUser(userId, request.getRole(), request.getIsActive());
+        UserListResponse response = adminService.updateUser(userId, request);
         return ResponseEntity.ok(response);
     }
     
@@ -97,10 +97,10 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
     
-    @PostMapping("/devices/{deviceId}/regenerate-token")
-    public ResponseEntity<DeviceListResponse> regenerateAuthToken(@PathVariable Long deviceId) {
-        DeviceListResponse response = adminService.regenerateAuthToken(deviceId);
-        return ResponseEntity.ok(response);
+    @PostMapping("/devices/{deviceId}/reset-admin-password")
+    public ResponseEntity<Void> resetAdminPassword(@PathVariable Long deviceId) {
+        adminService.resetAdminPassword(deviceId);
+        return ResponseEntity.ok().build();
     }
     
     @GetMapping("/reports")
