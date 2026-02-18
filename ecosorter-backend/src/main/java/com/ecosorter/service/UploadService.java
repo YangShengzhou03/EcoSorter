@@ -10,7 +10,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.annotation.PreDestroy;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -21,6 +25,8 @@ public class UploadService {
     private final OSS ossClient;
     private final String bucketName;
     private final String baseUrl;
+    private final String localUploadPath;
+    private final String appBaseUrl;
 
     private static final long MAX_FILE_SIZE = 512 * 1024;
     private static final String[] ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"};
@@ -29,10 +35,14 @@ public class UploadService {
                         @Value("${aliyun.oss.access-key-id}") String accessKeyId,
                         @Value("${aliyun.oss.access-key-secret}") String accessKeySecret,
                         @Value("${aliyun.oss.bucket-name}") String bucketName,
-                        @Value("${aliyun.oss.base-url}") String baseUrl) {
+                        @Value("${aliyun.oss.base-url}") String baseUrl,
+                        @Value("${upload.path:./uploads}") String localUploadPath,
+                        @Value("${app.base-url}") String appBaseUrl) {
         this.ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
         this.bucketName = bucketName;
         this.baseUrl = baseUrl;
+        this.localUploadPath = localUploadPath;
+        this.appBaseUrl = appBaseUrl;
     }
 
     @PreDestroy
@@ -103,19 +113,16 @@ public class UploadService {
             String originalFilename = file.getOriginalFilename();
             String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
             String datePath = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-            String objectName = "images/" + datePath + "/" + UUID.randomUUID().toString() + extension;
-
-            byte[] bytes = file.getBytes();
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+            String fileName = UUID.randomUUID().toString() + extension;
             
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(bytes.length);
-            metadata.setContentType(file.getContentType());
+            String userDir = System.getProperty("user.dir");
+            Path uploadDir = Paths.get(userDir, localUploadPath, "images", datePath.replace("/", File.separator));
+            Files.createDirectories(uploadDir);
+            
+            Path filePath = uploadDir.resolve(fileName);
+            file.transferTo(filePath.toFile());
 
-            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, objectName, inputStream, metadata);
-            ossClient.putObject(putObjectRequest);
-
-            String fileUrl = baseUrl + "/" + objectName;
+            String fileUrl = appBaseUrl + "/uploads/images/" + datePath + "/" + fileName;
             return fileUrl;
         } catch (IOException e) {
             throw new RuntimeException("上传图片失败: " + e.getMessage(), e);

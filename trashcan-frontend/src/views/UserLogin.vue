@@ -193,26 +193,19 @@ const captureFace = async () => {
       try {
         const file = new File([blob], 'face.jpg', { type: 'image/jpeg' })
         
-        ElMessage.info('正在上传人脸图片...')
-        const uploadResponse = await trashcanApi.uploadFaceImage(file)
+        ElMessage.info('正在进行人脸识别...')
+        const loginResponse = await trashcanApi.faceLoginWithFile(file)
         
-        if (uploadResponse.url) {
-          ElMessage.info('正在进行人脸识别...')
-          const loginResponse = await trashcanApi.faceLogin(uploadResponse.url)
+        if (loginResponse && loginResponse.accessToken) {
+          ElMessage.success('人脸识别成功')
           
-          if (loginResponse && loginResponse.accessToken) {
-            ElMessage.success('人脸识别成功')
-            
-            sessionStorage.setItem('userToken', loginResponse.accessToken)
-            sessionStorage.setItem('user', JSON.stringify(loginResponse.user))
-            
-            stopCamera()
-            router.push('/recognize')
-          } else {
-            ElMessage.error('人脸识别失败，未找到匹配的用户')
-          }
+          sessionStorage.setItem('userToken', loginResponse.accessToken)
+          sessionStorage.setItem('user', JSON.stringify(loginResponse.user))
+          
+          stopCamera()
+          router.push('/recognize')
         } else {
-          ElMessage.error('人脸图片上传失败')
+          ElMessage.error('人脸识别失败，未找到匹配的用户')
         }
       } catch (error) {
         ElMessage.error('人脸识别失败，请重试')

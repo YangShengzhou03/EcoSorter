@@ -77,12 +77,7 @@ ECO-SORTER 是一个智能垃圾分类管理系统，采用前后端分离架构
 | 轮播图管理 | 轮播图上传、轮播图展示 | ✅ 100% |
 | 数据统计 | 仪表盘、报表分析 | ✅ 100% |
 | 心跳机制 | 设备心跳上报、在线状态判断 | ✅ 100% |
-
-### ⚠️ 部分实现功能
-
-| 模块 | 功能 | 状态 | 说明 |
-|------|------|------|------|
-| 人脸识别 | 人脸注册、人脸登录 | ✅ 100% | 已实现真实人脸识别 |
+| 人脸识别 | 人脸注册、人脸登录 | ✅ 100% |
 
 **人脸识别详细说明**：
 - ✅ 前端界面完整（支持拍照、上传）
@@ -115,8 +110,8 @@ ECO-SORTER 是一个智能垃圾分类管理系统，采用前后端分离架构
 | 投诉 | 5 | 5 | 100% |
 | 轮播图 | 5 | 5 | 100% |
 | 通知 | 6 | 6 | 100% |
-| 管理员 | 10 | 10 | 100% |
-| 收集员 | 10 | 10 | 100% |
+| 管理员 | 14 | 14 | 100% |
+| 收集员 | 13 | 13 | 100% |
 | 个人中心 | 5 | 5 | 100% |
 | 上传 | 3 | 3 | 100% |
 | **总计** | **93** | **93** | **100%** |
@@ -240,25 +235,7 @@ pip install -r requirements.txt
 python App.py
 ```
 
-**5. 人脸识别服务部署（Python）**
-
-编辑 `trashcan-backend/face_recognition.py` 中的配置：
-
-```python
-# 默认配置，无需修改
-UPLOAD_DIR = Path("uploads")
-UPLOAD_DIR.mkdir(exist_ok=True)
-```
-
-安装依赖并启动：
-
-```bash
-cd trashcan-backend
-pip install -r requirements.txt
-python face_service.py
-```
-
-**6. 主系统前端部署**
+**5. 主系统前端部署**
 
 ```bash
 cd ecosorter-frontend
@@ -268,7 +245,7 @@ npm run serve
 
 访问地址：http://localhost:8080
 
-**7. 智能垃圾桶端前端部署**
+**6. 智能垃圾桶端前端部署**
 
 ```bash
 cd trashcan-frontend
@@ -331,15 +308,13 @@ start_all_services.bat
                     ┌─────────────┬─────────────┐
                     │             │             │
                     ▼             ▼             ▼
-          ┌─────────────────┐ ┌──────────┐ ┌─────────────────┐
-          │   MySQL 数据库   │ │ 人脸识别  │ │  AI识别服务      │
-          │                 │ │ 服务      │ │                 │
-          │  MySQL 8.0      │ │          │ │  Python 3.8+    │
-          │  Port: 3306     │ │ Python   │ │  FastAPI        │
-          │                 │ │ FastAPI  │ │  Port: 9000      │
-          └─────────────────┘ │ Port:9001│ └─────────────────┘
-                    │             │             │
-                    └─────────────┴─────────────┘
+          ┌─────────────────┐ ┌─────────────────────────┐
+          │   MySQL 数据库   │ │  AI识别/人脸识别服务      │
+          │                 │ │                         │
+          │  MySQL 8.0      │ │  Python 3.8+            │
+          │  Port: 3306     │ │  FastAPI                │
+          │                 │ │  Port: 9000             │
+          └─────────────────┘ └─────────────────────────┘
                                   │
                                   ▼
                     ┌─────────────────────────┐
@@ -462,6 +437,7 @@ eco-sorter/
 | 设备激活 | POST | /api/auth/device/activate | 激活垃圾桶设备 |
 | 刷新Token | POST | /api/auth/refresh | 刷新访问令牌 |
 | 用户登出 | POST | /api/auth/logout | 用户登出 |
+| 人脸登录 | POST | /api/auth/face-login-with-file | 人脸识别登录（上传图片文件） |
 | 获取当前用户 | GET | /api/auth/me | 获取当前登录用户信息 |
 
 ### 用户管理接口
@@ -488,6 +464,7 @@ eco-sorter/
 | 更新设备信息 | PUT | /api/trashcan/me | 更新垃圾桶设备信息 |
 | 更新设备状态 | PUT | /api/trashcan/status | 更新垃圾桶设备状态 |
 | 提交分类记录 | POST | /api/trashcan/classification | 提交垃圾分类记录 |
+| 心跳上报 | POST | /api/trashcan/heartbeat | 设备心跳上报 |
 | 管理员登录 | POST | /api/trashcan/admin-login | 垃圾桶管理员登录 |
 | 重置管理员密码 | POST | /api/trashcan/reset-password | 重置垃圾桶管理员密码 |
 | 清除设备数据 | POST | /api/trashcan/clear-data | 清除垃圾桶设备数据 |
@@ -599,6 +576,12 @@ eco-sorter/
 | 完成任务 | POST | /api/collector/tasks/{taskId}/complete | 完成任务 |
 | 报告异常 | POST | /api/collector/tasks/{taskId}/exception | 报告异常 |
 | 获取设备列表 | GET | /api/collector/devices | 获取设备列表 |
+| 获取统计数据 | GET | /api/collector/statistics | 获取统计数据 |
+| 获取积分记录 | GET | /api/collector/point-records | 获取积分记录 |
+| 获取订单列表 | GET | /api/collector/orders | 获取订单列表 |
+| 创建订单 | POST | /api/collector/orders | 创建订单 |
+| 获取订单详情 | GET | /api/collector/orders/{orderId} | 获取订单详情 |
+| 取消订单 | POST | /api/collector/orders/{orderId}/cancel | 取消订单 |
 
 ### 个人资料接口
 
@@ -620,7 +603,8 @@ eco-sorter/
 | --- | --- | --- | --- |
 | 健康检查 | GET | / | API健康检查 |
 | 垃圾识别 | POST | /api/recognition/recognize | 识别垃圾类别 |
-| 上传图片 | POST | /api/upload | 上传图片 |
+| 人脸注册 | POST | /api/face/register-with-file | 人脸注册（上传图片文件） |
+| 人脸验证 | POST | /api/face/verify-with-file | 人脸验证（上传图片文件） |
 | 健康检查 | GET | /api/health | 健康检查 |
 
 ## 端口配置

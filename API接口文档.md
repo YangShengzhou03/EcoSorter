@@ -137,14 +137,12 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 ```
 
 ### 1.6 人脸登录
-**接口**: `POST /api/auth/face-login`
+**接口**: `POST /api/auth/face-login-with-file`
+
+**请求类型**: `multipart/form-data`
 
 **请求参数**:
-```json
-{
-  "faceImageUrl": "string (人脸图片URL)"
-}
-```
+- `file`: 人脸图片文件
 
 **响应**:
 ```json
@@ -162,7 +160,8 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 
 **说明**: 
 - 通过人脸识别进行登录
-- 使用真实人脸识别模型（face_recognition库）提取人脸特征
+- 直接上传人脸图片文件
+- Python端自动提取人脸特征并匹配
 - 相似度 > 0.6 时认为匹配成功
 
 ### 1.7 获取当前用户信息
@@ -753,6 +752,10 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 
 **权限**: COLLECTOR
 
+**查询参数**:
+- `page`: 页码 (可选)
+- `pageSize`: 每页数量 (可选)
+
 **响应**:
 ```json
 [
@@ -809,6 +812,64 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 **权限**: COLLECTOR
 
 **响应**: DeviceListResponse数组
+
+### 9.8 获取统计数据
+**接口**: `GET /api/collector/statistics`
+
+**权限**: COLLECTOR
+
+**响应**: UserStatisticsResponse
+
+### 9.9 获取积分记录
+**接口**: `GET /api/collector/point-records`
+
+**权限**: COLLECTOR
+
+**查询参数**:
+- `type`: 积分类型 (可选)
+- `startDate`: 开始日期 (可选)
+- `endDate`: 结束日期 (可选)
+- `page`: 页码 (可选)
+- `pageSize`: 每页数量 (可选)
+
+**响应**: PointRecordResponse数组
+
+### 9.10 获取订单列表
+**接口**: `GET /api/collector/orders`
+
+**权限**: COLLECTOR
+
+**查询参数**:
+- `status`: 订单状态 (可选)
+- `startDate`: 开始日期 (可选)
+- `endDate`: 结束日期 (可选)
+- `page`: 页码 (默认1)
+- `pageSize`: 每页数量 (默认10)
+
+**响应**: OrderResponse数组
+
+### 9.11 创建订单
+**接口**: `POST /api/collector/orders`
+
+**权限**: COLLECTOR
+
+**请求参数**: CreateOrderRequest
+
+**响应**: OrderResponse
+
+### 9.12 获取订单详情
+**接口**: `GET /api/collector/orders/{orderId}`
+
+**权限**: COLLECTOR
+
+**响应**: OrderResponse
+
+### 9.13 取消订单
+**接口**: `POST /api/collector/orders/{orderId}/cancel`
+
+**权限**: COLLECTOR
+
+**响应**: 204 No Content
 
 ---
 
@@ -1141,48 +1202,6 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 
 **响应**: ProfileResponse
 
-### 14.4 人脸注册
-**接口**: `POST /api/profile/face`
-
-**权限**: 需要登录
-
-**请求参数**:
-```json
-{
-  "faceEncoding": "string (人脸特征向量)"
-}
-```
-
-**响应**:
-```json
-"人脸注册成功"
-```
-
-**说明**: 
-- 通过人脸特征向量进行注册
-- 使用真实人脸识别模型（face_recognition库）提取人脸特征
-
-### 14.5 从文件注册人脸
-**接口**: `POST /api/profile/face/register-from-file`
-
-**权限**: 需要登录
-
-**请求类型**: `multipart/form-data`
-
-**请求参数**:
-- `file`: 人脸图片文件
-
-**响应**:
-```json
-"人脸注册成功"
-```
-
-**说明**: 
-- 直接上传人脸图片文件进行注册
-- Python端会自动提取人脸特征向量
-- 使用真实人脸识别模型（face_recognition库）提取人脸特征
-- 如果无法检测到人脸，会返回错误信息
-
 ---
 
 ## 15. 文件上传模块 (Upload)
@@ -1220,28 +1239,6 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
   "size": "integer"
 }
 ```
-
-### 15.3 上传人脸图片
-**接口**: `POST /api/upload/face`
-
-**请求类型**: `multipart/form-data`
-
-**请求参数**:
-- `file`: 人脸图片文件
-
-**响应**:
-```json
-{
-  "url": "string",
-  "filename": "string",
-  "size": "integer"
-}
-```
-
-**说明**: 
-- 上传人脸图片，返回图片URL
-- 该URL可用于人脸登录接口
-- 使用真实人脸识别模型（face_recognition库）提取人脸特征
 
 ---
 
@@ -1369,3 +1366,104 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 **权限**: 需要设备认证令牌
 
 **响应**: 204 No Content
+
+---
+
+## 17. Python后端接口 (AI识别服务)
+
+**Base URL**: `http://localhost:9000`
+
+### 17.1 服务状态
+**接口**: `GET /`
+
+**响应**:
+```json
+{
+  "message": "EcoSorter Recognition API",
+  "port": 9000,
+  "status": "running"
+}
+```
+
+### 17.2 健康检查
+**接口**: `GET /api/health`
+
+**响应**:
+```json
+{
+  "status": "healthy",
+  "port": 9000,
+  "service": "EcoSorter Recognition"
+}
+```
+
+### 17.3 垃圾识别
+**接口**: `POST /api/recognition/recognize`
+
+**请求参数**:
+- `image_url`: 图片URL (Query参数)
+- `authorization`: 认证令牌 (可选, Header)
+
+**响应**:
+```json
+{
+  "data": {
+    "item": "塑料瓶",
+    "category": "可回收物",
+    "confidence": 85,
+    "advice": "请投放到可回收物垃圾桶",
+    "categoryId": 1
+  },
+  "success": true
+}
+```
+
+### 17.4 人脸注册
+**接口**: `POST /api/face/register-with-file`
+
+**请求类型**: `multipart/form-data`
+
+**请求参数**:
+- `userId`: 用户ID (Query参数)
+- `file`: 人脸图片文件
+
+**响应**:
+```json
+{
+  "success": true,
+  "message": "人脸注册成功"
+}
+```
+
+**说明**:
+- 文件大小限制: 512KB
+- 支持的图片格式: JPG, PNG
+- 从图片中提取人脸特征向量并存储到数据库
+- 如果无法检测到人脸，返回错误信息
+
+### 17.5 人脸验证
+**接口**: `POST /api/face/verify-with-file`
+
+**请求类型**: `multipart/form-data`
+
+**请求参数**:
+- `file`: 人脸图片文件
+
+**响应**:
+```json
+{
+  "success": true,
+  "verified": true,
+  "userId": 1,
+  "username": "resident",
+  "confidence": 0.85,
+  "message": "验证成功，匹配用户: resident"
+}
+```
+
+**说明**:
+- 文件大小限制: 512KB
+- 支持的图片格式: JPG, PNG
+- 仅验证居民角色(RESIDENT)的用户
+- 相似度阈值: 0.6
+- 返回匹配度最高的用户信息

@@ -44,7 +44,7 @@
           <el-input v-model="bannerForm.description" type="textarea" :rows="3" placeholder="请输入描述" />
         </el-form-item>
         <el-form-item label="背景色" prop="background">
-          <el-color-picker v-model="bannerForm.background" show-alpha />
+          <el-color-picker v-model="bannerForm.background" show-alpha style="width: 80px;" />
         </el-form-item>
         <el-form-item label="排序" prop="sortOrder">
           <el-input-number v-model="bannerForm.sortOrder" :min="0" />

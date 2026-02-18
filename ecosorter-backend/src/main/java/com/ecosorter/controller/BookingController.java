@@ -40,7 +40,7 @@ public class BookingController {
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(bookingService.getBookingById(id));
+        return ResponseEntity.ok(bookingService.getBookingById(id, user.getId()));
     }
     
     @PostMapping

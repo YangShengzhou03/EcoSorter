@@ -17,7 +17,7 @@ module.exports = {
         changeOrigin: true
       },
       '/api/upload': {
-        target: 'http://localhost:9000',
+        target: 'http://localhost:8081',
         changeOrigin: true
       },
       '/api/recognition': {

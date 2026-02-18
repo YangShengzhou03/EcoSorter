@@ -21,8 +21,8 @@
       </el-col>
       <el-col :span="6">
         <el-card class="stat-card">
-          <div class="stat-number">{{ stats.accuracyRate }}%</div>
-          <div class="stat-label">分类准确率</div>
+          <div class="stat-number">{{ stats.pendingOrders }}</div>
+          <div class="stat-label">待发货</div>
         </el-card>
       </el-col>
     </el-row>
@@ -197,7 +197,7 @@ const stats = reactive({
   totalUsers: 0,
   totalDevices: 0,
   totalWeight: 0,
-  accuracyRate: 0.0
+  pendingOrders: 0
 })
 
 const deviceStatus = reactive({
@@ -237,7 +237,7 @@ const loadDashboard = async () => {
     stats.totalUsers = response.totalUsers || 0
     stats.totalDevices = response.totalDevices || 0
     stats.totalWeight = response.totalWeight || 0
-    stats.accuracyRate = response.accuracyRate || 0.0
+    stats.pendingOrders = response.pendingOrders || 0
   } catch (error) {
     ElMessage.error('加载仪表板数据失败')
   }

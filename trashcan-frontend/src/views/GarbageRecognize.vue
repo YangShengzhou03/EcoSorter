@@ -103,7 +103,6 @@ const canvasRef = ref(null)
 const cameraActive = ref(false)
 const capturedImage = ref('')
 const recognizeResult = ref(null)
-const uploadedImageUrl = ref('')
 
 let stream = null
 
@@ -182,28 +181,12 @@ const captureImage = async () => {
   capturedImage.value = canvas.toDataURL('image/jpeg', 0.8)
   
   try {
-    ElMessage.info('正在上传图片...')
+    ElMessage.info('正在识别...')
     
     const blob = dataURLtoBlob(capturedImage.value)
     const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' })
     
-    const uploadResponse = await trashcanApi.uploadImage(file)
-    if (uploadResponse && uploadResponse.url) {
-      uploadedImageUrl.value = uploadResponse.url
-      await performClassification(uploadResponse.url)
-    } else {
-      throw new Error('上传失败')
-    }
-  } catch (error) {
-    ElMessage.error('上传图片失败，请重试')
-  }
-}
-
-const performClassification = async (imageUrl) => {
-  try {
-    ElMessage.info('正在识别...')
-    
-    const response = await trashcanApi.getClassification(imageUrl)
+    const response = await trashcanApi.getClassificationWithFile(file)
     
     if (response && response.data) {
       const result = response.data
@@ -215,28 +198,12 @@ const performClassification = async (imageUrl) => {
         advice: result.advice || '请正确分类投放'
       }
       
-      await submitClassification(result)
-      
       ElMessage.success('识别完成')
     } else {
       throw new Error('识别失败')
     }
   } catch (error) {
     ElMessage.error('识别失败，请重试')
-  }
-}
-
-const submitClassification = async (result) => {
-  try {
-    const token = localStorage.getItem('token')
-    if (token) {
-      await trashcanApi.submitClassification({
-        imageUrl: uploadedImageUrl.value,
-        categoryId: result.categoryId,
-        confidence: result.confidence
-      })
-    }
-  } catch (error) {
   }
 }
 
@@ -265,7 +232,6 @@ const progressColor = computed(() => {
 const resetRecognition = () => {
   recognizeResult.value = null
   capturedImage.value = ''
-  uploadedImageUrl.value = ''
 }
 
 onUnmounted(() => {

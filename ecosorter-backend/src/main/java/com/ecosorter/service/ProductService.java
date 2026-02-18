@@ -32,7 +32,7 @@ public class ProductService {
         this.orderRepository = orderRepository;
     }
     
-    public IPage<ProductResponse> getAllProducts(int page, int pageSize, String category, String status) {
+    public IPage<ProductResponse> getAllProducts(int page, int pageSize, String category, String status, Long userId) {
         Page<Product> mpPage = new Page<>(page, pageSize);
         LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<Product>()
                 .orderByDesc(Product::getCreatedAt);
@@ -46,26 +46,39 @@ public class ProductService {
 
         IPage<Product> productPage = productRepository.selectPage(mpPage, wrapper);
 
-        Map<Long, Integer> totalPurchasedByProductId = getTotalPurchasedByProductIds(
-                productPage.getRecords().stream().map(Product::getId).collect(Collectors.toList())
-        );
+        List<Long> productIds = productPage.getRecords().stream()
+                .map(Product::getId)
+                .collect(Collectors.toList());
+
+        Map<Long, Integer> totalPurchasedByProductId = getTotalPurchasedByProductIds(productIds);
+        Map<Long, Integer> userPurchasedByProductId = userId != null 
+                ? getUserPurchasedByProductIds(productIds, userId) 
+                : Map.of();
 
         Page<ProductResponse> responsePage = new Page<>(productPage.getCurrent(), productPage.getSize(), productPage.getTotal());
         responsePage.setRecords(
                 productPage.getRecords().stream()
-                        .map(product -> convertToResponse(product, totalPurchasedByProductId.getOrDefault(product.getId(), 0)))
+                        .map(product -> convertToResponse(
+                            product, 
+                            totalPurchasedByProductId.getOrDefault(product.getId(), 0),
+                            userPurchasedByProductId.getOrDefault(product.getId(), 0)))
                         .collect(Collectors.toList())
         );
         return responsePage;
     }
     
-    public ProductResponse getProductById(Long id) {
+    public ProductResponse getProductById(Long id, Long userId) {
         Product product = productRepository.selectById(id);
         if (product == null) {
             throw new ResourceNotFoundException("Product not found");
         }
         Map<Long, Integer> totalPurchasedByProductId = getTotalPurchasedByProductIds(List.of(product.getId()));
-        return convertToResponse(product, totalPurchasedByProductId.getOrDefault(product.getId(), 0));
+        int userPurchased = 0;
+        if (userId != null) {
+            Map<Long, Integer> userPurchasedByProductId = getUserPurchasedByProductIds(List.of(product.getId()), userId);
+            userPurchased = userPurchasedByProductId.getOrDefault(product.getId(), 0);
+        }
+        return convertToResponse(product, totalPurchasedByProductId.getOrDefault(product.getId(), 0), userPurchased);
     }
     
     @Transactional
@@ -87,7 +100,7 @@ public class ProductService {
         product.setUpdatedAt(now);
 
         productRepository.insert(product);
-        return convertToResponse(product, 0);
+        return convertToResponse(product, 0, 0);
     }
     
     @Transactional
@@ -111,7 +124,7 @@ public class ProductService {
         
         productRepository.updateById(existingProduct);
         Map<Long, Integer> totalPurchasedByProductId = getTotalPurchasedByProductIds(List.of(existingProduct.getId()));
-        return convertToResponse(existingProduct, totalPurchasedByProductId.getOrDefault(existingProduct.getId(), 0));
+        return convertToResponse(existingProduct, totalPurchasedByProductId.getOrDefault(existingProduct.getId(), 0), 0);
     }
     
     @Transactional
@@ -145,6 +158,7 @@ public class ProductService {
         QueryWrapper<com.ecosorter.model.Order> wrapper = new QueryWrapper<>();
         wrapper.select("product_id as productId", "IFNULL(SUM(quantity), 0) as totalPurchased")
                 .in("product_id", productIds)
+                .ne("status", "cancelled")
                 .groupBy("product_id");
 
         List<Map<String, Object>> rows = orderRepository.selectMaps(wrapper);
@@ -162,7 +176,34 @@ public class ProductService {
         return result;
     }
 
-    private ProductResponse convertToResponse(Product product, Integer totalPurchased) {
+    private Map<Long, Integer> getUserPurchasedByProductIds(List<Long> productIds, Long userId) {
+        if (productIds == null || productIds.isEmpty() || userId == null) {
+            return Map.of();
+        }
+
+        QueryWrapper<com.ecosorter.model.Order> wrapper = new QueryWrapper<>();
+        wrapper.select("product_id as productId", "IFNULL(SUM(quantity), 0) as userPurchased")
+                .in("product_id", productIds)
+                .eq("user_id", userId)
+                .ne("status", "cancelled")
+                .groupBy("product_id");
+
+        List<Map<String, Object>> rows = orderRepository.selectMaps(wrapper);
+        Map<Long, Integer> result = new HashMap<>();
+        for (Map<String, Object> row : rows) {
+            Object productIdObj = row.get("productId");
+            Object userPurchasedObj = row.get("userPurchased");
+            if (productIdObj == null) {
+                continue;
+            }
+            Long productId = ((Number) productIdObj).longValue();
+            int userPurchased = userPurchasedObj == null ? 0 : ((Number) userPurchasedObj).intValue();
+            result.put(productId, userPurchased);
+        }
+        return result;
+    }
+
+    private ProductResponse convertToResponse(Product product, Integer totalPurchased, Integer userPurchased) {
         ProductResponse response = new ProductResponse();
         response.setId(product.getId());
         response.setName(product.getName());
@@ -174,6 +215,7 @@ public class ProductService {
         response.setStatus(product.getStatus() != null ? product.getStatus().name().toLowerCase() : null);
         response.setCategory(product.getCategory());
         response.setTotalPurchased(totalPurchased != null ? totalPurchased : 0);
+        response.setUserPurchased(userPurchased != null ? userPurchased : 0);
         response.setCreatedAt(product.getCreatedAt());
         response.setUpdatedAt(product.getUpdatedAt());
         return response;

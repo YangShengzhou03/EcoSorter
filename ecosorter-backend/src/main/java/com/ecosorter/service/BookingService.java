@@ -58,9 +58,12 @@ public class BookingService {
         return toResponsePage(bookingPage);
     }
     
-    public BookingResponse getBookingById(Long id) {
+    public BookingResponse getBookingById(Long id, Long userId) {
         Booking booking = bookingRepository.selectById(id);
         if (booking == null) {
+            throw new ResourceNotFoundException("Booking not found");
+        }
+        if (!booking.getUserId().equals(userId)) {
             throw new ResourceNotFoundException("Booking not found");
         }
         return convertToResponse(booking);

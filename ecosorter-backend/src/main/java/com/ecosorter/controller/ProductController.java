@@ -3,10 +3,12 @@ package com.ecosorter.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.ecosorter.dto.ProductRequest;
 import com.ecosorter.dto.ProductResponse;
+import com.ecosorter.model.User;
 import com.ecosorter.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -24,13 +26,18 @@ public class ProductController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String status) {
-        return ResponseEntity.ok(productService.getAllProducts(page, pageSize, category, status));
+            @RequestParam(required = false) String status,
+            @AuthenticationPrincipal User user) {
+        Long userId = user != null ? user.getId() : null;
+        return ResponseEntity.ok(productService.getAllProducts(page, pageSize, category, status, userId));
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
-        return ResponseEntity.ok(productService.getProductById(id));
+    public ResponseEntity<ProductResponse> getProductById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user) {
+        Long userId = user != null ? user.getId() : null;
+        return ResponseEntity.ok(productService.getProductById(id, userId));
     }
     
     @PostMapping

@@ -173,6 +173,10 @@ public class AuthService {
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new BadRequestException("用户不存在"));
         
+        if (!Boolean.TRUE.equals(user.getIsActive())) {
+            throw new BadRequestException("账号已被禁用，请联系管理员");
+        }
+        
         if (!user.getPassword().equals(loginRequest.getPassword())) {
             throw new BadRequestException("密码错误");
         }
@@ -201,6 +205,10 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         
+        if (!Boolean.TRUE.equals(user.getIsActive())) {
+            throw new BadRequestException("账号已被禁用，请联系管理员");
+        }
+        
         String newToken = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name());
         
         UserResponse userResponse = convertToUserResponse(user);
@@ -216,21 +224,31 @@ public class AuthService {
     public void logout(String token) {
     }
     
-    public AuthResponse faceLogin(String faceImageUrl) {
-        String faceEncoding = faceRecognitionService.extractFaceEncoding(faceImageUrl);
+    public AuthResponse faceLoginWithFile(org.springframework.web.multipart.MultipartFile file) {
+        java.util.Map<String, Object> result = faceRecognitionService.verifyFaceWithFile(file);
         
-        if (faceEncoding == null || faceEncoding.isEmpty()) {
-            throw new BadRequestException("人脸特征提取失败");
+        Boolean success = (Boolean) result.get("success");
+        Boolean verified = (Boolean) result.get("verified");
+        String message = (String) result.get("message");
+        
+        if (!Boolean.TRUE.equals(success)) {
+            throw new BadRequestException(message != null ? message : "人脸验证服务异常");
         }
         
-        User user = faceRecognitionService.findMatchingUser(faceEncoding);
-        
-        if (user == null) {
-            throw new BadRequestException("未找到匹配的用户");
+        if (!Boolean.TRUE.equals(verified)) {
+            throw new BadRequestException(message != null ? message : "未找到匹配的用户");
         }
         
-        if (!user.getIsActive()) {
-            throw new BadRequestException("用户已被禁用");
+        Number userId = (Number) result.get("userId");
+        if (userId == null) {
+            throw new BadRequestException("验证结果异常");
+        }
+        
+        User user = userRepository.findById(userId.longValue())
+                .orElseThrow(() -> new BadRequestException("用户不存在"));
+        
+        if (!Boolean.TRUE.equals(user.getIsActive())) {
+            throw new BadRequestException("账号已被禁用，请联系管理员");
         }
         
         user.setLastLogin(LocalDateTime.now());

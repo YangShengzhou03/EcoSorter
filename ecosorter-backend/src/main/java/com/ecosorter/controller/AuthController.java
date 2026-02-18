@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -56,14 +57,13 @@ public class AuthController {
         return ResponseEntity.ok("Logged out successfully");
     }
     
-    @PostMapping("/face-login")
-    public ResponseEntity<AuthResponse> faceLogin(@RequestBody java.util.Map<String, String> request) {
-        String faceImageUrl = request.get("faceImageUrl");
-        if (faceImageUrl == null || faceImageUrl.isEmpty()) {
+    @PostMapping("/face-login-with-file")
+    public ResponseEntity<AuthResponse> faceLoginWithFile(@RequestParam("file") MultipartFile file) {
+        if (file == null || file.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
         
-        AuthResponse response = authService.faceLogin(faceImageUrl);
+        AuthResponse response = authService.faceLoginWithFile(file);
         return ResponseEntity.ok(response);
     }
     

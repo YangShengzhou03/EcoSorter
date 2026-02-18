@@ -73,7 +73,18 @@ public class OrderService {
         return toResponsePage(orderPage);
     }
     
-    public OrderResponse getOrderById(Long id) {
+    public OrderResponse getOrderById(Long id, Long userId) {
+        Order order = orderRepository.selectById(id);
+        if (order == null) {
+            throw new ResourceNotFoundException("Order not found");
+        }
+        if (!order.getUserId().equals(userId)) {
+            throw new ResourceNotFoundException("Order not found");
+        }
+        return convertToResponse(order);
+    }
+    
+    public OrderResponse getOrderByIdForAdmin(Long id) {
         Order order = orderRepository.selectById(id);
         if (order == null) {
             throw new ResourceNotFoundException("Order not found");
@@ -198,7 +209,8 @@ public class OrderService {
         QueryWrapper<Order> wrapper = new QueryWrapper<>();
         wrapper.select("IFNULL(SUM(quantity), 0) as purchasedQuantity")
                 .eq("user_id", userId)
-                .eq("product_id", productId);
+                .eq("product_id", productId)
+                .ne("status", OrderStatus.CANCELLED.name().toLowerCase());
         List<Map<String, Object>> rows = orderRepository.selectMaps(wrapper);
         if (rows.isEmpty()) {
             return 0;

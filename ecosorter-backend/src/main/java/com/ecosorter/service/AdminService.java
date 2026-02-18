@@ -63,7 +63,6 @@ public class AdminService {
         response.setRecentClassifications((long) allClassifications.size());
         
         Long totalWeight = 0L;
-        int correctClassifications = 0;
         for (com.ecosorter.model.Classification classification : allClassifications) {
             if (classification.getTrashcanId() != null) {
                 com.ecosorter.model.TrashcanData trashcan = trashcanDataRepository.selectById(classification.getTrashcanId());
@@ -71,18 +70,11 @@ public class AdminService {
                     totalWeight += trashcan.getCapacityLevel();
                 }
             }
-            if (classification.getConfidenceScore() != null && classification.getConfidenceScore() >= 0.8) {
-                correctClassifications++;
-            }
         }
         response.setTotalWeight(totalWeight);
         
-        if (!allClassifications.isEmpty()) {
-            double accuracy = (double) correctClassifications / allClassifications.size() * 100;
-            response.setAccuracyRate(Math.round(accuracy * 10.0) / 10.0);
-        } else {
-            response.setAccuracyRate(0.0);
-        }
+        Long pendingOrders = orderRepository.countByStatus(OrderStatus.PENDING);
+        response.setPendingOrders(pendingOrders != null ? pendingOrders : 0L);
         
         return response;
     }

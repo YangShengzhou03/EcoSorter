@@ -14,6 +14,7 @@ public class ProductResponse {
     private String status;
     private String category;
     private Integer totalPurchased;
+    private Integer userPurchased;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -95,6 +96,14 @@ public class ProductResponse {
 
     public void setTotalPurchased(Integer totalPurchased) {
         this.totalPurchased = totalPurchased;
+    }
+
+    public Integer getUserPurchased() {
+        return userPurchased;
+    }
+
+    public void setUserPurchased(Integer userPurchased) {
+        this.userPurchased = userPurchased;
     }
 
     public LocalDateTime getCreatedAt() {

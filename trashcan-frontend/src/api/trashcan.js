@@ -54,25 +54,15 @@ export const trashcanApi = {
     })
   },
 
-  uploadFaceImage(file) {
+  faceLoginWithFile(file) {
     const formData = new FormData()
     formData.append('file', file)
     return javaRequest({
-      url: '/api/upload/face',
+      url: '/api/auth/face-login-with-file',
       method: 'post',
       data: formData,
       headers: {
         'Content-Type': 'multipart/form-data'
-      }
-    })
-  },
-
-  faceLogin(faceImageUrl) {
-    return javaRequest({
-      url: '/api/auth/face-login',
-      method: 'post',
-      data: {
-        faceImageUrl: faceImageUrl
       }
     })
   },
@@ -82,6 +72,19 @@ export const trashcanApi = {
       url: '/api/recognition/recognize',
       method: 'post',
       params: { image_url: imageUrl }
+    })
+  },
+
+  getClassificationWithFile(file) {
+    const formData = new FormData()
+    formData.append('file', file)
+    return pythonRequest({
+      url: '/api/recognition/recognize-with-file',
+      method: 'post',
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
     })
   },
 

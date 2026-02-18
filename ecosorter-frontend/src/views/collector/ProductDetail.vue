@@ -1,69 +1,65 @@
 <template>
   <div class="product-detail" v-loading="loading">
-    <el-breadcrumb separator="/" class="breadcrumb">
-      <el-breadcrumb-item to="/collector/points">积分商城</el-breadcrumb-item>
-      <el-breadcrumb-item>{{ product?.name }}</el-breadcrumb-item>
-    </el-breadcrumb>
-
     <div class="main-section">
       <div class="gallery">
-        <el-carousel :interval="5000" arrow="hover" height="380px">
-          <el-carousel-item v-for="(image, index) in productImages" :key="index">
-            <img :src="image || '/placeholder.png'" :alt="product?.name">
-          </el-carousel-item>
-        </el-carousel>
+        <img :src="product?.imageUrl || '/placeholder.png'" :alt="product?.name" class="product-image">
       </div>
 
       <div class="info">
-        <div class="info-row">
-          <h1 class="name">{{ product?.name }}</h1>
-          <div class="price">
-            <span class="value">{{ product?.points }}</span>
-            <span class="unit">积分</span>
-          </div>
+        <h1 class="name">{{ product?.name }}</h1>
+
+        <div class="sales-info">
+          <span class="sales-text">已兑换 {{ product?.totalPurchased || 0 }} 件</span>
+          <span class="review-text">好评率100%</span>
+          <span class="stock-info">库存剩余 {{ product?.stock || 0 }} 件</span>
+          <span class="date-info">上架日期 {{ formatDate(product?.createdAt) }}</span>
         </div>
 
-        <div class="desc">
-          <p>{{ product?.description }}</p>
-        </div>
-
-        <div class="meta-action-row">
-          <div class="meta">
-            <span>{{ product?.category }}</span>
-            <span class="sep">|</span>
-            <span>库存{{ product?.stock }}件</span>
-            <span class="sep">|</span>
-            <span>限购{{ product?.maxPurchase }}件</span>
-            <span class="sep">|</span>
-            <span>已兑换{{ product?.totalPurchased }}件</span>
-          </div>
-          <el-input-number v-model="quantity" :min="1" :max="maxQuantity"
-            :disabled="product?.status !== 'available'" />
-          <el-button type="primary" @click="buyNow" :disabled="!canBuy" :loading="submitting" class="btn">
-            立即兑换
-          </el-button>
+        <div class="price-section">
+          <span class="value">{{ product?.points }}</span>
+          <span class="currency">积分</span>
         </div>
 
         <div class="delivery-info">
           <div class="delivery-item">
-            <span class="delivery-label">发货</span>
-            <span class="delivery-value">48小时内发货，预计明天送达</span>
+            <el-icon class="icon">
+              <Van />
+            </el-icon>
+            <span>快递 免运费</span>
           </div>
           <div class="delivery-item">
-            <span class="delivery-label">快递</span>
-            <span class="delivery-value">免运费</span>
+            <el-icon class="icon">
+              <Box />
+            </el-icon>
+            <span>不支持7天无理由退货</span>
           </div>
           <div class="delivery-item">
-            <span class="delivery-label">售后</span>
-            <span class="delivery-value">7天价保 7天无理由退货 极速退款</span>
+            <el-icon class="icon">
+              <CreditCard />
+            </el-icon>
+            <span>仅支持积分兑换</span>
           </div>
         </div>
+
+        <div class="divider"></div>
+
+        <div class="quantity-section">
+          <span class="quantity-label">数量</span>
+          <el-input-number v-model="quantity" :min="1" :max="maxQuantity" :disabled="product?.status !== 'available'"
+            controls-position="right" />
+          <span class="stock-text">有货（每人限购{{ product?.maxPurchase || 1 }}件）</span>
+        </div>
+
+        <el-button type="primary" @click="buyNow" :disabled="!canBuy" :loading="submitting">立即兑换</el-button>
       </div>
     </div>
 
-    <div class="desc-section">
-      <h3>商品详情</h3>
-      <p>{{ product?.description }}</p>
+    <el-tabs class="detail-tabs">
+      <el-tab-pane label="商品详情"></el-tab-pane>
+    </el-tabs>
+
+    <div class="rating-info">
+      <p class="desc-text">{{ product?.description }}</p>
     </div>
 
     <el-dialog v-model="orderDialogVisible" title="确认兑换" width="400px">
@@ -80,7 +76,7 @@
         <div class="summary">
           <div class="row"><span>数量</span><span>{{ quantity }}件</span></div>
           <div class="row"><span>积分</span><span class="cost">{{ totalPoints }}</span></div>
-          <div class="row total"><span>剩余</span><span>{{ userPoints - totalPoints }}</span></div>
+          <div class="row total"><span>剩余</span><span>{{ remainingPoints }}</span></div>
         </div>
       </el-form>
       <template #footer>
@@ -95,6 +91,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Van, Box, CreditCard } from '@element-plus/icons-vue'
 import { productApi } from '@/api/product'
 import { collectorApi } from '@/api/collector'
 
@@ -128,34 +125,37 @@ const orderRules = {
   shippingAddress: [{ required: true, message: '请输入地址', trigger: 'blur' }]
 }
 
-const productImages = computed(() => {
-  if (!product.value) return []
-  return [product.value.imageUrl]
-})
+const totalPoints = computed(() => (product.value?.points || 0) * quantity.value)
 
-const totalPoints = computed(() => product.value ? product.value.points * quantity.value : 0)
+const remainingPoints = computed(() => userPoints.value - totalPoints.value)
 
 const maxQuantity = computed(() => {
   if (!product.value) return 1
-  const stockLimit = product.value.stock
-  const purchaseLimit = product.value.maxPurchase || stockLimit
-  const remainingPurchase = purchaseLimit - (product.value.totalPurchased || 0)
-  return Math.min(stockLimit, remainingPurchase)
+  const { stock, maxPurchase, userPurchased } = product.value
+  const limit = maxPurchase || stock
+  const remaining = limit - (userPurchased || 0)
+  return Math.max(0, Math.min(stock, remaining))
 })
 
 const canBuy = computed(() => {
   if (!product.value || product.value.status !== 'available') return false
   if (quantity.value > product.value.stock) return false
-  if (product.value.maxPurchase && (product.value.totalPurchased || 0) + quantity.value > product.value.maxPurchase) return false
-  if (totalPoints.value > userPoints.value) return false
-  return true
+  const { maxPurchase, userPurchased } = product.value
+  if (maxPurchase && (userPurchased || 0) + quantity.value > maxPurchase) return false
+  return totalPoints.value <= userPoints.value
 })
+
+const formatDate = (date) => {
+  if (!date) return '-'
+  const d = new Date(date)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 const loadProduct = async () => {
   loading.value = true
   try {
     product.value = await productApi.getById(route.params.id)
-  } catch (error) {
+  } catch {
     ElMessage.error('加载失败')
   } finally {
     loading.value = false
@@ -166,15 +166,21 @@ const loadUserPoints = async () => {
   try {
     const response = await collectorApi.getStatistics()
     userPoints.value = response.totalPoints || 0
-  } catch (error) {
+  } catch {
     ElMessage.error('加载积分失败')
   }
 }
 
+const loadData = async () => {
+  await Promise.all([loadProduct(), loadUserPoints()])
+}
+
+const resetOrderForm = () => {
+  Object.assign(orderForm, { contactName: '', contactPhone: '', shippingAddress: '' })
+}
+
 const buyNow = () => {
-  orderForm.contactName = ''
-  orderForm.contactPhone = ''
-  orderForm.shippingAddress = ''
+  resetOrderForm()
   orderDialogVisible.value = true
 }
 
@@ -185,223 +191,173 @@ const submitOrder = async () => {
     await collectorApi.createOrder({
       productId: product.value.id,
       quantity: quantity.value,
-      contactName: orderForm.contactName,
-      contactPhone: orderForm.contactPhone,
-      shippingAddress: orderForm.shippingAddress
+      ...orderForm
     })
     ElMessage.success('兑换成功')
     orderDialogVisible.value = false
-    loadUserPoints()
-    loadProduct()
+    await loadData()
     router.push('/collector/points')
   } catch (error) {
     if (error !== false) {
-      const msg = error.response?.data?.message || '提交失败'
-      ElMessage.error(msg)
+      ElMessage.error(error.response?.data?.message || '提交失败')
     }
   } finally {
     submitting.value = false
   }
 }
 
-onMounted(() => {
-  loadProduct()
-  loadUserPoints()
-})
+onMounted(loadData)
 </script>
 
 <style scoped>
 .product-detail {
-  max-width: 1200px;
   margin: 0 auto;
-}
-
-.breadcrumb {
-  margin-bottom: 16px;
+  max-width: 1200px;
+  padding: 16px 0;
 }
 
 .main-section {
   display: flex;
   gap: 32px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .gallery {
-  flex: 0 0 380px;
+  flex: 0 0 320px;
 }
 
-.gallery :deep(.el-carousel) {
-  overflow: hidden;
-  border: 1px solid #e4e7ed;
-}
-
-.gallery img {
+.product-image {
   width: 100%;
-  height: 100%;
+  height: 380px;
   object-fit: contain;
+  display: block;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
   background: #fafafa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .info {
   flex: 1;
 }
 
-.info-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 24px;
-}
-
 .name {
   font-size: 20px;
-  font-weight: 600;
+  font-weight: 500;
   color: #303133;
-  margin: 0;
+  margin: 0 0 12px;
   line-height: 1.4;
 }
 
-.price {
-  margin-bottom: 0;
-}
-
-.price .value {
-  font-size: 32px;
-  font-weight: 600;
-  color: #f56c6c;
-}
-
-.price .unit {
+.sales-info {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
   font-size: 14px;
-  color: #f56c6c;
+}
+
+.sales-text {
+  color: #ff6600;
+}
+
+.review-text,
+.stock-info,
+.date-info {
+  color: #909399;
+}
+
+.price-section {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 18px;
+}
+
+.currency {
+  font-size: 18px;
+  color: #ff4400;
   margin-left: 4px;
 }
 
-.desc {
-  margin-bottom: 24px;
-}
-
-.desc p {
-  font-size: 14px;
-  color: #606266;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.meta-action-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 24px;
-}
-
-.meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 13px;
-  color: #606266;
-}
-
-.meta .sep {
-  color: #dcdfe6;
-  margin: 0 4px;
-}
-
-.meta-action-row :deep(.el-input-number) {
-  width: 120px;
-}
-
-.meta-action-row :deep(.el-input-number .el-input__wrapper) {
-  box-shadow: 0 0 0 1px #dcdfe6 inset;
-}
-
-.meta-action-row :deep(.el-input-number .el-input__wrapper:hover) {
-  box-shadow: 0 0 0 1px #c0c4cc inset;
-}
-
-.meta-action-row :deep(.el-input-number .el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 1px #409eff inset;
-}
-
-.btn {
-  flex: 1;
-  height: 36px;
-  font-size: 14px;
-  font-weight: 500;
-  background: #f56c6c;
-  border: none;
-  box-shadow: 0 2px 8px rgba(245, 108, 108, 0.2);
-  transition: all 0.3s ease;
-}
-
-.btn:hover:not(:disabled) {
-  background: #f78989;
-  box-shadow: 0 4px 12px rgba(245, 108, 108, 0.3);
-}
-
-.btn:active:not(:disabled) {
-  background: #e64242;
-}
-
-.btn:disabled {
-  background: #f5f7fa;
-  color: #c0c4cc;
-  box-shadow: none;
+.price-section .value {
+  font-size: 36px;
+  font-weight: 600;
+  color: #ff4400;
 }
 
 .delivery-info {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 16px;
-  background: #f5f7fa;
-  margin-top: 24px;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
 .delivery-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   font-size: 13px;
-}
-
-.delivery-label {
-  color: #909399;
-  font-weight: 500;
-  min-width: 40px;
-}
-
-.delivery-value {
-  color: #303133;
-  flex: 1;
-}
-
-.desc-section {
-  padding: 24px 0;
-  border-top: 1px solid #e4e7ed;
-}
-
-.desc-section h3 {
-  font-size: 15px;
-  font-weight: 600;
-  color: #303133;
-  margin: 0 0 16px 0;
-}
-
-.desc-section p {
-  font-size: 14px;
   color: #606266;
-  line-height: 1.8;
+  padding: 4px 0;
+}
+
+.delivery-item .icon {
+  font-size: 18px;
+  color: #409eff;
+}
+
+.divider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 16px 0;
+}
+
+.quantity-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.quantity-label {
+  font-size: 14px;
+  color: #303133;
+}
+
+.quantity-section :deep(.el-input-number) {
+  width: 100px;
+}
+
+.quantity-section :deep(.el-input-number .el-input__wrapper) {
+  box-shadow: 0 0 0 1px #dcdfe6 inset;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.quantity-section :deep(.el-input-number .el-input__wrapper:hover),
+.quantity-section :deep(.el-input-number .el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px #409eff inset;
+}
+
+.stock-text {
+  font-size: 13px;
+  color: #909399;
+}
+
+.rating-info {
+  font-size: 14px;
+  color: #303133;
+  padding: 16px 0;
+}
+
+.rating-info .desc-text {
   margin: 0;
+  line-height: 1.6;
+  color: #606266;
 }
 
 .summary {
   padding: 16px;
   background: #f5f7fa;
-  border-radius: 0;
   margin-top: 16px;
 }
 

@@ -1,5 +1,7 @@
 import request from '@/utils/request'
 
+const PYTHON_API_URL = 'http://localhost:9000'
+
 export const profileApi = {
   getProfile() {
     return request({
@@ -37,37 +39,12 @@ export const profileApi = {
     })
   },
 
-  uploadFaceImage(file) {
+  registerFaceFromFile(file, userId) {
     const formData = new FormData()
     formData.append('file', file)
-    return request({
-      url: '/api/upload/face',
-      method: 'post',
-      data: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
-  },
-
-  registerFace(faceImageUrl) {
-    return request({
-      url: '/api/profile/face',
-      method: 'post',
-      data: { faceImageUrl }
-    })
-  },
-
-  registerFaceFromFile(file) {
-    const formData = new FormData()
-    formData.append('file', file)
-    return request({
-      url: '/api/profile/face/register-from-file',
-      method: 'post',
-      data: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
+    return fetch(`${PYTHON_API_URL}/api/face/register-with-file?userId=${userId}`, {
+      method: 'POST',
+      body: formData
+    }).then(res => res.json())
   }
 }

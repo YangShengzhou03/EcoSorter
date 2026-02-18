@@ -44,8 +44,13 @@ public class OrderController {
     
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<OrderResponse> getOrderById(@PathVariable Long id) {
-        return ResponseEntity.ok(orderService.getOrderById(id));
+    public ResponseEntity<OrderResponse> getOrderById(
+            @AuthenticationPrincipal com.ecosorter.model.User user,
+            @PathVariable Long id) {
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(orderService.getOrderById(id, user.getId()));
     }
     
     @PostMapping

@@ -132,7 +132,7 @@ const handleUserClick = () => {
 }
 
 const handleLearnMore = () => {
-    ElMessage.info('欢迎使用ECO-Sorter智能垃圾分类系统')
+    router.push('/index/about')
 }
 
 const handleBackToTop = () => {

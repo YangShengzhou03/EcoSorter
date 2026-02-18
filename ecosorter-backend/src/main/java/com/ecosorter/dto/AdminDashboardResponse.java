@@ -5,7 +5,7 @@ public class AdminDashboardResponse {
     private Long totalUsers;
     private Long totalDevices;
     private Long totalWeight;
-    private Double accuracyRate;
+    private Long pendingOrders;
     private Long recentClassifications;
 
     public AdminDashboardResponse() {
@@ -35,12 +35,12 @@ public class AdminDashboardResponse {
         this.totalWeight = totalWeight;
     }
 
-    public Double getAccuracyRate() {
-        return accuracyRate;
+    public Long getPendingOrders() {
+        return pendingOrders;
     }
 
-    public void setAccuracyRate(Double accuracyRate) {
-        this.accuracyRate = accuracyRate;
+    public void setPendingOrders(Long pendingOrders) {
+        this.pendingOrders = pendingOrders;
     }
 
     public Long getRecentClassifications() {

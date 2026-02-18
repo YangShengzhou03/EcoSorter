@@ -345,6 +345,11 @@ const beforeFaceUpload = (file) => {
 }
 
 const handleFaceFileChange = (file) => {
+  const isLt512K = file.size / 1024 < 512
+  if (!isLt512K) {
+    ElMessage.error('图片大小不能超过512KB!')
+    return
+  }
   const reader = new FileReader()
   reader.onload = (e) => {
     facePreviewUrl.value = e.target.result
@@ -361,12 +366,15 @@ const handleUploadFace = async () => {
 
   try {
     uploadingFace.value = true
-    await profileApi.registerFaceFromFile(selectedFaceFile.value)
+    const result = await profileApi.registerFaceFromFile(selectedFaceFile.value, userInfo.value.id)
     
-    authStore.updateUserInfo({ faceVerified: true })
-    
-    ElMessage.success('人脸注册成功')
-    closeFaceDialog()
+    if (result.success) {
+      authStore.updateUserInfo({ faceVerified: true })
+      ElMessage.success('人脸注册成功')
+      closeFaceDialog()
+    } else {
+      ElMessage.error(result.message || '人脸注册失败')
+    }
   } catch (error) {
     ElMessage.error('人脸注册失败')
   } finally {
