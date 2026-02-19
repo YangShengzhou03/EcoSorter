@@ -50,7 +50,10 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/banners/**").permitAll()
-                .requestMatchers("/api/classification/**").permitAll()
+                .requestMatchers("/api/classification/categories").permitAll()
+                .requestMatchers("/api/trashcans/**").permitAll()
+                .requestMatchers("/api/products").permitAll()
+                .requestMatchers("/api/products/{id}").permitAll()
                 .requestMatchers("/api/upload/**").permitAll()
                 .requestMatchers("/uploads/**").permitAll()
                 .anyRequest().authenticated()

@@ -85,6 +85,11 @@
                                     <p>赣ICP备2025075576号 赣公网安备36010802001254号</p>
                                 </div>
                     </div>
+                    <div class="footer-legal">
+                        <a href="#" class="legal-link" @click.prevent="router.push('/index/privacy-policy')">隐私政策</a>
+                        <span class="legal-divider">|</span>
+                        <a href="#" class="legal-link" @click.prevent="router.push('/index/user-agreement')">用户协议</a>
+                    </div>
                     <div class="footer-back-to-top">
                         <button class="back-to-top-btn" @click="handleBackToTop">↑</button>
                     </div>
@@ -535,6 +540,29 @@ onUnmounted(() => {
 
 .footer-copyright:hover p {
     color: #666666;
+}
+
+.footer-legal {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.legal-link {
+    color: #999999;
+    text-decoration: none;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.legal-link:hover {
+    color: #ff6700;
+}
+
+.legal-divider {
+    color: #999999;
+    opacity: 0.4;
 }
 
 .footer-back-to-top {

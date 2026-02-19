@@ -26,7 +26,7 @@ apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
-    namespace "com.ecosorter.trashcan"
+    namespace "com.yangshengzhou.ecosorter"
     compileSdkVersion 34
     ndkVersion flutter.ndkVersion
 
@@ -44,7 +44,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.ecosorter.trashcan"
+        applicationId "com.yangshengzhou.ecosorter"
         minSdkVersion 30
         targetSdkVersion 34
         versionCode flutterVersionCode.toInteger()

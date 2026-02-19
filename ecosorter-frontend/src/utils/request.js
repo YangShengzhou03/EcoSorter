@@ -5,8 +5,11 @@ const request = axios.create({
   baseURL: process.env.VUE_APP_API_BASE_URL || 'http://localhost:8081',
   timeout: parseInt(process.env.VUE_APP_REQUEST_TIMEOUT) || 30000,
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json; charset=UTF-8',
+    'Accept': 'application/json; charset=UTF-8'
+  },
+  responseType: 'json',
+  responseEncoding: 'utf8'
 })
 
 const pendingRequests = new Map()
@@ -32,8 +35,6 @@ request.interceptors.request.use(
     if (token && !config.url.includes('/auth/login') && !config.url.includes('/auth/register')) {
       config.headers.Authorization = `Bearer ${token}`
     }
-    
-    config.metadata = { startTime: new Date() }
     
     return config
   },

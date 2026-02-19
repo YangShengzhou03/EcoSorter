@@ -9,6 +9,13 @@ export const bookingApi = {
     })
   },
 
+  getById(id) {
+    return request({
+      url: `/api/bookings/${id}`,
+      method: 'get'
+    })
+  },
+
   create(data) {
     return request({
       url: '/api/bookings',
@@ -21,13 +28,6 @@ export const bookingApi = {
     return request({
       url: `/api/bookings/${id}/cancel`,
       method: 'post'
-    })
-  },
-
-  getDetail(id) {
-    return request({
-      url: `/api/bookings/${id}`,
-      method: 'get'
     })
   }
 }

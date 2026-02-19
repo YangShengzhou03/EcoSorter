@@ -16,6 +16,14 @@ export const classificationApi = {
     })
   },
 
+  searchCategories(keyword) {
+    return request({
+      url: '/api/classification/search',
+      method: 'get',
+      params: { keyword }
+    })
+  },
+
   createCategory(data) {
     return request({
       url: '/api/classification/categories',

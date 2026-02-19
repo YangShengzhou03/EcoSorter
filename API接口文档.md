@@ -162,7 +162,7 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 - 通过人脸识别进行登录
 - 直接上传人脸图片文件
 - Python端自动提取人脸特征并匹配
-- 相似度 > 0.6 时认为匹配成功
+- 相似度 > 0.7 时认为匹配成功
 
 ### 1.7 获取当前用户信息
 **接口**: `GET /api/auth/me`
@@ -1379,9 +1379,11 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 **响应**:
 ```json
 {
-  "message": "EcoSorter Recognition API",
+  "message": "EcoSorter Recognition API v2.0",
   "port": 9000,
-  "status": "running"
+  "status": "running",
+  "model": "YOLOv8s",
+  "classes": 80
 }
 ```
 
@@ -1393,11 +1395,34 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 {
   "status": "healthy",
   "port": 9000,
-  "service": "EcoSorter Recognition"
+  "service": "EcoSorter Recognition",
+  "version": "2.0.0",
+  "model": "YOLOv8s",
+  "classes_mapped": 80,
+  "model_loaded": true
 }
 ```
 
-### 17.3 垃圾识别
+### 17.3 模型信息
+**接口**: `GET /api/model/info`
+
+**响应**:
+```json
+{
+  "model_name": "YOLOv8s",
+  "model_type": "object_detection",
+  "total_classes": 80,
+  "classes_mapped": 80,
+  "categories": {
+    "可回收物": "金属、塑料、玻璃、纸张、电子产品等",
+    "厨余垃圾": "食物、水果、植物、动物等",
+    "其他垃圾": "一次性用品、陶瓷、卫生用品等",
+    "有害垃圾": "电池、药品等（需自定义训练）"
+  }
+}
+```
+
+### 17.4 垃圾识别（URL方式）
 **接口**: `POST /api/recognition/recognize`
 
 **请求参数**:
@@ -1411,14 +1436,73 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
     "item": "塑料瓶",
     "category": "可回收物",
     "confidence": 85,
-    "advice": "请投放到可回收物垃圾桶",
+    "advice": "请投放到可回收物垃圾桶（蓝色）",
     "categoryId": 1
   },
   "success": true
 }
 ```
 
-### 17.4 人脸注册
+### 17.5 垃圾识别（文件上传）
+**接口**: `POST /api/recognition/recognize-with-file`
+
+**请求类型**: `multipart/form-data`
+
+**请求参数**:
+- `file`: 图片文件
+
+**响应**:
+```json
+{
+  "data": {
+    "item": "塑料瓶",
+    "category": "可回收物",
+    "confidence": 85,
+    "advice": "请投放到可回收物垃圾桶（蓝色）",
+    "categoryId": 1
+  },
+  "success": true
+}
+```
+
+### 17.6 多目标垃圾识别
+**接口**: `POST /api/recognition/recognize-multi`
+
+**请求类型**: `multipart/form-data`
+
+**请求参数**:
+- `file`: 图片文件
+
+**响应**:
+```json
+{
+  "data": [
+    {
+      "item": "塑料瓶",
+      "category": "可回收物",
+      "confidence": 0.92,
+      "advice": "请投放到可回收物垃圾桶（蓝色）",
+      "categoryId": 1
+    },
+    {
+      "item": "香蕉",
+      "category": "厨余垃圾",
+      "confidence": 0.88,
+      "advice": "请投放到厨余垃圾桶（绿色）",
+      "categoryId": 3
+    }
+  ],
+  "success": true,
+  "count": 2
+}
+```
+
+**说明**:
+- 支持同时识别图片中的多个物品
+- 仅返回置信度 >= 0.5 的检测结果
+- 去重处理，相同物品只返回一次
+
+### 17.7 人脸注册
 **接口**: `POST /api/face/register-with-file`
 
 **请求类型**: `multipart/form-data`
@@ -1441,7 +1525,7 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 - 从图片中提取人脸特征向量并存储到数据库
 - 如果无法检测到人脸，返回错误信息
 
-### 17.5 人脸验证
+### 17.8 人脸验证
 **接口**: `POST /api/face/verify-with-file`
 
 **请求类型**: `multipart/form-data`
@@ -1465,5 +1549,5 @@ EcoSorter是一个垃圾分类管理系统，包含以下模块：
 - 文件大小限制: 512KB
 - 支持的图片格式: JPG, PNG
 - 仅验证居民角色(RESIDENT)的用户
-- 相似度阈值: 0.6
+- 相似度阈值: 0.7
 - 返回匹配度最高的用户信息

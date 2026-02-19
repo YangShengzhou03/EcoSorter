@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.ecosorter.dto.CreateOrderRequest;
 import com.ecosorter.dto.OrderResponse;
 import com.ecosorter.enums.OrderStatus;
 import com.ecosorter.exception.BadRequestException;
@@ -146,6 +147,67 @@ public class OrderService {
             "兑换商品: " + product.getName() + " x" + order.getQuantity());
         
         return convertToResponse(order);
+    }
+    
+    @Transactional
+    public OrderResponse createOrderFromRequest(Long userId, CreateOrderRequest request) {
+        User user = userRepository.selectById(userId);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found");
+        }
+
+        if (request == null || request.getProductId() == null) {
+            throw new BadRequestException("Product is required");
+        }
+        if (request.getQuantity() == null || request.getQuantity() <= 0) {
+            throw new BadRequestException("Quantity must be positive");
+        }
+
+        Product product = productRepository.selectById(request.getProductId());
+        if (product == null) {
+            throw new ResourceNotFoundException("Product not found");
+        }
+        
+        if (product.getStock() < request.getQuantity()) {
+            throw new RuntimeException("Insufficient stock");
+        }
+        
+        Integer totalPoints = product.getPoints() * request.getQuantity();
+        
+        Integer currentPoints = pointService.getUserTotalPoints(userId);
+        if (currentPoints < totalPoints) {
+            throw new RuntimeException("Insufficient points");
+        }
+
+        Integer purchasedQuantity = getPurchasedQuantity(userId, product.getId());
+        
+        if (product.getMaxPurchase() != null && purchasedQuantity + request.getQuantity() > product.getMaxPurchase()) {
+            throw new RuntimeException("Purchase limit exceeded. Maximum purchase: " + product.getMaxPurchase());
+        }
+        
+        product.setStock(product.getStock() - request.getQuantity());
+        product.setUpdatedAt(LocalDateTime.now());
+        productRepository.updateById(product);
+
+        Order order = new Order();
+        order.setUserId(user.getId());
+        order.setProductId(product.getId());
+        order.setQuantity(request.getQuantity());
+        order.setTotalPoints(totalPoints);
+        order.setContactName(request.getContactName());
+        order.setContactPhone(request.getContactPhone());
+        order.setShippingAddress(request.getShippingAddress());
+        order.setStatus(OrderStatus.PENDING);
+
+        LocalDateTime now = LocalDateTime.now();
+        order.setCreatedAt(now);
+        order.setUpdatedAt(now);
+        orderRepository.insert(order);
+
+        pointService.deductPoints(userId, totalPoints, "order", order.getId(),
+            "兑换商品: " + product.getName() + " x" + request.getQuantity());
+        
+        return convertToResponse(order, product);
     }
     
     @Transactional

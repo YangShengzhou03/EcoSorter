@@ -1,6 +1,6 @@
 package com.ecosorter.controller;
 
-import com.ecosorter.dto.ProfileResponse;
+import com.ecosorter.dto.UserResponse;
 import com.ecosorter.model.User;
 import com.ecosorter.service.ProfileService;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +20,7 @@ public class ProfileController {
     
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ProfileResponse> getProfile(@AuthenticationPrincipal User user) {
+    public ResponseEntity<UserResponse> getProfile(@AuthenticationPrincipal User user) {
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
@@ -29,7 +29,7 @@ public class ProfileController {
     
     @PutMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ProfileResponse> updateProfile(
+    public ResponseEntity<UserResponse> updateProfile(
             @AuthenticationPrincipal User user,
             @RequestBody User profileData) {
         if (user == null) {
@@ -40,7 +40,7 @@ public class ProfileController {
     
     @PutMapping("/avatar")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ProfileResponse> updateAvatar(
+    public ResponseEntity<UserResponse> updateAvatar(
             @AuthenticationPrincipal User user,
             @RequestBody java.util.Map<String, String> request) {
         if (user == null) {

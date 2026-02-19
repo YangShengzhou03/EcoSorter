@@ -24,12 +24,12 @@ public class PointController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<IPage<PointRecordResponse>> getPointRecordsPage(
             @AuthenticationPrincipal com.ecosorter.model.User user,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int pageSize) {
         if (user == null) {
             return ResponseEntity.badRequest().build();
         }
-        IPage<PointRecordResponse> records = pointService.getUserPointRecords(user.getId(), page, size);
+        IPage<PointRecordResponse> records = pointService.getUserPointRecords(user.getId(), page, pageSize);
         return ResponseEntity.ok(records);
     }
 }

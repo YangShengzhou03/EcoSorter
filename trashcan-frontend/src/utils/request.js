@@ -3,21 +3,19 @@ import axios from 'axios'
 const javaApiBaseURL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8081'
 const pythonApiBaseURL = process.env.VUE_APP_PYTHON_API_URL || 'http://localhost:9000'
 
-const javaRequest = axios.create({
-  baseURL: javaApiBaseURL,
+const createAxiosInstance = (baseURL) => axios.create({
+  baseURL,
   timeout: parseInt(process.env.VUE_APP_REQUEST_TIMEOUT) || 30000,
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json; charset=UTF-8',
+    'Accept': 'application/json; charset=UTF-8'
+  },
+  responseType: 'json',
+  responseEncoding: 'utf8'
 })
 
-const pythonRequest = axios.create({
-  baseURL: pythonApiBaseURL,
-  timeout: parseInt(process.env.VUE_APP_REQUEST_TIMEOUT) || 30000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-})
+const javaRequest = createAxiosInstance(javaApiBaseURL)
+const pythonRequest = createAxiosInstance(pythonApiBaseURL)
 
 const pendingRequests = new Map()
 
@@ -46,8 +44,6 @@ const setupInterceptors = (axiosInstance) => {
       if (token && !config.url.includes('/auth/login') && !config.url.includes('/auth/register') && !config.url.includes('/auth/device/activate')) {
         config.headers.Authorization = `Bearer ${token}`
       }
-      
-      config.metadata = { startTime: new Date() }
       
       return config
     },

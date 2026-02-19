@@ -7,6 +7,10 @@
           返回
         </el-button>
         <h2 class="panel-title">垃圾识别</h2>
+        <div class="user-info" v-if="currentUser">
+          <el-icon><User /></el-icon>
+          <span class="username">{{ currentUser.username || currentUser.name || '用户' }}</span>
+        </div>
       </div>
 
       <div class="camera-section">
@@ -20,14 +24,6 @@
         </div>
         
         <div class="camera-controls">
-          <el-button
-            v-if="!cameraActive"
-            type="primary"
-            size="large"
-            @click="startCamera"
-          >
-            启动摄像头
-          </el-button>
           <el-button
             v-if="cameraActive"
             type="success"
@@ -86,10 +82,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { VideoCamera, ArrowLeft, Camera } from '@element-plus/icons-vue'
+import { VideoCamera, ArrowLeft, Camera, User } from '@element-plus/icons-vue'
 import { trashcanApi } from '@/api/trashcan'
 
 defineOptions({
@@ -97,6 +93,21 @@ defineOptions({
 })
 
 const router = useRouter()
+
+const currentUser = ref(null)
+
+const loadCurrentUser = () => {
+  try {
+    const userStr = sessionStorage.getItem('user')
+    if (userStr) {
+      currentUser.value = JSON.parse(userStr)
+    }
+  } catch (error) {
+    currentUser.value = null
+  }
+}
+
+loadCurrentUser()
 
 const videoRef = ref(null)
 const canvasRef = ref(null)
@@ -136,7 +147,6 @@ const startCamera = async () => {
     if (videoRef.value) {
       videoRef.value.srcObject = stream
       cameraActive.value = true
-      ElMessage.success('摄像头已启动')
     }
   } catch (error) {
     ElMessage.error('无法启动摄像头，请检查权限设置')
@@ -180,9 +190,7 @@ const captureImage = async () => {
   
   capturedImage.value = canvas.toDataURL('image/jpeg', 0.8)
   
-  try {
-    ElMessage.info('正在识别...')
-    
+  try {    
     const blob = dataURLtoBlob(capturedImage.value)
     const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' })
     
@@ -197,8 +205,6 @@ const captureImage = async () => {
         confidence: result.confidence || 85,
         advice: result.advice || '请正确分类投放'
       }
-      
-      ElMessage.success('识别完成')
     } else {
       throw new Error('识别失败')
     }
@@ -233,6 +239,10 @@ const resetRecognition = () => {
   recognizeResult.value = null
   capturedImage.value = ''
 }
+
+onMounted(() => {
+  startCamera()
+})
 
 onUnmounted(() => {
   stopCamera()
@@ -270,6 +280,22 @@ onUnmounted(() => {
   font-weight: 600;
   color: #303133;
   margin: 0;
+  flex: 1;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f5f7fa;
+  border-radius: 16px;
+  color: #606266;
+  font-size: 14px;
+}
+
+.username {
+  font-weight: 500;
 }
 
 .camera-section {
@@ -352,7 +378,6 @@ onUnmounted(() => {
 }
 
 .result-image {
-  height: 200px;
   background: #f5f5f5;
   display: flex;
   align-items: center;

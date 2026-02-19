@@ -92,7 +92,7 @@ ECO-SORTER 是一个智能垃圾分类管理系统，采用前后端分离架构
 - 注册时：从用户上传的人脸图片中提取真实特征向量并存储到数据库
 - 登录时：从用户上传的人脸图片中提取真实特征向量，与数据库中的特征向量进行比对
 - 相似度计算：使用欧氏距离计算两个特征向量的相似度
-- 阈值设置：相似度 > 0.6 时认为匹配成功
+- 阈值设置：相似度 > 0.7 时认为匹配成功
 
 ### 📊 接口实现统计
 
@@ -112,9 +112,10 @@ ECO-SORTER 是一个智能垃圾分类管理系统，采用前后端分离架构
 | 通知 | 6 | 6 | 100% |
 | 管理员 | 14 | 14 | 100% |
 | 收集员 | 13 | 13 | 100% |
-| 个人中心 | 5 | 5 | 100% |
-| 上传 | 3 | 3 | 100% |
-| **总计** | **93** | **93** | **100%** |
+| 个人中心 | 3 | 3 | 100% |
+| 上传 | 2 | 2 | 100% |
+| Python后端 | 8 | 8 | 100% |
+| **总计** | **98** | **98** | **100%** |
 
 ## 快速开始
 
@@ -198,7 +199,7 @@ spring:
 
 app:
   jwt:
-    secret: ecosorter-jwt-secret-key-2024-change-in-production
+    secret: ecosorter-jwt-secret-key-2026-change-in-production
     expires-ms: 86400000
 
 server:
@@ -215,14 +216,33 @@ java -jar target/backend-0.0.1-SNAPSHOT.jar
 
 **4. AI识别服务部署（Python）**
 
+配置数据库连接（可通过环境变量或直接修改代码）：
+
+**方式一：使用环境变量**
+```bash
+# Windows
+set DB_HOST=localhost
+set DB_USERNAME=root
+set DB_PASSWORD=your_password
+set DB_NAME=eco_sorter
+
+# Linux/Mac
+export DB_HOST=localhost
+export DB_USERNAME=root
+export DB_PASSWORD=your_password
+export DB_NAME=eco_sorter
+```
+
+**方式二：直接修改配置文件**
+
 编辑 `trashcan-backend/yolo_recognition.py` 中的数据库配置：
 
 ```python
 DATABASE_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': 'your_password',
-    'database': 'eco_sorter',
+    'host': os.getenv('DB_HOST', 'localhost'),
+    'user': os.getenv('DB_USERNAME', 'root'),
+    'password': os.getenv('DB_PASSWORD', 'your_password'),
+    'database': os.getenv('DB_NAME', 'eco_sorter'),
     'charset': 'utf8mb4'
 }
 ```
@@ -254,21 +274,6 @@ npm run serve
 ```
 
 访问地址：http://localhost:8080
-
-### 一键启动所有服务
-
-使用提供的启动脚本可以一键启动所有服务：
-
-**Windows**:
-```bash
-start_all_services.bat
-```
-
-**Linux/Mac**:
-```bash
-# 需要手动创建 start_all_services.sh
-./start_all_services.sh
-```
 
 ## 默认账号
 
@@ -601,11 +606,14 @@ eco-sorter/
 
 | 接口 | 方法 | 路径 | 说明 |
 | --- | --- | --- | --- |
-| 健康检查 | GET | / | API健康检查 |
-| 垃圾识别 | POST | /api/recognition/recognize | 识别垃圾类别 |
+| 服务状态 | GET | / | API服务状态 |
+| 健康检查 | GET | /api/health | 健康检查 |
+| 模型信息 | GET | /api/model/info | 获取模型信息 |
+| 垃圾识别（URL） | POST | /api/recognition/recognize | 通过URL识别垃圾类别 |
+| 垃圾识别（文件） | POST | /api/recognition/recognize-with-file | 上传文件识别垃圾类别 |
+| 多目标识别 | POST | /api/recognition/recognize-multi | 多目标垃圾识别 |
 | 人脸注册 | POST | /api/face/register-with-file | 人脸注册（上传图片文件） |
 | 人脸验证 | POST | /api/face/verify-with-file | 人脸验证（上传图片文件） |
-| 健康检查 | GET | /api/health | 健康检查 |
 
 ## 端口配置
 

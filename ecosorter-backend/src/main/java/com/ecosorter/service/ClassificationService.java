@@ -167,6 +167,33 @@ public class ClassificationService {
         wasteCategoryRepository.deleteById(categoryId);
     }
 
+    @Transactional(readOnly = true)
+    public List<WasteCategoryResponse> searchWasteCategories(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return getWasteCategories();
+        }
+        
+        String searchKeyword = "%" + keyword.trim() + "%";
+        
+        List<WasteCategory> categories = wasteCategoryRepository.selectList(
+                new LambdaQueryWrapper<WasteCategory>()
+                        .eq(WasteCategory::getIsActive, true)
+                        .and(wrapper -> wrapper
+                                .like(WasteCategory::getName, keyword.trim())
+                                .or()
+                                .like(WasteCategory::getDescription, keyword.trim())
+                                .or()
+                                .like(WasteCategory::getCommonItems, keyword.trim())
+                                .or()
+                                .like(WasteCategory::getDisposalInstructions, keyword.trim())
+                        )
+        );
+
+        return categories.stream()
+                .map(category -> convertToWasteCategoryResponse(category))
+                .collect(Collectors.toList());
+    }
+
     private ClassificationResponse convertToResponse(Classification classification, WasteCategory category) {
         ClassificationResponse response = new ClassificationResponse();
         response.setId(classification.getId() != null ? classification.getId().toString() : null);

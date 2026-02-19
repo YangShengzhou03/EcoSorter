@@ -96,7 +96,7 @@ const navigateTo = (path) => {
 
 const loadBanners = async () => {
   try {
-    const response = await bannerApi.getList()
+    const response = await bannerApi.getList('user')
     banners.value = response || []
   } catch (error) {
     ElMessage.error('加载轮播图失败')

@@ -1,6 +1,6 @@
 package com.ecosorter.service;
 
-import com.ecosorter.dto.ProfileResponse;
+import com.ecosorter.dto.UserResponse;
 import com.ecosorter.model.User;
 import com.ecosorter.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -15,15 +15,15 @@ public class ProfileService {
         this.userRepository = userRepository;
     }
     
-    public ProfileResponse getProfileByUserId(Long userId) {
+    public UserResponse getProfileByUserId(Long userId) {
         User user = userRepository.selectById(userId);
         if (user == null) {
             throw new RuntimeException("User not found with id: " + userId);
         }
-        return convertToResponse(user);
+        return convertToUserResponse(user);
     }
     
-    public ProfileResponse updateProfile(Long userId, User profileData) {
+    public UserResponse updateProfile(Long userId, User profileData) {
         User user = userRepository.selectById(userId);
         if (user == null) {
             throw new RuntimeException("User not found with id: " + userId);
@@ -43,30 +43,36 @@ public class ProfileService {
         }
         
         User updatedUser = userRepository.save(user);
-        return convertToResponse(updatedUser);
+        return convertToUserResponse(updatedUser);
     }
     
-    public ProfileResponse updateAvatar(Long userId, String avatarUrl) {
+    public UserResponse updateAvatar(Long userId, String avatarUrl) {
         User user = userRepository.selectById(userId);
         if (user == null) {
             throw new RuntimeException("User not found with id: " + userId);
         }
         user.setAvatarUrl(avatarUrl);
         User updatedUser = userRepository.save(user);
-        return convertToResponse(updatedUser);
+        return convertToUserResponse(updatedUser);
     }
     
-    private ProfileResponse convertToResponse(User user) {
-        ProfileResponse response = new ProfileResponse();
-        response.setId(user.getId());
+    private UserResponse convertToUserResponse(User user) {
+        UserResponse response = new UserResponse();
+        response.setId(user.getId() != null ? user.getId().toString() : null);
         response.setUsername(user.getUsername());
         response.setEmail(user.getEmail());
-        response.setAvatar(user.getAvatarUrl());
-        response.setFullName(user.getUsername());
-        response.setPhone(user.getPhone());
-        response.setAddress(user.getAddress());
-        response.setCreatedAt(user.getCreatedAt());
-        response.setUpdatedAt(user.getUpdatedAt());
+        response.setRole(user.getRole() != null ? user.getRole().name() : null);
+        response.setIsActive(user.getIsActive());
+        response.setLastLogin(user.getLastLogin() != null ? user.getLastLogin().toString() : null);
+        response.setCreatedAt(user.getCreatedAt() != null ? user.getCreatedAt().toString() : null);
+        response.setUpdatedAt(user.getUpdatedAt() != null ? user.getUpdatedAt().toString() : null);
+        
+        UserResponse.UserProfileDto profileDto = new UserResponse.UserProfileDto();
+        profileDto.setAvatar(user.getAvatarUrl());
+        profileDto.setPhone(user.getPhone());
+        profileDto.setFullName(user.getUsername());
+        response.setProfile(profileDto);
+        
         return response;
     }
 }

@@ -2,14 +2,13 @@ package com.ecosorter.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 public class RegisterRequest {
     
     @NotBlank(message = "Username is required")
-    @Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters")
-    @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "Username can only contain letters, numbers, and underscores")
+    @Size(min = 2, max = 20, message = "Username must be between 2 and 20 characters")
     private String username;
     
     @NotBlank(message = "Email is required")
@@ -26,7 +25,7 @@ public class RegisterRequest {
     @Size(max = 50, message = "Last name must be less than 50 characters")
     private String lastName;
     
-    @Pattern(regexp = "^[\\+]?[\\d\\s\\-\\(\\)]+$", message = "Please provide a valid phone number")
+    @Pattern(regexp = "^[+]?[\\d\\s\\-()]+$", message = "Please provide a valid phone number")
     private String phone;
     
     private String role;

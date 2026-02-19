@@ -1,8 +1,8 @@
 package com.ecosorter.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.ecosorter.dto.CreateOrderRequest;
 import com.ecosorter.dto.OrderResponse;
-import com.ecosorter.model.Order;
 import com.ecosorter.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -57,11 +57,11 @@ public class OrderController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<OrderResponse> createOrder(
             @AuthenticationPrincipal com.ecosorter.model.User user,
-            @Valid @RequestBody Order order) {
+            @Valid @RequestBody CreateOrderRequest request) {
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(orderService.createOrder(user.getId(), order));
+        return ResponseEntity.ok(orderService.createOrderFromRequest(user.getId(), request));
     }
     
     @PutMapping("/{id}/status")

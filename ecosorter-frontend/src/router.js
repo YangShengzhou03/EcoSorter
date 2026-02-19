@@ -94,7 +94,7 @@ const routes = [
 
 const router = createRouter({ history: createWebHistory(), routes });
 
-const PUBLIC_PATHS = ["/", "/login", "/register", "/index/recyclable", "/index/hazardous", "/index/kitchen", "/index/other", "/index/booking", "/index/order-query", "/index/about", "/index/join", "/index/contact", "/index/privacy-policy", "/index/user-agreement"];
+const PUBLIC_PATHS = ["/", "/login", "/register", "/index/recyclable", "/index/hazardous", "/index/kitchen", "/index/other", "/index/booking", "/index/order-query", "/index/about", "/index/join", "/index/contact", "/index/privacy-policy", "/index/user-agreement", "/resident/product/:id", "/collector/product/:id"];
 
 const roleRedirectMap = {
   ADMIN: "/admin/dashboard",

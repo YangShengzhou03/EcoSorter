@@ -26,7 +26,7 @@
         android:enableOnBackInvokedCallback="true"
         android:allowNativeHeapPointerTagging="false">
         <activity
-            android:name="com.ecosorter.trashcan.MainActivity"
+            android:name="com.yangshengzhou.ecosorter.MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""

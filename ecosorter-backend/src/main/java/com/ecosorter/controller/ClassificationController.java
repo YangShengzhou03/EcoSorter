@@ -27,8 +27,8 @@ public class ClassificationController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<IPage<ClassificationResponse>> getClassificationHistory(
             @AuthenticationPrincipal com.ecosorter.model.User user,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDirection,
             @RequestParam(required = false) String categoryName,
@@ -37,7 +37,7 @@ public class ClassificationController {
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
-        IPage<ClassificationResponse> history = classificationService.getClassificationHistory(user.getId(), page, size, sortBy, sortDirection, categoryName, status);
+        IPage<ClassificationResponse> history = classificationService.getClassificationHistory(user.getId(), page, pageSize, sortBy, sortDirection, categoryName, status);
         return ResponseEntity.ok(history);
     }
     
@@ -45,6 +45,13 @@ public class ClassificationController {
     public ResponseEntity<List<WasteCategoryResponse>> getWasteCategories() {
         List<WasteCategoryResponse> categories = classificationService.getWasteCategories();
         return ResponseEntity.ok(categories);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<WasteCategoryResponse>> searchWasteCategories(
+            @RequestParam String keyword) {
+        List<WasteCategoryResponse> results = classificationService.searchWasteCategories(keyword);
+        return ResponseEntity.ok(results);
     }
     
     @PostMapping("/categories")

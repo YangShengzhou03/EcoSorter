@@ -193,12 +193,9 @@ const captureFace = async () => {
       try {
         const file = new File([blob], 'face.jpg', { type: 'image/jpeg' })
         
-        ElMessage.info('正在进行人脸识别...')
         const loginResponse = await trashcanApi.faceLoginWithFile(file)
         
         if (loginResponse && loginResponse.accessToken) {
-          ElMessage.success('人脸识别成功')
-          
           sessionStorage.setItem('userToken', loginResponse.accessToken)
           sessionStorage.setItem('user', JSON.stringify(loginResponse.user))
           
