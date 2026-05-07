@@ -1,0 +1,108 @@
+@startuml
+title 智能垃圾分类系统活动图
+scale 1.5
+skinparam activity {
+    BackgroundColor #F9F9F9
+    BorderColor #333
+    StartColor #66CC66
+    EndColor #FF6666
+    ArrowColor #333
+    FontSize 10
+}
+
+' 定义泳道：用户、边缘设备、云端服务、数据库、管理端
+partition "居民/收集员" as User <<泳道>> {
+    :靠近垃圾桶，触发感应;
+    :放置垃圾至识别区;
+    if (投放完成?) then (是)
+        :查看积分/任务反馈;
+    endif
+    :离开垃圾桶;
+}
+
+partition "智能垃圾桶终端（边缘设备）" as EdgeDevice <<泳道>> {
+    :身份认证（NFC/人脸识别）;
+    :高清摄像头捕获垃圾图像（1080P广角）;
+    :高精度称重传感器获取重量（±5g精度）;
+    :边缘处理器运行轻量AI模型（TensorRT优化，≤800ms）;
+    :生成识别结果（置信度+垃圾类型）;
+    
+    if (置信度 ≥ 70%) then (是)
+        :进入多模态验证;
+    else if (50% ≤ 置信度 < 70%) then (是)
+        :通过gRPC协议上传图像至云端;
+    else (否)
+        :标记为低置信度异常，触发信用管理;
+    endif
+    
+    :多模态验证（重量+图像比对）;
+    if (Δweight ≥ 0.5kg) then (是)
+        :验证通过，进入积分计算;
+    else if (0.1kg ≤ Δweight < 0.5kg) then (是)
+        :触发SIFT特征比对（本地图像库）;
+        if (匹配成功) then (是)
+            :验证通过，进入积分计算;
+        else (否)
+            :标记为重量异常，触发信用管理;
+        endif
+    else (否)
+        :标记为空投作弊，触发信用管理;
+    endif
+}
+
+partition "云端服务平台" as CloudService <<泳道>> {
+    :接收边缘设备上传的低置信度图像;
+    :通过ResNet-152深度模型二次识别（GPU集群加速）;
+    :返回增强识别结果（置信度提升≥90%）;
+    :更新边缘设备本地模型（OTA固件升级）;
+}
+
+partition "核心服务与数据存储" as CoreService <<泳道>> {
+    :积分计算引擎执行动态算法;
+    :基础积分（10分/kg）× 置信度系数（0.7-1.0）;
+    :+ 分类难度加成（有害垃圾+50%）;
+    :+ 重量系数（≥5kg时+20%）;
+    :写入积分记录数据库（MySQL）;
+    
+    :任务调度中心分配清运任务;
+    :根据垃圾桶满溢状态（fillLevel）和收集员位置优化路径;
+    :推送任务至收集员终端（HTTPS/JSON API）;
+    
+    :设备管理服务监控垃圾桶状态（InfluxDB时序数据库）;
+    :异常状态（FAULT/OFFLINE）触发邮件告警;
+}
+
+partition "管理端（Web/APP）" as Admin <<泳道>> {
+    :管理员接收系统告警（邮件/WebSocket）;
+    :调取高清录像复核异常投放（4K图像存储）;
+    :人工判定争议记录（72小时内申诉处理）;
+    :配置分类规则（如积分系数、垃圾类别）;
+    :生成数据分析报表（Excel/PDF导出）;
+}
+
+' 活动转移
+User:靠近垃圾桶，触发感应 --> EdgeDevice:身份认证;
+EdgeDevice:身份认证 --> EdgeDevice:高清摄像头捕获垃圾图像;
+EdgeDevice:高清摄像头捕获垃圾图像 --> EdgeDevice:高精度称重传感器获取重量;
+EdgeDevice:高精度称重传感器获取重量 --> EdgeDevice:边缘处理器运行轻量AI模型;
+EdgeDevice:边缘处理器运行轻量AI模型 --> EdgeDevice:生成识别结果;
+
+EdgeDevice:生成识别结果 --> CloudService:通过gRPC协议上传图像至云端 (if 50%≤置信度<70%);
+CloudService:返回增强识别结果 --> EdgeDevice:进入多模态验证 (if 云端识别通过);
+
+EdgeDevice:多模态验证 --> CoreService:积分计算引擎执行动态算法 (if 验证通过);
+CoreService:积分计算引擎执行动态算法 --> CoreService:写入积分记录数据库;
+CoreService:写入积分记录数据库 --> User:查看积分/任务反馈;
+
+EdgeDevice:标记为低置信度异常，触发信用管理 --> CoreService:信用评分机制（初始分100，异常-20分/次）;
+CoreService:信用评分机制 --> Admin:调取高清录像复核异常投放 (if 信用分<60);
+Admin:人工判定争议记录 --> CoreService:更新信用状态（临时冻结/永久封禁）;
+
+CoreService:任务调度中心分配清运任务 --> User:收集员接收清运任务（APP推送）;
+User:收集员执行清运操作 --> EdgeDevice:红外测距仪更新满溢状态（fillLevel重置）;
+EdgeDevice:红外测距仪更新满溢状态 --> CoreService:设备管理服务监控垃圾桶状态;
+
+' 结束节点
+CoreService:写入积分记录数据库 --> stop;
+Admin:更新信用状态 --> stop;
+@enduml

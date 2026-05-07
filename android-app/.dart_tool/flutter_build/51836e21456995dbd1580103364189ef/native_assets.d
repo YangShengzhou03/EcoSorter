@@ -1,0 +1,1 @@
+ D:\\Code\\web\\eco-sorter\\android-app\\.dart_tool\\flutter_build\\51836e21456995dbd1580103364189ef\\native_assets.yaml: 

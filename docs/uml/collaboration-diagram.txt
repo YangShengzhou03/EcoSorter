@@ -1,0 +1,45 @@
+@startuml
+!theme plain
+title 垃圾投放协作图
+skinparam monochrome true
+skinparam nodesep 10
+skinparam ranksep 15
+
+actor 居民 as Resident
+participant "居民手机APP" as App
+participant "智能垃圾桶终端" as Bin
+participant "边缘处理器" as Edge
+participant "AI推理服务" as AIService
+participant "积分计算引擎" as PointsEngine
+participant "设备管理服务" as DeviceMgr
+participant "用户数据库" as UserDB
+
+Resident -> App : 1. 身份认证(NFC/人脸)
+App -> Bin : 2. 发送用户凭证
+Bin -> Edge : 3. 验证身份请求
+activate Edge
+Edge -> UserDB : 4. 查询用户信息
+UserDB --> Edge : 5. 返回认证结果
+Edge --> Bin : 6. 认证通过
+Bin -> Resident : 7. 显示欢迎信息
+
+Resident -> Bin : 8. 放置垃圾
+Bin -> Edge : 9. 触发感知
+Edge -> Edge : 10. 采集传感器数据\n(图像+重量)
+Edge -> Edge : 11. 运行本地AI模型
+alt 置信度≥70%
+    Edge -> PointsEngine : 12. 发送识别结果
+else 50%≤置信度<70%
+    Edge -> AIService : 12a. 请求云端识别
+    AIService --> Edge : 12b. 返回增强结果
+    Edge -> PointsEngine : 12c. 发送最终结果
+end
+
+PointsEngine -> PointsEngine : 13. 计算动态积分
+PointsEngine -> UserDB : 14. 更新积分记录
+PointsEngine -> App : 15. 推送积分通知
+PointsEngine -> DeviceMgr : 16. 更新垃圾桶状态
+DeviceMgr -> Bin : 17. 刷新显示屏信息
+
+Bin -> Resident : 18. 显示投放结果
+@enduml

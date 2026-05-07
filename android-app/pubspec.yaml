@@ -1,0 +1,44 @@
+name: ecosorter
+description: "ECO-SORTER 智能垃圾分类系统"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.2.6
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  provider: ^6.1.0
+  http: ^1.1.0
+  mobile_scanner: ^4.0.1
+  cached_network_image: ^3.3.0
+  flutter_secure_storage: ^9.0.0
+  json_annotation: ^4.8.1
+  image_picker: ^1.0.7
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  build_runner: ^2.4.7
+  json_serializable: ^6.7.1
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: GenJyuuGothic
+      fonts:
+        - asset: assets/fonts/GenJyuuGothic-Light.ttf
+          weight: 300
+        - asset: assets/fonts/GenJyuuGothic-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/GenJyuuGothic-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/GenJyuuGothic-Bold.ttf
+          weight: 700

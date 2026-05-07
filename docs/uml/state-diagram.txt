@@ -1,0 +1,116 @@
+@startuml
+title 智能垃圾分类投放记录状态图 v2.0
+scale 1.2
+
+' 定义构造型
+stereotype 初始状态 as "<<初始状态>>"
+stereotype 正常流程 as "<<正常流程>>"
+stereotype 异常流程 as "<<异常流程>>"
+stereotype 边缘协同 as "<<边缘协同>>"
+
+skinparam state {
+    BackgroundColor <<初始状态>> #E5F6FF
+    BackgroundColor <<正常流程>> #F0FFF0
+    BackgroundColor <<异常流程>> #FFF0F0
+    BackgroundColor <<边缘协同>> #FFF9E5
+    BorderColor #333
+    FontName Arial
+    ArrowColor #333
+}
+
+state "预识别" as precheck <<初始状态>> {
+    :用户通过NFC/人脸识别\n选择垃圾类型;
+    [*] --> 身份验证
+    身份验证 --> 类型选择 : 验证成功
+    类型选择 --> [*] : 选择完成
+}
+
+state "边缘AI识别" as edge_ai <<正常流程>> {
+    :轻量模型实时分析\n(≤800ms);
+    [*] --> 图像捕获
+    图像捕获 --> 模型推理 : 图像质量达标
+    模型推理 --> 结果生成 : 完成识别
+    结果生成 --> [*] : 输出置信度
+}
+
+state "云端协同识别" as cloud_ai <<边缘协同>> {
+    :低置信度图像上传云端\n深度模型分析;
+    [*] --> 加密传输
+    加密传输 --> 增强推理 : 使用ResNet-152
+    增强推理 --> 结果返回 : 置信度提升
+    结果返回 --> [*] : 返回最终分类
+}
+
+state "动态验证" as dynamic_verify <<正常流程>> {
+    :多模态验证\n(重量+图像比对);
+    [*] --> 重量检测
+    重量检测 --> 图像比对 : 0.1kg≤Δweight<0.5kg
+    图像比对 --> 结果判定 : 特征匹配分析
+    结果判定 --> [*] : 验证结论
+}
+
+state "积分计算" as points_calc <<正常流程>> {
+    :动态积分算法\n(重量/类别/准确率);
+    [*] --> 基础计算
+    基础计算 --> 难度加成 : 有害垃圾+50%
+    难度加成 --> 重量系数 : ≥5kg+20%
+    重量系数 --> [*] : 最终积分
+}
+
+state "信用管理" as credit_system <<异常流程>> {
+    :行为信用评分体系;
+    [*] --> 信用评估
+    信用评估 --> 临时冻结 : 累计2次异常
+    信用评估 --> 永久封禁 : 累计3次作弊
+    临时冻结 --> [*] : 30天观察期
+}
+
+state "已完成" as completed <<正常流程>> {
+    :区块链存证记录;
+    [*] --> 数据上链
+    数据上链 --> 积分更新 : 更新用户账户
+    积分更新 --> 通知推送 : APP/短信通知
+    通知推送 --> [*] : 流程结束
+}
+
+' ====== 状态转移 ======
+[*] --> precheck : 居民靠近垃圾桶
+precheck --> edge_ai : 放置垃圾至识别区
+edge_ai --> dynamic_verify : 置信度≥70%
+edge_ai --> cloud_ai : 50%≤置信度<70%
+edge_ai --> credit_system : 置信度<50%
+cloud_ai --> dynamic_verify : 云端识别通过
+cloud_ai --> credit_system : 云端识别失败
+dynamic_verify --> points_calc : 验证通过
+dynamic_verify --> credit_system : 验证失败
+points_calc --> completed : 无争议处理
+points_calc --> credit_system : 中置信度争议
+credit_system --> completed : 申诉审核通过
+completed --> [*] : 推送通知
+
+' ====== 技术说明 ======
+note right of cloud_ai
+  <b>边缘云协同：</b>
+  1. 边缘：TensorRT优化模型
+  2. 云端：ResNet-152深度模型
+  3. 传输：AES-256加密图像
+  4. 时延：<1.5s端到端响应
+end note
+
+note bottom of dynamic_verify
+  <b>动态验证规则：</b>
+  if Δweight ≥0.5kg: 直接通过
+  if 0.1kg≤Δweight<0.5kg: 触发图像比对
+  if Δweight<0.1kg: 标记异常
+  图像比对：SIFT特征匹配算法
+end note
+
+note top of credit_system
+  <b>信用评分机制：</b>
+  初始分：100
+  异常投放：-20分/次
+  临时冻结：信用分<60
+  永久封禁：信用分<40
+  良好行为：+5分/月(无异常)
+end note
+@enduml

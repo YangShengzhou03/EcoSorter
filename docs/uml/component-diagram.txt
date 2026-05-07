@@ -1,0 +1,99 @@
+@startuml
+!theme plain
+title 智能垃圾分类系统组件图
+skinparam component {
+  BackgroundColor #F9F9F9
+  BorderColor #333
+  ArrowColor #666
+}
+
+' ====== 核心组件 ======
+component "用户交互系统" as UI {
+  component "居民手机APP"
+  component "收集员终端APP"
+  component "管理员控制台"
+}
+
+component "边缘处理系统" as Edge {
+  component "传感器控制器"
+  component "执行器驱动器"
+  component "轻量AI推理引擎"
+}
+
+component "核心服务系统" as Core {
+  component "身份认证服务"
+  component "积分计算引擎"
+  component "任务调度中心"
+  component "设备管理服务"
+  component "AI推理服务"
+}
+
+component "数据存储系统" as Data {
+  component "用户数据库" <<MySQL>>
+  component "任务数据库" <<MongoDB>>
+  component "设备状态库" <<InfluxDB>>
+  component "图像存储" <<MinIO>>
+}
+
+' ====== 支持组件 ======
+component "模型训练系统" as Training {
+  component "数据标注工具"
+  component "分布式训练框架"
+  component "模型版本管理"
+}
+
+component "通知服务" as Notify {
+  component "推送网关"
+  component "短信服务"
+  component "邮件服务"
+}
+
+' ====== 接口定义 ======
+interface "身份认证接口" as AuthAPI
+interface "设备控制接口" as DeviceAPI
+interface "AI识别接口" as AIAPI
+interface "数据访问接口" as DataAPI
+
+' ====== 组件关系 ======
+UI --|> AuthAPI : 实现
+UI --|> DeviceAPI : 调用
+Edge --|> AIAPI : 实现
+Core --|> DataAPI : 实现
+
+Core --> AuthAPI : 提供
+Core --> DeviceAPI : 提供
+Core --> AIAPI : 提供
+Data --> DataAPI : 提供
+
+居民手机APP --> 积分计算引擎 : 查询积分
+收集员终端APP --> 任务调度中心 : 任务交互
+管理员控制台 --> 设备管理服务 : 监控配置
+
+轻量AI推理引擎 --> AI推理服务 : 协同识别\n<<gRPC>>
+AI推理服务 --> 模型训练系统 : 模型更新请求
+设备管理服务 --> 传感器控制器 : 配置指令\n<<MQTT>>
+积分计算引擎 --> 推送网关 : 通知发送\n<<Firebase>>
+
+' ====== 数据流说明 ======
+note bottom of 轻量AI推理引擎
+  <b>边缘处理：</b>
+  1. 本地模型推理(≤800ms)
+  2. 置信度<70%时请求云端
+  3. 缓存识别结果
+end note
+
+note right of 积分计算引擎
+  <b>计算规则：</b>
+  基础分 × 类别系数 × 重量系数
+  有害垃圾+50%加成
+  大重量投放+20%奖励
+end note
+
+note left of 模型训练系统
+  <b>训练流程：</b>
+  1. 接收边缘低置信度样本
+  2. 增量训练模型
+  3. 生成TensorRT优化模型
+  4. OTA推送到边缘设备
+end note
+@enduml

@@ -1,0 +1,89 @@
+@startuml
+skinparam packageStyle rectangle
+skinparam packageBorderColor #333
+skinparam packageBackgroundColor #F9F9F9
+left to right direction
+
+package "用户交互层" {
+  package "居民交互" {
+    [居民手机APP]
+  }
+  
+  package "管理员交互" {
+    [管理员工作站]
+  }
+  
+  package "收集员交互" {
+    [收集员终端APP]
+  }
+}
+
+package "边缘设备层" {
+  package "智能垃圾桶终端" {
+    [边缘处理器]
+    [传感器模块] <<包含>>
+    [执行器模块] <<包含>>
+    [通信模块]
+  }
+}
+
+package "核心服务层" {
+  package "身份认证" {
+    [身份认证服务]
+  }
+  
+  package "积分管理" {
+    [积分计算引擎]
+  }
+  
+  package "任务调度" {
+    [任务调度中心]
+  }
+  
+  package "设备管理" {
+    [设备管理服务]
+  }
+  
+  package "AI服务" {
+    [AI推理服务]
+    [模型训练系统]
+  }
+}
+
+package "数据存储层" {
+  package "业务数据库" {
+    [用户数据库]
+    [任务数据库]
+    [积分记录数据库]
+  }
+  
+  package "设备数据库" {
+    [设备状态数据库]
+  }
+  
+  package "AI数据库" {
+    [图像存储]
+  }
+}
+
+' ====== 依赖关系 ======
+用户交互层 --> 核心服务层 : 调用API
+边缘设备层 --> 核心服务层 : 上报数据\n接收指令
+核心服务层 --> 数据存储层 : 持久化数据
+AI服务 --> 数据存储层 : 读写训练数据
+设备管理 --> 边缘设备层 : 固件更新\n远程配置
+
+' ====== 包关系说明 ======
+note top of 核心服务层
+  <b>服务间通信：</b>
+  • RESTful API
+  • gRPC
+  • 消息队列
+end note
+
+note bottom of 边缘设备层
+  <b>硬件接口：</b>
+  • USB/SPI/I2C
+  • GPIO/PWM
+end note
+@enduml
